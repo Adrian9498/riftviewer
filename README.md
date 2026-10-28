@@ -26,16 +26,31 @@ El build es un sitio estático: se puede publicar en cualquier hosting. Ya no se
 ## Estructura
 ```
 index.html              marcado de la app
-src/main.ts             punto de entrada
+src/main.ts             punto de entrada: llama al init() de cada módulo de src/app en orden
 src/styles/app.css      estilos
-src/legacy/app.js       la app (en migración: se va dividiendo en los módulos de abajo)
-src/data/               cartas: normalización de nombres, catálogo de OpenRift
-src/script/             lenguaje de guiones (parser)
-src/replay/             replays de RiftAtlas: decodificación, traducción del registro, mazos
-tests/                  pruebas de los módulos
+
+src/data/               (TS estricto) nombres de cartas, catálogo de OpenRift
+src/script/             (TS estricto) lenguaje de guiones: parser
+src/replay/             (TS estricto) decodificación de replays, traducción del registro, mazos,
+                        encuadre de la cámara, detección de batallas y puntos
+
+src/app/                la interfaz y el render (JavaScript, se irá tipando)
+  state.ts              estado compartido entre módulos (app.playing, app.speed, app.token, app.R, app.PCOL)
+  base.js utils.js fit.js           utilidades, escala del escenario
+  cards.js custom-images.js         carga de cartas (riftcodex + OpenRift), imágenes propias
+  demo.js script-engine.js          guion de ejemplo y mesa del modo guion
+  replay.js layout-lanes.js replay-render.js   replays: carga, distribuciones, render y cámara
+  export.js clips.js notes.js       exportar video, clips, notas y "adivina la jugada"
+  chart.js summary.js               gráfica de puntos y resumen final
+  brand.js sounds.js hover.js       marca, sonidos, vista ampliada
+  shell.js ui.js                    inicio, recientes, pestañas, barra superior, atajos
+
+tests/                  pruebas unitarias + prueba de humo de la app completa (jsdom)
 scripts/                utilidades (descarga del catálogo)
-visualizador.html       versión anterior en un solo archivo (referencia, se eliminará)
+visualizador.html       versión anterior en un solo archivo (referencia; se borra al confirmar que todo funciona igual)
 ```
+
+Reglas de los módulos de `src/app`: a nivel superior solo hay declaraciones (exportadas); todo lo que tiene efectos (eventos, preferencias, carga inicial) va en `init()`. Así no importa el orden en que se evalúan los módulos que se importan entre sí.
 
 ## Datos y créditos
 Datos de cartas: riftcodex y [OpenRift](https://openrift.app). Imágenes y textos de cartas © Riot Games.
