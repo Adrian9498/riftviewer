@@ -1,5 +1,7 @@
 // Generado a partir de legacy/app.js (sección "notes").
+import { isPremium } from '../cloud/plan';
 import { $, stage } from './base';
+import { needPremium } from './premium';
 import { showChart } from './chart';
 import { PROJ, saveProj } from './clips';
 import { PB } from './export';
@@ -13,12 +15,15 @@ import { esc, hold, sleep } from './utils';
 /* ================= 3. Notas (anotaciones) y 8. Adivina la jugada ================= */
 export let PICK=null;
 export const NOTE_TYPES={texto:'💬 Texto',flecha:'➜ Flecha',circulo:'◯ Resaltar',pausa:'⏸ Pausa',grafica:'📈 Gráfica',adivina:'❓ Adivina'};
+// notas de Full Access: sin el plan se conservan, pero no se muestran al reproducir ni al exportar
+export const ADVANCED_NOTES=['flecha','circulo','adivina','grafica'];
+const allowed = n => isPremium() || !ADVANCED_NOTES.includes(n.type);
 export function refName(ref){
   if(ref.startsWith('f:')){ if(!app.R) return 'Campo '+ref.slice(2); const fd=app.R.fieldDefs?.find(x=>x.z===ref.slice(2)); return fd?.name||'campo'; }
   return app.R ? (app.R.el.get(ref)?._card?.name||'carta') : (G.cards[ref]?.name||'carta');
 }
 export function noteLabel(n){
-  const t=n.text?` "${esc(n.text)}"`:'';
+  const t=(n.text?` "${esc(n.text)}"`:'')+(allowed(n)?'':' 🔒');
   if(n.type==='flecha') return `➜ ${esc(n.names?.[0])} → ${esc(n.names?.[1])}${t}`;
   if(n.type==='circulo') return `◯ ${esc((n.names||[]).join(', '))}${t}`;
   return `${NOTE_TYPES[n.type]}${t} · ${n.secs}s`;
@@ -32,7 +37,7 @@ export function renderNotes(){
     ${list.map((n,k)=>`<div class="note"><span>${noteLabel(n)}</span><button class="btn mini" data-nd="${k}">✕</button></div>`).join('') || '<div class="hint" style="margin:6px 0">Sin notas en esta jugada.</div>'}
     <h4>Añadir nota</h4>
     <div class="form">
-      <span>Tipo</span><select id="nType">${Object.entries({texto:'💬 Texto en pantalla',flecha:'➜ Flecha entre cartas',circulo:'◯ Resaltar cartas',pausa:'⏸ Pausa para explicar',grafica:'📈 Mostrar gráfica de puntos',adivina:'❓ Adivina la jugada (antes de la jugada)'}).filter(([v])=>app.R||v!=='grafica').map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+      <span>Tipo</span><select id="nType">${Object.entries({texto:'💬 Texto en pantalla',flecha:'➜ Flecha entre cartas',circulo:'◯ Resaltar cartas',pausa:'⏸ Pausa para explicar',grafica:'📈 Mostrar gráfica de puntos',adivina:'❓ Adivina la jugada (antes de la jugada)'}).filter(([v])=>app.R||v!=='grafica').map(([v,l])=>`<option value="${v}">${l}${!isPremium()&&ADVANCED_NOTES.includes(v)?' 🔒':''}</option>`).join('')}</select>
       <span class="nf-text">Texto</span><input type="text" id="nText" class="nf-text" placeholder="Ej: Aquí debió guardar Stupefy">
       <span>Segundos</span><input type="number" id="nSecs" min="1" max="60" value="4">
       <span class="nf-pick">Cartas</span><div class="nf-pick"><button class="btn mini" id="nPick">Elegir en la mesa</button> <small id="nPicked" style="color:var(--muted)"></small></div>
@@ -70,7 +75,7 @@ export function anchorEl(ref){
 }
 export function relRect(el){ const r=el.getBoundingClientRect(), ir=innerRect(), sc=scale(); return {x:(r.left-ir.left)/sc,y:(r.top-ir.top)/sc,w:r.width/sc,h:r.height/sc}; }
 export async function runNotes(i){
-  const list=PROJ.notes[i]; if(!list||!list.length) return;
+  const list=(PROJ.notes[i]||[]).filter(allowed); if(!list.length) return;
   const vis=list.filter(n=>['texto','flecha','circulo'].includes(n.type));
   if(vis.length){
     const layer=document.createElement('div'); $('#fx').appendChild(layer);
@@ -97,7 +102,7 @@ export async function runNotes(i){
   }
 }
 export async function runQuiz(i){
-  const n=(PROJ.notes[i]||[]).find(x=>x.type==='adivina'); if(!n) return;
+  const n=(PROJ.notes[i]||[]).find(x=>x.type==='adivina'); if(!n || !allowed(n)) return;
   const q=$('#quiz'), c=q.querySelector('.count'); q.querySelector('.q').textContent=n.text||'Piensa la jugada antes de que se revele…';
   q.classList.add('show'); const my=app.token;
   for(let k=n.secs;k>0 && my===app.token;k--){ c.textContent=k; c.animate([{transform:'scale(1.4)',opacity:.4},{transform:'scale(1)',opacity:1}],{duration:400}); await hold(1000); }
@@ -111,9 +116,10 @@ export function init() {
     const b=e.target.closest('button'); if(!b) return;
     const ci=PB.cur();
     if(b.dataset.nd!==undefined){ PROJ.notes[ci].splice(+b.dataset.nd,1); if(!PROJ.notes[ci].length) delete PROJ.notes[ci]; saveProj(); if(app.R) buildFrameList(); renderNotes(); }
-    else if(b.id==='nPick') startPick($('#nType').value==='flecha'?2:99);
+    else if(b.id==='nPick'){ if(needPremium('notes_advanced')) startPick($('#nType').value==='flecha'?2:99); }
     else if(b.id==='nAdd'){
       const type=$('#nType').value, n={type,text:$('#nText').value.trim(),secs:Math.max(1,+$('#nSecs').value||4)};
+      if(ADVANCED_NOTES.includes(type) && !needPremium('notes_advanced')) return;
       if(type==='texto' && !n.text){ alert('Escribe el texto.'); return; }
       if(type==='flecha' && NOTEDRAFT.refs.length<2){ alert('Elige dos cartas (origen y destino) en la mesa.'); return; }
       if(type==='circulo' && !NOTEDRAFT.refs.length){ alert('Elige al menos una carta en la mesa.'); return; }

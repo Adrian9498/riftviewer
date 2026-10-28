@@ -2,13 +2,15 @@
 import { currentUser, displayName, enabledProviders, initAuth, onUserChange, sendPasswordReset, setNewPassword, signIn, signInWith, signOut, signUp } from '../cloud/auth';
 import { cloudEnabled } from '../cloud/client';
 import { connectPatreon, disconnectPatreon, patreonLink, takePatreonReturn } from '../cloud/patreon';
-import { configureSync, fetchTier, onSyncStatus, syncNow, syncStatus } from '../cloud/sync';
+import { currentPlan, isPremium, refreshPlan } from '../cloud/plan';
+import { configureSync, onSyncStatus, syncNow, syncStatus } from '../cloud/sync';
+import { openUpsell } from './premium';
 import { $ } from './base';
 import { localAdapter } from './cloud-adapter';
 import { ago, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 
-let tier = 'free', lastError = '';
+let lastError = '';
 // nombres visibles de los planes; los demás se muestran con su clave (los define el secreto PATREON_TIERS)
 const TIERS = { free: 'Gratis', full: 'Full Access' };
 const tierLabel = t => TIERS[t] || (t ? t[0].toUpperCase() + t.slice(1) : 'Gratis');
@@ -94,7 +96,7 @@ export function openAccount() {
   const body = openModal('Tu cuenta', `
     <span>Nombre</span><b>${esc(displayName(u))}</b>
     <span>Correo</span><span>${esc(u.email || '—')}</span>
-    <span>Plan</span><span id="acTier">${esc(tierLabel(tier))}</span>
+    <span>Plan</span><span id="acTier"></span>
     <span>Patreon</span><div id="acPatreon"><small style="color:var(--muted)">Revisando…</small></div>
     <span>Nube</span><span id="acSync">${esc(syncText(syncStatus()))}</span>
     <div class="full row" style="padding:6px 0 0"><button class="btn" id="acSyncNow">⟳ Sincronizar ahora</button><button class="btn" id="acOut">Cerrar sesión</button></div>
@@ -102,8 +104,21 @@ export function openAccount() {
     [['Cerrar', 'primary']]);
   body.querySelector('#acSyncNow').onclick = () => syncNow();
   body.querySelector('#acOut').onclick = async () => { await signOut(); closeModal(); toast('Sesión cerrada'); };
-  fetchTier().then(t => { tier = t; const el = $('#acTier'); if (el) el.textContent = tierLabel(t); });
+  paintTier(); refreshPlan().then(paintTier);
   paintPatreon();
+}
+
+// plan actual: nombre y vigencia; si es Gratis, enlace para ver qué incluye Full Access
+function paintTier() {
+  const el = $('#acTier'); if (!el) return;
+  const p = currentPlan();
+  if (isPremium()) {
+    const until = p.validUntil ? ` <small style="color:var(--muted)">· vigente hasta el ${new Date(p.validUntil).toLocaleDateString('es')}</small>` : '';
+    el.innerHTML = `<b class="pt-on">${esc(tierLabel(p.tier))}</b>${until}`;
+  } else {
+    el.innerHTML = 'Gratis <a href="#" id="acUp">Ver Full Access</a>';
+    $('#acUp').onclick = e => { e.preventDefault(); openUpsell(); };
+  }
 }
 
 async function paintPatreon() {
@@ -117,7 +132,7 @@ async function paintPatreon() {
   if (on) on.onclick = async () => { on.disabled = true; on.textContent = 'Abriendo Patreon…'; try { await connectPatreon(); } catch (e) { toast(e.message, 'err'); on.disabled = false; on.textContent = 'Conectar con Patreon'; } };
   if (off) off.onclick = async () => {
     if (!confirm('¿Desconectar tu cuenta de Patreon? Tu plan volverá a Gratis.')) return;
-    try { await disconnectPatreon(); tier = 'free'; const el = $('#acTier'); if (el) el.textContent = tierLabel(tier); toast('Patreon desconectado'); paintPatreon(); }
+    try { await disconnectPatreon(); await refreshPlan(); paintTier(); toast('Patreon desconectado'); paintPatreon(); }
     catch (e) { toast(e.message, 'err'); }
   };
 }
@@ -135,7 +150,7 @@ export function init() {
   onUserChange((u, ev) => {
     renderButton(u);
     if (ev === 'PASSWORD_RECOVERY') openNewPassword();
-    if (u && ['INITIAL', 'INITIAL_SESSION', 'SIGNED_IN'].includes(ev)) { syncNow(); fetchTier().then(t => { tier = t; }); }
+    if (u && ['INITIAL', 'INITIAL_SESSION', 'SIGNED_IN'].includes(ev)) syncNow();
   });
   addEventListener('focus', () => { if (currentUser()) syncNow(); });   // al volver a la pestaña, traer cambios de otra PC
   initAuth().then(() => {
@@ -143,6 +158,6 @@ export function init() {
     const r = takePatreonReturn();
     if (!r) return;
     toast(r.message, r.status === 'error' ? 'err' : r.status === 'ok' ? 'ok' : undefined);
-    if (r.status === 'ok') fetchTier().then(t => { tier = t; openAccount(); });
+    if (r.status === 'ok') refreshPlan().then(() => openAccount());
   });
 }

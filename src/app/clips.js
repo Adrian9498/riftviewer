@@ -1,6 +1,7 @@
 // Generado a partir de legacy/app.js (sección "clips").
 import { noteLocalChange } from '../cloud/sync';
 import { $ } from './base';
+import { needPremium } from './premium';
 import { setStatus } from './cards';
 import { PB, playSegment, recordVideo } from './export';
 import { renderNotes } from './notes';
@@ -25,7 +26,7 @@ export function renderClips(){
     <div class="form"><span>Jugadas antes</span><input type="number" id="cBefore" min="0" max="40" value="${PROJ.before}"><span>Jugadas después</span><input type="number" id="cAfter" min="0" max="40" value="${PROJ.after}"></div>
     <h4>${ids.length} clip${ids.length===1?'':'s'}</h4>
     ${ids.map(i=>`<div class="clip"><small>#${i} · T${PB.turn(i)}</small><input type="text" value="${esc(PROJ.marks[i].label)}" data-lbl="${i}"><button class="btn mini" data-cp="${i}" title="Ver clip">▶</button><button class="btn mini" data-cx="${i}" title="Exportar este clip">⏺</button><button class="btn mini" data-cd="${i}" title="Quitar">✕</button></div>`).join('') || '<div class="hint">Todavía no marcaste ninguna jugada.</div>'}
-    ${ids.length?`<div class="row" style="padding:10px 0"><button class="btn" id="cPlayAll">▶ Ver todos</button><button class="btn primary" id="cExpAll">⏺ Exportar todos en un video</button></div>`:''}
+    ${ids.length?`<div class="row" style="padding:10px 0"><button class="btn" id="cPlayAll">▶ Ver todos</button><button class="btn primary lockable" id="cExpAll">⏺ Exportar todos en un video</button></div>`:''}
     <h4>Proyecto</h4><div class="hint">Clips y notas se guardan solos en este navegador. Para respaldarlos o pasarlos a otra PC:</div>
     <div class="row" style="padding:8px 0"><button class="btn" id="pSave">Guardar proyecto (.json)</button><button class="btn" id="pLoad">Abrir proyecto</button></div></div>`;
 }
@@ -47,7 +48,7 @@ export function init() {
     else if(d.cd){ delete PROJ.marks[d.cd]; saveProj(); if(app.R) buildFrameList(); renderClips(); }
     else if(b.id==='cMarkCur'){ if(!PROJ.marks[PB.cur()]) toggleMark(PB.cur()); }
     else if(b.id==='cPlayAll'){ app.playing=false; for(const i of markIds()){ if(!await playSegment(clipSeg(i))) break; } }
-    else if(b.id==='cExpAll') recordVideo(markIds().map(clipSeg));
+    else if(b.id==='cExpAll'){ if(needPremium('export_presets')) recordVideo(markIds().map(clipSeg)); }
     else if(b.id==='pSave'){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify({format:'rb-vis-project',replay:PROJKEY,proj:PROJ},null,1)],{type:'application/json'})); a.download=`proyecto-${(DOC.name||'partida').replace(/[^\w-]+/g,'_')}.json`; a.click(); }
     else if(b.id==='pLoad') $('#projIn').click();
   });

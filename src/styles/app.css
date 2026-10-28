@@ -520,3 +520,14 @@ body.rec #ctrl{opacity:0} body.rec #ctrl:hover{opacity:1}
 #hAccount{position:absolute;top:18px;left:24px}
 .btn.pt{background:#ff424d;border-color:#ff424d;color:#fff;font-weight:600}
 .pt-on{color:var(--ok);font-weight:600}
+
+/* ---------- Full Access ---------- */
+#wm{position:absolute;left:22px;bottom:16px;z-index:96;display:none;font-size:18px;color:#ffffffcc;background:#000a;padding:6px 12px;border-radius:8px;pointer-events:none;letter-spacing:.3px}
+body.free.recording #wm{display:block}
+body.free .lockable::after{content:" 🔒"}
+.preset.locked{opacity:.75}
+.preset.locked:hover{border-color:#f2c14e88}
+.upsell-why{margin:0 0 8px;font-size:14px}
+.upsell-list{margin:0 0 8px;padding-left:20px;line-height:1.55;font-size:13.5px}
+.upsell-list li.hl{color:var(--gold);font-weight:600}
+a.btn{text-decoration:none;display:inline-block}

@@ -160,13 +160,3 @@ export async function syncNow(): Promise<void> {
     if (again) { again = false; void syncNow(); }
   }
 }
-
-/** Plan del usuario ('free' si no tiene permisos registrados). */
-export async function fetchTier(): Promise<string> {
-  const sb = supabase();
-  if (!sb || !currentUser()) return 'free';
-  const { data } = await sb.from('entitlements').select('tier, valid_until').maybeSingle();
-  if (!data) return 'free';
-  if (data.valid_until && Date.parse(data.valid_until) < Date.now()) return 'free';
-  return data.tier || 'free';
-}

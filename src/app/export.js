@@ -1,5 +1,7 @@
 // Generado a partir de legacy/app.js (sección "export").
+import { isPremium } from '../cloud/plan';
 import { $, stage } from './base';
+import { openUpsell } from './premium';
 import { setStatus } from './cards';
 import { PROJ, clipSeg, frameText, markIds } from './clips';
 import { fit } from './fit';
@@ -19,11 +21,14 @@ export async function exportWith(segs,fmt,fps){
   if(fmt!==prev) setFmt(prev);
 }
 export async function recordVideo(segs,fps=60){
+  const full=isPremium(); if(!full) fps=Math.min(fps,30);   // Gratis: 30 fps y 720p (Full Access: resolución completa y 60 fps)
   let stream;
   try{ stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:fps,max:fps}},audio:false,preferCurrentTab:true,selfBrowserSurface:'include',surfaceSwitching:'exclude'}); }
   catch(e){ setStatus('Grabación cancelada','err'); return; }
   const track=stream.getVideoTracks()[0]; REC.track=track;
   try{ if(window.CropTarget && track.cropTo) await track.cropTo(await CropTarget.fromElement(stage)); }catch(e){}
+  if(!full){ const v=stage.className==='v';
+    try{ await track.applyConstraints({width:{max:v?720:1280},height:{max:v?1280:720},frameRate:{max:30}}); }catch(e){} }
   // el usuario confirma: así también podemos poner pantalla completa
   await new Promise(res=>{ $('#startrec').classList.add('show');
     $('#bGo').onclick=async()=>{ $('#startrec').classList.remove('show'); try{ await document.documentElement.requestFullscreen(); }catch(e){} res(); }; });
@@ -81,14 +86,16 @@ export function init() {
     // "inicio" de la partida: en replay, donde empieza el juego (o el principio); en guion, antes del primer paso
     const last=PB.count()-1, start=app.R?($('#rskip').value==='1'?app.R.start:0):-1, cur=PB.cur(), nClips=markIds().length;
     const P={
-      yt:   {ic:'▶', t:'YouTube', d:'16:9 · 60 fps · partida completa', fmt:'h', fps:60, segs:()=>[{from:start,to:last}]},
-      short:{ic:'📱', t:'Short / TikTok / Reels', d:`9:16 · 30 fps · desde la jugada actual${cur>start?` (#${cur})`:''} hasta el final`, fmt:'v', fps:30, segs:()=>[{from:Math.max(start,cur),to:last}]},
+      yt:   {ic:'▶', t:'YouTube', d:'16:9 · 60 fps · partida completa', fmt:'h', fps:60, prem:true, segs:()=>[{from:start,to:last}]},
+      short:{ic:'📱', t:'Short / TikTok / Reels', d:`9:16 · 30 fps · desde la jugada actual${cur>start?` (#${cur})`:''} hasta el final`, fmt:'v', fps:30, prem:true, segs:()=>[{from:Math.max(start,cur),to:last}]},
       clip: {ic:'✂', t:'Clip de la jugada actual', d:cur>=0?`Jugada #${cur} con ${PROJ.before} antes y ${PROJ.after} después · formato actual`:'Avanza primero a una jugada', fps:60, off:cur<0, segs:()=>[clipSeg(cur)]},
-      clips:{ic:'⭐', t:'Todos los clips', d:nClips?`${nClips} clip${nClips>1?'s':''} en un solo video, con su título · formato actual`:'Todavía no marcaste clips (pestaña ⭐ Clips)', fps:60, off:!nClips, segs:()=>markIds().map(clipSeg)},
+      clips:{ic:'⭐', t:'Todos los clips', d:nClips?`${nClips} clip${nClips>1?'s':''} en un solo video, con su título · formato actual`:'Todavía no marcaste clips (pestaña ⭐ Clips)', fps:60, prem:true, off:!nClips, segs:()=>markIds().map(clipSeg)},
       custom:{ic:'⚙', t:'Personalizado', d:'Tú eliges formato, rango, título y fotogramas'}
     };
+    const full=isPremium();
     const body=openModal('⏺ Exportar video',`
-      <div class="full presets">${Object.entries(P).map(([k,p])=>`<button class="preset" data-p="${k}" ${p.off?'disabled':''}><span class="pi">${p.ic}</span><span><b>${p.t}</b><small>${esc(p.d)}</small></span></button>`).join('')}</div>
+      ${full?'':`<div class="full hint">Plan Gratis: 720p · 30 fps, con una marca de agua pequeña. <a href="#" data-up>Ver Full Access</a></div>`}
+      <div class="full presets">${Object.entries(P).map(([k,p])=>`<button class="preset${p.prem&&!full?' locked':''}" data-p="${k}" ${p.off?'disabled':''}><span class="pi">${p.ic}</span><span><b>${p.t}${p.prem&&!full?' 🔒':''}</b><small>${esc(p.d)}</small></span></button>`).join('')}</div>
       <div class="full exc" hidden><div class="form">
         <span>Formato</span><select id="exFmt"><option value="h">16:9 horizontal</option><option value="v">9:16 vertical</option></select>
         <span>Desde la jugada</span><input type="number" id="exFrom" min="0" max="${last}" value="${Math.max(0,app.R?(cur>=last?start:cur):cur+1)}">
@@ -107,8 +114,11 @@ export function init() {
         const title=$('#exTitle').value.trim(); if(title && segs.length===1) segs[0].label=title;
         exportWith(segs,fmt,fps); }]]);
     $('#exFmt').value=stage.className;
-    body.onclick=e=>{ const b=e.target.closest('.preset'); if(!b||b.disabled) return;
+    body.onclick=e=>{
+      if(e.target.closest('[data-up]')){ e.preventDefault(); openUpsell('export_hd'); return; }
+      const b=e.target.closest('.preset'); if(!b||b.disabled) return;
+      if(b.classList.contains('locked')){ openUpsell('export_presets'); return; }
       body.querySelectorAll('.preset').forEach(x=>x.classList.toggle('on',x===b)); body.querySelector('.exc').hidden=b.dataset.p!=='custom'; };
-    body.querySelector('.preset[data-p=yt]').click();
+    const first=body.querySelector('.preset:not(.locked):not([disabled])'); if(first) first.click();
   };
 }
