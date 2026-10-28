@@ -3,6 +3,7 @@
 import { arrowsKey, targetArrows } from '../replay/arrows';
 import { $ } from './base';
 import { cardByCode } from './cards';
+import { PROJ, saveProj } from './clips';
 import { relRect } from './notes';
 import { BFZ, arr } from './replay';
 import { floatText } from './script-engine';
@@ -12,8 +13,27 @@ import { esc, hold } from './utils';
 /* ---------- poder y palabras clave sobre cada carta ---------- */
 export function mightOf(e) {
   const d = e._data, v = d?.m ?? d?.might;
-  return typeof v === 'number' && /unit/i.test(d?.type || e._card?.type || '') ? v : null;
+  if (typeof v !== 'number' || !/unit/i.test(d?.type || e._card?.type || '')) return null;
+  return v + mightBonus(e);
 }
+/* ---------- Estados de cartas ----------
+   Del replay: temporaryMightBuff (poder extra) y whiteCounter (contador).
+   Manuales (clic derecho): poder ±, daño y etiquetas, guardados en el proyecto por jugada:
+   PROJ.cardMods[cardId] = [{i, might, dmg, tags}] y en cada jugada vale el último con i <= jugada actual. */
+export function modAt(cardId, i = app.R?.i ?? 0) {
+  const list = PROJ.cardMods?.[cardId]; if (!list) return null;
+  let best = null; for (const m of list) if (m.i <= i && (!best || m.i >= best.i)) best = m;
+  return best;
+}
+export function setMod(cardId, patch) {
+  const i = app.R.i, list = ((PROJ.cardMods ||= {})[cardId] ||= []);
+  const base = modAt(cardId, i) || { might: 0, dmg: 0, tags: [] };
+  const next = { i, might: base.might, dmg: base.dmg, tags: [...base.tags], ...patch };
+  const k = list.findIndex(m => m.i === i); if (k >= 0) list[k] = next; else list.push(next);
+  saveProj();
+}
+export function clearMods(cardId) { const list = PROJ.cardMods?.[cardId]; if (!list) return; setMod(cardId, { might: 0, dmg: 0, tags: [] }); }
+export const mightBonus = e => (e._card?.temporaryMightBuff || 0) + (modAt(e._cid)?.might || 0);
 const keywordsOf = c => (Array.isArray(c?.keywords) ? c.keywords : c?.keywords ? [c.keywords] : []).filter(Boolean);
 function badge(e, cls, text) {
   let b = e.querySelector(':scope > .' + cls);
@@ -24,8 +44,14 @@ function badge(e, cls, text) {
 /** Insignias de una carta según la zona donde está (se llama al pintarla). */
 export function paintCardExtras(e, zone, back) {
   const c = e._card, onBoard = zone === 'base' || BFZ.includes(zone);
-  const m = mightOf(e);
+  e._zone = zone;
+  const m = mightOf(e), bonus = mightBonus(e), mod = modAt(e._cid);
   badge(e, 'mt', onBoard && !back && m != null ? '⚔ ' + m : '');
+  e.querySelector(':scope > .mt')?.classList.toggle('up', bonus > 0);
+  e.querySelector(':scope > .mt')?.classList.toggle('down', bonus < 0);
+  badge(e, 'dmg', onBoard && !back && mod?.dmg ? String(mod.dmg) : '');
+  badge(e, 'ctr', onBoard && !back && c?.whiteCounter ? String(c.whiteCounter) : '');
+  badge(e, 'tag', !back && mod?.tags?.length ? mod.tags.join(' · ') : '');
   const kws = keywordsOf(c);
   badge(e, 'kw', (onBoard || zone === 'legend') && !back && kws.length ? kws.slice(0, 2).join(' · ') + (kws.length > 2 ? ' +' + (kws.length - 2) : '') : '');
   e.classList.toggle('hid', !!c?.hidden);

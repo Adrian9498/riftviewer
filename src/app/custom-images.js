@@ -2,7 +2,6 @@
 import { $, stage } from './base';
 import { CUSTOM, IDB, setStatus } from './cards';
 import { touchAsset } from './cloud-adapter';
-import { REC } from './export';
 import { nm } from './script-engine';
 import { fileToDataURL, rerender } from './utils';
 
@@ -14,15 +13,15 @@ export async function setCustomImage(key,file){
   catch(err){ setStatus('No se pudo leer la imagen','err'); }
 }
 
+/** abre el selector de archivo para poner una imagen propia a una carta o campo */
+export function pickImageFor(key){ IMGTARGET=key; $('#imgIn').click(); }
+/** quita la imagen propia (vuelve la oficial, si existe) */
+export async function removeCustomImage(key,name){
+  CUSTOM.delete(key); await IDB.del(key).catch(()=>{}); touchAsset(key,true); setStatus(`Imagen propia de "${name}" eliminada`,'ok'); rerender();
+}
+
 export function init() {
-  stage.addEventListener('contextmenu',async e=>{
-    if(REC.on) return; const t=e.target.closest('[data-ikey]'); if(!t) return; e.preventDefault();
-    const key=t.dataset.ikey, nm=t.dataset.iname||'esta carta';
-    // si ya tiene una imagen propia, ofrecer quitarla (vuelve la imagen oficial, si existe)
-    if(CUSTOM.has(key) && confirm(`"${nm}" tiene una imagen que subiste tú.\n\nAceptar: quitarla y usar la imagen oficial.\nCancelar: elegir otra imagen.`)){
-      CUSTOM.delete(key); await IDB.del(key).catch(()=>{}); touchAsset(key,true); setStatus(`Imagen propia de "${nm}" eliminada`,'ok'); rerender(); return; }
-    IMGTARGET=key; $('#imgIn').click();
-  });
+  // el clic derecho lo atiende el menú de cartas (card-menu.js), que usa pickImageFor y removeCustomImage
   $('#imgIn').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(f&&IMGTARGET) await setCustomImage(IMGTARGET,f); };
   stage.addEventListener('dragover',e=>{ if(e.target.closest('[data-ikey]')){ e.preventDefault(); e.dataTransfer.dropEffect='copy'; } });
   stage.addEventListener('drop',async e=>{ const t=e.target.closest('[data-ikey]'), f=e.dataTransfer.files[0];

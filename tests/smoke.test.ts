@@ -113,6 +113,16 @@ describe('app completa', () => {
       // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
       expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
       expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
+      // estados manuales: poder y daño valen desde la jugada actual en adelante, no antes
+      const extras = await import('../src/app/replay-extras.js');
+      const unit = [...document.querySelectorAll('#rboard .card')].find(c => (c as any)._cid && (c as any)._zone && (c as any)._zone !== 'hand') as any;
+      expect(unit).toBeTruthy();
+      extras.setMod(unit._cid, { might: 2, dmg: 3, tags: ['Aturdida'] });
+      extras.paintCardExtras(unit, unit._zone, false);
+      expect(unit.querySelector(':scope > .dmg')?.textContent).toBe('3');
+      expect(unit.querySelector(':scope > .tag')?.textContent).toBe('Aturdida');
+      expect(extras.modAt(unit._cid, state.R.i)?.might).toBe(2);
+      expect(extras.modAt(unit._cid, state.R.i - 1)).toBeNull();
       // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
       Object.assign(navigator, { mediaDevices: { getDisplayMedia: () => Promise.reject(new Error('sin pantalla')) } });
       (window as any).MediaRecorder = class {};

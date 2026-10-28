@@ -97,12 +97,13 @@ export function init() {
     app.playing=false;
     // "inicio" de la partida: en replay, donde empieza el juego (o el principio); en guion, antes del primer paso
     const last=PB.count()-1, start=app.R?startFrame():-1, cur=PB.cur(), nClips=markIds().length;
+    // qué grabar: todo es gratis salvo juntar todos los clips en un video; Full Access se distingue por calidad, marca y notas
     // qué grabar: se elige en palabras (partida, desde aquí, jugada, clips o un tramo de turnos), no por número de jugada
     const full=isPremium(), secs=exportSections(), where=cur>=0?placeText(cur):'';
     const curSec=Math.max(0,secs.findIndex(s=>cur>=s.first&&cur<=s.last)), minFrom=app.R?0:-1;
     const W={
-      all:  {ic:'replay', t:'Partida completa', d:'De principio a fin', prem:true, segs:()=>[{from:start,to:last}]},
-      here: {ic:'next', t:'Desde aquí hasta el final', d:cur>start?`Desde ${where}`:'Avanza primero a una jugada', prem:true, off:cur<=start, segs:()=>[{from:Math.max(start,cur),to:last}]},
+      all:  {ic:'replay', t:'Partida completa', d:'De principio a fin', segs:()=>[{from:start,to:last}]},
+      here: {ic:'next', t:'Desde aquí hasta el final', d:cur>start?`Desde ${where}`:'Avanza primero a una jugada', off:cur<=start, segs:()=>[{from:Math.max(start,cur),to:last}]},
       play: {ic:'target', t:'Solo esta jugada', d:cur>=0?`${where}, con ${PROJ.before} jugadas antes y ${PROJ.after} después`:'Avanza primero a una jugada', off:cur<0, segs:()=>[clipSeg(cur)]},
       clips:{ic:'star', t:`Mis clips${nClips?` (${nClips})`:''}`, d:nClips?'Todos en un solo video, cada uno con su título':'Márcalos con la estrella o con el botón Clip', prem:true, off:!nClips, segs:()=>markIds().map(clipSeg)},
       turns:{ic:'list', t:'Un tramo de turnos', d:'Eliges desde qué turno y hasta cuál', segs:()=>{ const a=+$('#exFrom').value, b=+$('#exTo').value; return [{from:Math.max(minFrom,secs[a].first-1),to:secs[b].last}]; }},

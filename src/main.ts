@@ -23,10 +23,11 @@ import { init as initAccount } from './app/account.js';
 import { init as initPremium } from './app/premium.js';
 import { init as initInspector } from './app/inspector.js';
 import { init as initAnnot } from './app/annot.js';
+import { init as initCardMenu } from './app/card-menu.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu]) init();
 }
 
 start();
