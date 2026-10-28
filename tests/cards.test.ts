@@ -43,10 +43,10 @@ describe('OpenRift', () => {
     expect(lookupByCode(idx, null)).toBeNull();
   });
 
-  it('prefiere la impresión normal y limpia los iconos del texto', () => {
+  it('prefiere la impresión normal y conserva los códigos de símbolos', () => {
     expect(idx.byName.get('seraphine not alone')?.img).toContain('img-RAD-138-');
     expect(idx.byCode.get('RAD-164')?.img).toBe('https://openrift.app/media/cards/img-RAD-164-400w.webp');
-    expect(lookupByCode(idx, 'RAD-138')?.text).toBe('I have +1 ⚔.');
+    expect(lookupByCode(idx, 'RAD-138')?.text).toBe('I have +1 :rb_might:.');
   });
 });
 

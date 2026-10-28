@@ -2,7 +2,8 @@
 import { computeCamera, padTarget as padRect, union } from '../replay/camera';
 import { newBattles, scoreDeltas } from '../replay/events';
 import { clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
-import { $, stage } from './base';
+import { $, ic, stage } from './base';
+import { cardTextHTML } from '../data/symbols';
 import { innerRect, scale } from './fit';
 import { R_addField, compress, fitCells, fitField, fitWrap, rCardEl, rPaint } from './layout-lanes';
 import { PICK, renderNotes, runNotes, runQuiz } from './notes';
@@ -209,12 +210,12 @@ export async function rRender(i,anim){
 export function rVictory(ids){ $('#victory').querySelector('p').innerHTML=ids.map(id=>{ const p=app.R.players.find(x=>x.id===id); return p?`<b style="color:${p.col}">${p.name}</b>`:''; }).join(' & '); }
 export async function rSpot(data,who,ms){
   const s=$('#spot'); s.querySelector('.who').textContent=who?`${who.name} juega`:''; s.querySelector('.who').style.color=who?.col||'';
-  const img=s.querySelector('img'); img.style.display=''; img.src=data.img; s.querySelector('.txt').textContent=data.text||'';
+  const img=s.querySelector('img'); img.style.display=''; img.src=data.img; s.querySelector('.txt').innerHTML=cardTextHTML(data.rich,data.text);
   s.classList.add('show'); await wait(ms); s.classList.remove('show');
 }
 export function rPos(){
   $('#pos').textContent=`${app.R.i} / ${app.R.frames.length-1}`; $('#scrub').value=app.R.i;
-  $('#bPlay').textContent=app.playing?'❚❚ Pausa':'▶ Reproducir';
+  $('#bPlay').innerHTML=app.playing?ic('pause')+' Pausa':ic('play')+' Reproducir';
   const box=$('#frames'); box.querySelector('.cur')?.classList.remove('cur');
   const d=box.querySelector(`[data-i="${app.R.i}"]`); if(d){ d.classList.add('cur'); d.scrollIntoView({block:'nearest'}); }
   if($('#tnotas').classList.contains('on') && !PICK) renderNotes();

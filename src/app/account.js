@@ -5,7 +5,7 @@ import { connectPatreon, disconnectPatreon, patreonLink, takePatreonReturn } fro
 import { currentPlan, isPremium, refreshPlan } from '../cloud/plan';
 import { configureSync, onSyncStatus, syncNow, syncStatus } from '../cloud/sync';
 import { openUpsell } from './premium';
-import { $ } from './base';
+import { $, ic } from './base';
 import { localAdapter } from './cloud-adapter';
 import { ago, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
@@ -21,7 +21,7 @@ function renderButton(u) {
   const s = syncStatus();
   for (const sel of BUTTONS) {
     const b = $(sel);
-    b.innerHTML = u ? `<span class="sdot ${s.state}"></span>${esc(displayName(u))}` : '👤 Entrar';
+    b.innerHTML = u ? `<span class="sdot ${s.state}"></span>${esc(displayName(u))}` : `${ic('user')} Entrar`;
     b.title = u ? 'Tu cuenta y sincronización' : 'Iniciar sesión o crear cuenta';
   }
 }

@@ -1,8 +1,9 @@
 // Generado a partir de legacy/app.js (sección "shell").
 import { noteLocalChange } from '../cloud/sync';
-import { $, stage } from './base';
+import { $, ic, stage } from './base';
 import { tombDoc, touchAsset } from './cloud-adapter';
-import { IDB, setStatus } from './cards';
+import { IDB, cardByCode, setStatus } from './cards';
+import { replayMeta } from '../replay/meta';
 import { applyProject, loadProj, renderClips } from './clips';
 import { DEMO } from './demo';
 import { fit } from './fit';
@@ -16,7 +17,7 @@ import { closeModal, esc, openModal } from './utils';
 /* ================= Documento abierto, inicio, recientes y arrastrar archivos ================= */
 export let DOC={kind:null,name:''};
 export function setDoc(kind,name){
-  DOC={kind,name}; $('#docname').innerHTML=kind?`${kind==='replay'?'▶ Replay':'✎ Guion'} · <b>${esc(name)}</b>`:'';
+  DOC={kind,name}; $('#docname').innerHTML=kind?`${kind==='replay'?ic('replay')+' Replay':ic('pen')+' Guion'} · <b>${esc(name)}</b>`:'';
   $('#hClose').hidden=!kind; switchTab('jug');
   if(kind) maybeTour();
 }
@@ -25,7 +26,8 @@ export function hideHome(){ $('#home').classList.remove('show'); fit(); }
 export function openReplay(json,name,raw){
   try{ loadReplay(json); }catch(err){ toast('No se pudo leer el replay: '+err.message,'err'); return false; }
   setDoc('replay',name); hideHome(); toast(`Replay abierto: ${name}`,'ok');
-  saveRecent({id:app.R.key,kind:'replay',name,sub:app.R.players.map(p=>p.name).join(' vs '),data:raw||JSON.stringify(json)});
+  let meta=null; try{ meta=replayMeta(json); }catch(e){}
+  saveRecent({id:app.R.key,kind:'replay',name,sub:app.R.players.map(p=>p.name).join(' vs '),meta,data:raw||JSON.stringify(json)});
   return true;
 }
 export function openScript(text,name){
@@ -64,12 +66,40 @@ export async function saveRecent(item){
   noteLocalChange('docs');
 }
 export const ago=ts=>{ const m=Math.round((Date.now()-ts)/60000); return m<1?'ahora':m<60?`hace ${m} min`:m<1440?`hace ${Math.round(m/60)} h`:`hace ${Math.round(m/1440)} d`; };
+/* recientes: el último va como "Continuar donde te quedaste"; los demás, como tarjetas con las leyendas y el marcador */
+const legImg = p => p?.legendCode||p?.legendName ? cardByCode(p.legendCode,p.legendName)?.img||'' : '';
+function recArt(r){
+  const ps=r.meta?.players||[];
+  if(r.kind!=='replay') return `<div class="rart script">${ic('pen')}</div>`;
+  if(!ps.length) return `<div class="rart">${ic('replay')}</div>`;
+  return `<div class="rart legs">${ps.slice(0,2).map(p=>{ const u=legImg(p); return `<span${u?` style="background-image:url('${u}')"`:''}></span>`; }).join('')}</div>`;
+}
+function recScore(r){
+  const ps=r.meta?.players||[]; if(r.kind!=='replay'||!ps.length) return '';
+  return `<div class="rvs">${ps.map(p=>`<span class="${p.winner?'win':''}">${p.winner?ic('crown'):''}${esc(p.name)} <b>${p.score}</b></span>`).join('<i>vs</i>')}</div>`;
+}
+const recTitle = r => r.kind==='replay' && r.meta?.players?.length ? r.meta.players.map(p=>p.name).join(' vs ') : r.name;
+const recSub = r => [r.kind==='replay'?'Replay':'Guion', r.meta?.turns?`${r.meta.turns} turnos`:(r.kind==='replay'?'':r.sub), ago(r.ts)].filter(Boolean).map(esc).join(' · ');
 export async function renderRecents(){
   let list=[]; try{ list=(await IDB.entries()).filter(([k])=>k.startsWith('recent:')).map(([,v])=>v).sort((a,b)=>b.ts-a.ts); }catch(e){}
-  $('#hrecent').hidden=!list.length;
-  $('#recents').innerHTML=list.map(r=>`<div class="rec-item" data-rid="${esc(r.id)}"><span class="ri">${r.kind==='replay'?'▶':'✎'}</span>
-    <span class="rt"><b>${esc(r.name)}</b><small>${r.kind==='replay'?'Replay':'Guion'}${r.sub?' · '+esc(r.sub):''} · ${ago(r.ts)}</small></span>
-    <button class="rx" data-rdel="${esc(r.id)}" title="Quitar de recientes">✕</button></div>`).join('');
+  const [first,...rest]=list;
+  $('#hcont').hidden=!first; $('#hrecent').hidden=!rest.length;
+  $('#hcont').innerHTML=first?`<div class="hcont-card" data-rid="${esc(first.id)}">${recArt(first)}
+    <div class="hcont-txt"><small class="eyebrow">Continuar donde te quedaste</small><b>${esc(recTitle(first))}</b>${recScore(first)}<small>${recSub(first)}</small></div>
+    <button class="btn primary">Continuar ${ic('arrow')}</button></div>`:'';
+  $('#recents').innerHTML=rest.map(r=>`<div class="rtile" data-rid="${esc(r.id)}">${recArt(r)}
+    <div class="rinfo"><b>${esc(recTitle(r))}</b>${recScore(r)}<small>${recSub(r)}</small></div>
+    <button class="rx" data-rdel="${esc(r.id)}" title="Quitar de recientes">${ic('x')}</button></div>`).join('');
+  backfillMeta(list);
+}
+// los recientes guardados antes (o bajados de la nube) no traen el resumen: se calcula una vez y se guarda
+let filling=false;
+async function backfillMeta(list){
+  if(filling) return; const todo=list.filter(r=>r.kind==='replay'&&!r.meta&&r.data); if(!todo.length) return;
+  filling=true;
+  try{ for(const r of todo){ try{ r.meta=replayMeta(JSON.parse(r.data))||{players:[],turns:null,finished:false}; await IDB.set('recent:'+r.id,r); }catch(e){} }
+  }finally{ filling=false; }
+  renderRecents();
 }
 // el guion se guarda solo en recientes mientras lo editas
 export let saveT=null;
@@ -157,13 +187,15 @@ export function init() {
   $('#hDemo').onclick=()=>openScript(DEMO,'Ejemplo');
   $('#hClose').onclick=hideHome;
   $('#bHome').onclick=showHome;
+  // las imágenes de las leyendas llegan cuando terminan de cargar las cartas
+  document.addEventListener('rb:cards',()=>{ if($('#home').classList.contains('show')) renderRecents(); });
   addEventListener('dragenter',e=>{ if(e.dataTransfer?.types?.includes('Files')){ dragN++; $('#dropov').classList.add('show'); } });
   addEventListener('dragleave',()=>{ if(--dragN<=0){ dragN=0; $('#dropov').classList.remove('show'); } });
   addEventListener('dragover',e=>{ if(e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
   addEventListener('drop',e=>{ dragN=0; $('#dropov').classList.remove('show');
     if(e.defaultPrevented) return;   // soltado sobre una carta: es una imagen para esa carta
     const f=e.dataTransfer?.files?.[0]; if(!f) return; e.preventDefault(); readDropped(f); });
-  $('#recents').onclick=async e=>{
+  $('#recents').onclick=$('#hcont').onclick=async e=>{
     const del=e.target.closest('[data-rdel]'); if(del){ await IDB.del('recent:'+del.dataset.rdel).catch(()=>{}); tombDoc(del.dataset.rdel); renderRecents(); return; }
     const it=e.target.closest('[data-rid]'); if(!it) return;
     const r=await IDB.get('recent:'+it.dataset.rid).catch(()=>null); if(!r) return;
@@ -172,7 +204,7 @@ export function init() {
   document.querySelector('.tabs').onclick=e=>{ const b=e.target.closest('button'); if(b) switchTab(b.dataset.t); };
   $('#fmtseg').onclick=e=>{ const b=e.target.closest('button'); if(b) setFmt(b.dataset.f); };
   $('#skinseg').onclick=e=>{ const b=e.target.closest('button'); if(b) setSkin(b.dataset.s); };
-  $('#bCmds').onclick=()=>{ openModal('📖 Comandos del guion',`<div class="full">${$('#cmdHelp').innerHTML}</div>`,[['Cerrar','primary']]); };
+  $('#bCmds').onclick=()=>{ openModal('Comandos del guion',`<div class="full">${$('#cmdHelp').innerHTML}</div>`,[['Cerrar','primary']]); };
   $('#bPanel').onclick=()=>togglePanel();
   $('#bPanel').classList.add('on');
   $('#bHelp').onclick=openHelp;
