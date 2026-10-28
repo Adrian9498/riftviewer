@@ -7,7 +7,7 @@ import { cardTextHTML } from '../data/symbols';
 import { innerRect, scale } from './fit';
 import { R_addField, compress, fitCells, fitField, fitWrap, rCardEl, rPaint } from './layout-lanes';
 import { PICK, renderNotes, runNotes, runQuiz } from './notes';
-import { BFZ, arr, rBuild, startFrame, tr } from './replay';
+import { BFZ, TL, arr, rBuild, startFrame, tr } from './replay';
 import { banner, el, floatText, log, place, wait } from './script-engine';
 import { SFX } from './sounds';
 import { app } from './state';
@@ -217,7 +217,9 @@ export function rPos(){
   $('#pos').textContent=`${app.R.i} / ${app.R.frames.length-1}`; $('#scrub').value=app.R.i;
   $('#bPlay').innerHTML=app.playing?ic('pause')+' Pausa':ic('play')+' Reproducir';
   const box=$('#frames'); box.querySelector('.cur')?.classList.remove('cur');
-  const d=box.querySelector(`[data-i="${app.R.i}"]`); if(d){ d.classList.add('cur'); d.scrollIntoView({block:'nearest'}); }
+  const d=box.querySelector(`.tl[data-i="${app.R.i}"]`);
+  if(d){ const tt=d.closest('.tturn'); if(tt?.classList.contains('collapsed')){ tt.classList.remove('collapsed'); TL.collapsed.delete(tt.dataset.sec); }   // el turno actual siempre a la vista
+    d.classList.add('cur'); d.scrollIntoView({block:'nearest'}); }
   if($('#tnotas').classList.contains('on') && !PICK) renderNotes();
 }
 export function rJump(i){

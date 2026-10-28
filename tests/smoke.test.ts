@@ -106,6 +106,10 @@ describe('app completa', () => {
       expect(document.querySelectorAll('#rboard .card').length).toBeGreaterThan(3);
       expect(document.querySelectorAll('#rfields .rfield').length).toBe(2);
       expect(document.querySelector('#rfields .rfield.ctrl')).not.toBeNull();   // Ana controla el campo A
+      // línea de tiempo: una sección para el mulligan y otra por turno, con la jugada actual marcada
+      expect(document.querySelector('#frames .tturn[data-sec="mull"]')).not.toBeNull();
+      expect(document.querySelectorAll('#frames .tl').length).toBe(state.R.frames.length);
+      expect(document.querySelector(`#frames .tl.cur[data-i="${state.R.i}"]`)).not.toBeNull();
       expect(errors).toEqual([]);
     }, 30000);
   }

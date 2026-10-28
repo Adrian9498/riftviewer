@@ -239,10 +239,6 @@ body.rec #editor{display:none}
 
 /* ---------- Modo replay ---------- */
 #frames{flex:1;overflow:auto;font-size:12px}
-#frames div{padding:4px 14px;cursor:pointer;border-left:3px solid transparent;color:#b8c3da}
-#frames div:hover{background:#1a2233}
-#frames div.cur{background:#22304a;border-left-color:var(--gold);color:#fff}
-#frames div.turn{margin-top:6px;font-family:Oswald;font-size:13px;color:var(--gold);cursor:default;background:none}
 #scrub{width:clamp(70px,18vw,260px)}
 #ctrl{max-width:calc(100% - 16px);flex-wrap:wrap;justify-content:center}
 body:not(.replay) #scrub{display:none}
@@ -401,9 +397,6 @@ body:not(.rec) .card .face.ph::after{content:"clic derecho: poner imagen";positi
 .tabs button.on{color:var(--text);border-bottom-color:var(--gold)}
 .tab{display:none;flex:1;overflow:auto;min-height:0}
 .tab.on{display:block}
-#frames div .star{float:right;color:#5a6680;padding:0 4px}
-#frames div .star.on{color:var(--gold)}
-#frames div .nb{color:#7fd3ff;margin-left:4px}
 .tpad{padding:10px 14px;font-size:13px}
 .tpad h4{margin:6px 0;font-family:Oswald;font-weight:500;letter-spacing:.5px}
 .tpad .hint{color:var(--muted);font-size:12px;line-height:1.4}

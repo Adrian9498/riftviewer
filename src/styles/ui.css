@@ -55,9 +55,6 @@ body.nopanel #topbar{border-bottom:1px solid #c8aa6e66}
 .tabs button{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;padding:10px 8px;transition:color .15s}
 .tabs button:hover{color:var(--text)}
 .tabs button.on{color:var(--acc2);border-bottom-color:var(--acc)}
-#frames div:hover{background:#ffffff08}
-#frames div.cur{background:#c8aa6e14;border-left-color:var(--acc)}
-#frames div.turn{font-family:Cinzel,serif;font-weight:700;letter-spacing:1px;color:var(--acc2)}
 #script{background:#070e1a}
 #results{background:var(--panel2);border-color:var(--line2);border-radius:8px;box-shadow:0 12px 30px #000a}
 #results div:hover{background:var(--panel3)}
@@ -236,3 +233,45 @@ body.noinsp #inspector,body.rec #inspector,body.recording #inspector{display:non
 .btn.mini{padding:4px 9px;font-size:12px;border-radius:6px}
 .btn.mini.ico{width:26px;height:26px;padding:0}
 #bSettings.on{background:#c8aa6e1f;border-color:#c8aa6e66;color:var(--acc2)}
+
+/* ===================== Línea de tiempo (pestaña Jugadas de un replay) ===================== */
+#frames{font-size:12.5px;padding-bottom:20px}
+.tlbar{position:sticky;top:0;z-index:2;display:flex;gap:6px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tlbar .btn.on{background:#c8aa6e1f;border-color:#c8aa6e66;color:var(--acc2)}
+.tturn{border-bottom:1px solid var(--line)}
+.thead{position:sticky;top:43px;z-index:1;display:flex;align-items:center;gap:6px;padding:7px 12px 7px 6px;cursor:pointer;background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 16%,var(--panel)),var(--panel) 70%);border-left:3px solid var(--pc)}
+.thead:hover .tt{color:var(--ivory)}
+.tchev{display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:0;border-radius:5px;background:none;color:var(--muted);cursor:pointer}
+.tchev:hover{background:#ffffff10;color:var(--text)}
+.tchev .i{transform:rotate(90deg);transition:transform .15s}
+.tturn.collapsed .tchev .i{transform:none}
+.tturn.collapsed .tbody{display:none}
+.tt{flex:1;min-width:0;font-family:Cinzel,serif;font-weight:700;font-size:13px;letter-spacing:.5px;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tsc{display:flex;gap:4px;align-items:center;font-family:Cinzel,serif;font-size:13px}
+.tsc i{font-style:normal;color:var(--muted)}
+.tl{position:relative;display:flex;align-items:flex-start;gap:8px;padding:5px 10px 5px 12px;cursor:pointer;color:#c3cbdc;border-left:3px solid transparent;line-height:1.4}
+.tl:hover{background:#ffffff07}
+.tl>.i{flex:none;width:15px;height:15px;margin-top:1px;color:var(--pc)}
+.tl .tx{flex:1;min-width:0}
+.tl.minor{color:#7d89a3;font-size:12px}
+.tl.minor>.i{opacity:.6}
+.tl.k-play,.tl.k-spell{color:var(--text)}
+.tl.k-conquer,.tl.k-score{color:var(--acc2);font-weight:600}
+.tl.k-conquer>.i,.tl.k-score>.i{color:var(--acc2)}
+.tl.cur{background:#c8aa6e17;border-left-color:var(--acc);color:#fff}
+.tl.clip{border-left-color:#c8aa6e88}
+.tl.cur.clip{border-left-color:var(--acc)}
+.tl .star{flex:none;display:flex;padding:2px;margin:-2px -4px -2px 0;border:0;border-radius:5px;background:none;color:var(--muted);cursor:pointer;opacity:0;transition:opacity .15s}
+.tl:hover .star,.tl .star.on{opacity:1}
+.tl .star:hover{background:#ffffff10;color:var(--acc2)}
+.tl .star.on{color:var(--acc2)}
+.tl .star.on .i{fill:currentColor}
+.tl .star .i{width:14px;height:14px}
+#frames.minhid .tl.minor:not(.cur){display:none}
+.tlsub{display:flex;align-items:center;gap:6px;margin:0 10px 3px 35px;padding:3px 8px;border-radius:6px;font-size:11.5px;cursor:pointer;color:var(--muted);background:#ffffff06}
+.tlsub:hover{background:#ffffff0d;color:var(--text)}
+.tlsub .i{width:13px;height:13px;flex:none}
+.tlsub span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tlclip{color:var(--acc2);background:#c8aa6e12}
+.tlclip .i{fill:currentColor}
+.tlnote .i{color:#7fd3ff}

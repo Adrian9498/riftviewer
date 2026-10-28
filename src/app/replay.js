@@ -2,13 +2,16 @@
 import { decodeReplay } from '../replay/decode';
 import { computeMulligans } from '../replay/mulligan';
 import { translateLog } from '../replay/translate';
+import { KIND_ICON, actionKind } from '../replay/timeline';
 import { $, stage } from './base';
 import { analyze } from './chart';
 import { PROJ, loadProj, toggleMark } from './clips';
 import { R_addField, buildLanes } from './layout-lanes';
 import { buildMinimap, offIn, rJump, rPos, rRender } from './replay-render';
+import { noteLabel } from './notes';
 import { app } from './state';
 import { esc } from './utils';
+import { switchTab } from './shell';
 
 /* ================= Replays de RiftAtlas ================= */
 
@@ -54,16 +57,41 @@ export function startFrame(){
   return v==='mull' ? (R.mull?.start ?? R.start) : v==='1' ? R.start : 0;
 }
 
+/* Línea de tiempo: jugadas agrupadas por turno, con icono por tipo, color del jugador y,
+   debajo de cada jugada, su clip y sus notas. "Solo lo importante" oculta pagos, robos, etc. */
+export const TL={minorHidden:false, collapsed:new Set()};
+try{ TL.minorHidden=localStorage.getItem('rb_tlmin')==='1'; }catch(e){}
+const sym = id => `<svg class="i"><use href="#${id}"/></svg>`;
+function sectionOf(f,i){
+  const R=app.R, st=f.state;
+  if(st.phase==='in_game') return {key:'t'+st.turnNumber, turn:st.turnNumber, pid:st.activeTurnPlayerId};
+  if(R.mull && i>=R.mull.start && i<=R.mull.end) return {key:'mull', label:'Mulligan'};
+  return {key:'prep', label:'Preparación'};
+}
+const scoreLine = st => app.R.players.map(p=>{ const b=st.players.find(x=>x.id===p.id)?.board; return `<b style="color:${p.col}">${b?.score||0}</b>`; }).join('<i>–</i>');
 export function buildFrameList(){
-  const box=$('#frames'); let html='', lastTurn=null;
-  app.R.frames.forEach((f,i)=>{
-    const t=f.state.phase==='in_game'?f.state.turnNumber:0;
-    if(t!==lastTurn){ lastTurn=t; const ap=app.R.players.find(p=>p.id===f.state.activeTurnPlayerId); html+=`<div class="turn">${t?`TURNO ${t}${ap?` · <span style="color:${ap.col}">${ap.name}</span>`:''}`:'PREPARACIÓN'}</div>`; }
-    const txt=f.newLogs.length? f.newLogs.map(l=>tr(l.text)).join(' · ') : (f.actionType||'').replace(/_/g,' ');
-    const nn=(PROJ.notes[i]||[]).length;
-    html+=`<div data-i="${i}"><span class="star${PROJ.marks[i]?' on':''}" data-star="${i}" title="Marcar como clip">${PROJ.marks[i]?'★':'☆'}</span>${i}. ${txt.replace(/</g,'&lt;')}${nn?`<span class="nb" title="Notas">✎${nn}</span>`:''}</div>`;
-  });
-  box.innerHTML=html;
+  const R=app.R, box=$('#frames'), secs=[];
+  R.frames.forEach((f,i)=>{ const s=sectionOf(f,i); if(!secs.length || secs[secs.length-1].key!==s.key) secs.push({...s,from:i,items:[]}); secs[secs.length-1].items.push(i); });
+  let html=`<div class="tlbar"><button class="btn mini${TL.minorHidden?' on':''}" data-tlmin title="Oculta pagos de runas, robos y pasos menores">${sym('i-eye')} Solo lo importante</button>
+    <button class="btn mini" data-tlall title="Plegar o desplegar todos los turnos">${TL.collapsed.size?'Desplegar todo':'Plegar todo'}</button></div>`;
+  for(const s of secs){
+    const p=R.players.find(x=>x.id===s.pid), last=R.frames[s.items[s.items.length-1]].state;
+    const head=s.turn!=null?`Turno ${s.turn}${p?` · <span style="color:${p.col}">${esc(p.name)}</span>`:''}`:s.label;
+    html+=`<div class="tturn${TL.collapsed.has(s.key)?' collapsed':''}" data-sec="${s.key}" style="--pc:${p?.col||'var(--line2)'}">
+      <div class="thead" data-goto="${s.from}"><button class="tchev" data-fold="${s.key}" title="Plegar o desplegar">${sym('i-chevron')}</button><span class="tt">${head}</span>${s.turn!=null?`<span class="tsc">${scoreLine(last)}</span>`:''}</div><div class="tbody">`;
+    for(const i of s.items){
+      const f=R.frames[i], log=f.newLogs[f.newLogs.length-1], {kind,major}=actionKind(log?.actionType||f.actionType, f.newLogs.map(l=>l.text).join(' '));
+      const who=R.players.find(x=>x.id===(log?.authorPlayerId||f.state.activeTurnPlayerId));
+      const txt=f.newLogs.length? f.newLogs.map(l=>tr(l.text)).join(' · ') : (f.actionType||'').replace(/_/g,' ');
+      const mark=PROJ.marks[i], notes=PROJ.notes[i]||[];
+      html+=`<div class="tl k-${kind}${major?'':' minor'}${mark?' clip':''}" data-i="${i}" title="Jugada ${i}" style="--pc:${who?.col||'var(--muted)'}">${sym(KIND_ICON[kind])}<span class="tx">${esc(txt)}</span>
+        <button class="star${mark?' on':''}" data-star="${i}" title="${mark?'Quitar clip':'Marcar como clip'}">${sym('i-star')}</button></div>`;
+      if(mark) html+=`<div class="tlsub tlclip" data-i="${i}" data-tab="clips">${sym('i-star')}<span>${esc(mark.label||'Clip')}</span></div>`;
+      for(const n of notes) html+=`<div class="tlsub tlnote" data-i="${i}" data-tab="notas">${sym('i-note')}<span>${noteLabel(n)}</span></div>`;
+    }
+    html+='</div></div>';
+  }
+  box.innerHTML=html; box.classList.toggle('minhid',TL.minorHidden);
   if(app.R.i>=0) rPos();
 }
 
@@ -140,7 +168,12 @@ export function setClip(VR,clip){
 
 export function init() {
   $('#frames').addEventListener('click',e=>{
-    const st=e.target.closest('[data-star]'); if(st){ toggleMark(+st.dataset.star); return; }
-    const d=e.target.closest('[data-i]'); if(d){ app.playing=false; rJump(+d.dataset.i); }
+    const t=e.target;
+    if(t.closest('[data-tlmin]')){ TL.minorHidden=!TL.minorHidden; try{ localStorage.setItem('rb_tlmin',TL.minorHidden?'1':'0'); }catch(err){} buildFrameList(); return; }
+    if(t.closest('[data-tlall]')){ if(TL.collapsed.size) TL.collapsed.clear(); else $('#frames').querySelectorAll('.tturn').forEach(x=>TL.collapsed.add(x.dataset.sec)); buildFrameList(); return; }
+    const fold=t.closest('[data-fold]'); if(fold){ const k=fold.dataset.fold; TL.collapsed.has(k)?TL.collapsed.delete(k):TL.collapsed.add(k); fold.closest('.tturn').classList.toggle('collapsed'); return; }
+    const st=t.closest('[data-star]'); if(st){ toggleMark(+st.dataset.star); return; }
+    const go=t.closest('[data-goto]'); if(go){ app.playing=false; rJump(+go.dataset.goto); return; }
+    const d=t.closest('[data-i]'); if(d){ app.playing=false; rJump(+d.dataset.i); if(d.dataset.tab) switchTab(d.dataset.tab); }
   });
 }

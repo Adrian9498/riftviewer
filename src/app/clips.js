@@ -36,6 +36,8 @@ export function applyProject(j){
 }
 
 export function init() {
+  // el nombre del clip también aparece en la línea de tiempo: se actualiza al terminar de escribir
+  $('#tclips').addEventListener('change',e=>{ if(e.target.dataset.lbl && app.R) buildFrameList(); });
   $('#tclips').addEventListener('input',e=>{
     if(e.target.dataset.lbl){ PROJ.marks[e.target.dataset.lbl].label=e.target.value; saveProj(); }
     if(e.target.id==='cBefore') { PROJ.before=Math.max(0,+e.target.value||0); saveProj(); }
