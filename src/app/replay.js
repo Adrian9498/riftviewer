@@ -12,6 +12,7 @@ import { noteLabel } from './notes';
 import { app } from './state';
 import { esc } from './utils';
 import { switchTab } from './shell';
+import { buildScrubMarks } from './transport';
 
 /* ================= Replays de RiftAtlas ================= */
 
@@ -92,6 +93,7 @@ export function buildFrameList(){
     html+='</div></div>';
   }
   box.innerHTML=html; box.classList.toggle('minhid',TL.minorHidden);
+  buildScrubMarks();
   if(app.R.i>=0) rPos();
 }
 

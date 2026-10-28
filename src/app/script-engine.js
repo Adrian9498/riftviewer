@@ -230,7 +230,8 @@ export async function play(){
 }
 export function showRuntime(e){ const d=document.createElement('div'); d.textContent=e.message; $('#errors').appendChild(d); }
 export function updatePos(){
-  $('#pos').textContent=`${idx} / ${STEPS.length}`;
+  $('#pos').textContent=`Paso ${idx} de ${STEPS.length}`; $('#pos').title='';
+  document.dispatchEvent(new Event('rb:pos'));
   $('#bPlay').innerHTML=app.playing?ic('pause')+' Pausa':ic('play')+' Reproducir';
   const cur=STEPS[idx]; $('#progress').textContent=app.R?'':(cur?`Siguiente: línea ${cur.line}`:'Fin del guion');
   if(!app.R && DOC.kind==='script' && !PICK){ if($('#tnotas').classList.contains('on')) renderNotes(); if($('#tclips').classList.contains('on')) renderClips(); }

@@ -47,6 +47,7 @@
   <symbol id="i-cards" viewBox="0 0 24 24"><rect x="7" y="4" width="11" height="15" rx="2"/><path d="M4.5 7.5v11a2 2 0 0 0 2 2h8"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.2"/></symbol>
   <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" fill="currentColor"/></symbol>
   <!-- símbolos del texto de reglas (:rb_might:, :rb_exhaust:, runas…), dibujados para este proyecto -->
   <symbol id="s-might" viewBox="0 0 24 24"><path d="M20 4l-1 4-9 9-3-3 9-9z"/><path d="M5 12l7 7M7.5 16.5L4 20"/></symbol>
@@ -162,12 +163,24 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       <div id="sumov" class="ov"></div>
       <div id="quiz" class="ov"><h3>¿QUÉ HARÍAS TÚ?</h3><p class="q"></p><div class="count"></div></div>
     </div>
+    <!-- barra de anotación: clips y notas para la jugada actual -->
+    <div id="annot">
+      <button class="btn" data-an="clip"><svg class="i"><use href="#i-star"/></svg> Clip</button>
+      <span class="asep"></span>
+      <button class="btn" data-an="texto" title="Texto en pantalla"><svg class="i"><use href="#i-note"/></svg> Texto</button>
+      <button class="btn" data-an="flecha" title="Flecha entre dos cartas o campos"><svg class="i"><use href="#i-arrow"/></svg> Flecha</button>
+      <button class="btn" data-an="circulo" title="Resaltar cartas"><svg class="i"><use href="#i-target"/></svg> Resaltar</button>
+      <button class="btn" data-an="pausa" title="Pausa para explicar"><svg class="i"><use href="#i-pause"/></svg> Pausa</button>
+      <button class="btn ico" data-an="more" title="Más: gráfica de puntos y adivina la jugada"><svg class="i"><use href="#i-more"/></svg></button>
+      <div id="anmore" hidden><button class="btn ronly" data-an="grafica"><svg class="i"><use href="#i-chart"/></svg> Gráfica de puntos</button><button class="btn" data-an="adivina"><svg class="i"><use href="#i-help"/></svg> Adivina la jugada</button></div>
+      <div id="anpop" hidden></div>
+    </div>
     <div id="ctrl">
       <button class="btn ico" id="bStart" title="Al inicio (Inicio)"><svg class="i"><use href="#i-first"/></svg></button>
       <button class="btn ico" id="bPrev" title="Paso anterior (←)"><svg class="i"><use href="#i-prev"/></svg></button>
       <button class="btn primary" id="bPlay" title="Reproducir o pausar (Espacio)"><svg class="i"><use href="#i-play"/></svg> Reproducir</button>
       <button class="btn ico" id="bNext" title="Paso siguiente (→)"><svg class="i"><use href="#i-next"/></svg></button>
-      <input type="range" id="scrub" min="0" max="0" value="0">
+      <div class="scrubw"><div id="smarks"></div><input type="range" id="scrub" min="0" max="0" value="0"></div>
       <span class="pos" id="pos">0 / 0</span>
       <button class="btn ico ronly" id="bChart" title="Gráfica de puntos"><svg class="i"><use href="#i-chart"/></svg></button>
       <button class="btn ico ronly" id="bSum" title="Resumen de la partida"><svg class="i"><use href="#i-list"/></svg></button>

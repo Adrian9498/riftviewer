@@ -110,6 +110,9 @@ describe('app completa', () => {
       expect(document.querySelector('#frames .tturn[data-sec="mull"]')).not.toBeNull();
       expect(document.querySelectorAll('#frames .tl').length).toBe(state.R.frames.length);
       expect(document.querySelector(`#frames .tl.cur[data-i="${state.R.i}"]`)).not.toBeNull();
+      // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
+      expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
+      expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
       expect(errors).toEqual([]);
     }, 30000);
   }

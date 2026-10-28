@@ -217,4 +217,5 @@ export function init() {
   $('#rcamsel').onchange=e=>{ try{ localStorage.setItem('rb_cam',e.target.value); }catch(err){} noteLocalChange('settings'); if(app.R) camTo(null,true); };
   $('#rhands').onchange=$('#rlang').onchange=()=>{ if($('#rlang').value) buildFrameList(); rJump(app.R.i); };
   $('#scrub').oninput=e=>{ if(app.R){ app.playing=false; rJump(+e.target.value); } };
+  $('#smarks').onclick=e=>{ const m=e.target.closest('[data-go]'); if(m&&app.R){ app.playing=false; rJump(+m.dataset.go); } };
 }

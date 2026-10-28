@@ -60,15 +60,33 @@ export function updNoteForm(){
   const t=$('#nType')?.value; if(!t) return;
   document.querySelectorAll('.nf-pick').forEach(x=>x.style.display=['flecha','circulo'].includes(t)?'':'none');
   document.querySelectorAll('.nf-text').forEach(x=>x.style.display=['pausa','grafica'].includes(t)?'none':'');
-  $('#nSecs').value = {adivina:5,grafica:6,pausa:3}[t]||4;
+  $('#nSecs').value = NOTE_SECS(t);
   $('#nHelp').textContent=NOTE_HELP[t];
-  $('#nPicked').textContent=NOTEDRAFT.names.join(' → ');
+  const np=$('#nPicked'); if(np) np.textContent=NOTEDRAFT.names.join(' → ');
 }
-export function startPick(need){
-  NOTEDRAFT={refs:[],names:[]}; PICK={need}; document.body.classList.add('picking');
-  $('#nPicked').innerHTML=need===2?'Haz clic en la carta de <b>origen</b>…':'Haz clic en las cartas… <button class="btn mini" id="nDone">Listo</button>';
+// el estado de la elección se muestra en la pestaña Notas y en la barra de anotación sobre la mesa
+const pickStatus = h => document.querySelectorAll('#nPicked,#anpick').forEach(x=>x.innerHTML=h);
+const DONE='<button class="btn mini" data-pickdone>Listo</button>';
+/** empieza a elegir cartas en la mesa; onDone se llama al terminar (no al cancelar) */
+export function startPick(need,onDone){
+  NOTEDRAFT={refs:[],names:[]}; PICK={need,onDone}; document.body.classList.add('picking');
+  pickStatus(need===2?'Haz clic en la carta de <b>origen</b>…':'Haz clic en las cartas que quieres resaltar… '+DONE);
 }
-export function endPick(){ PICK=null; document.body.classList.remove('picking'); updNoteForm(); }
+export function endPick(){ const cb=PICK?.onDone; PICK=null; document.body.classList.remove('picking'); updNoteForm(); cb?.(); }
+export function cancelPick(){ if(!PICK) return; PICK.onDone=null; NOTEDRAFT={refs:[],names:[]}; endPick(); pickStatus(''); }
+export const NOTE_SECS = t => ({adivina:5,grafica:6,pausa:3})[t]||4;
+/** añade una nota a la jugada actual; devuelve false si falta algo (y ya avisó por qué) */
+export function addNote(type,{text='',secs,refs=[],names=[]}={}){
+  const ci=PB.cur(); if(ci<0){ alert('Avanza al menos una jugada para añadirle notas.'); return false; }
+  if(ADVANCED_NOTES.includes(type) && !needPremium('notes_advanced')) return false;
+  if(type==='texto' && !text){ alert('Escribe el texto.'); return false; }
+  if(type==='flecha' && refs.length<2){ alert('Elige dos cartas (origen y destino) en la mesa.'); return false; }
+  if(type==='circulo' && !refs.length){ alert('Elige al menos una carta en la mesa.'); return false; }
+  const n={type,text,secs:Math.max(1,+secs||NOTE_SECS(type))};
+  if(['flecha','circulo'].includes(type)){ n.refs=refs; n.names=names; }
+  (PROJ.notes[ci]=PROJ.notes[ci]||[]).push(n); saveProj(); if(app.R) buildFrameList(); renderNotes();
+  return true;
+}
 
 export function anchorEl(ref){
   if(!app.R) return ref.startsWith('f:') ? G.fields[ref.slice(2)] : el[ref];
@@ -121,17 +139,8 @@ export function init() {
     const ci=PB.cur();
     if(b.dataset.nd!==undefined){ PROJ.notes[ci].splice(+b.dataset.nd,1); if(!PROJ.notes[ci].length) delete PROJ.notes[ci]; saveProj(); if(app.R) buildFrameList(); renderNotes(); }
     else if(b.id==='nPick'){ if(needPremium('notes_advanced')) startPick($('#nType').value==='flecha'?2:99); }
-    else if(b.id==='nAdd'){
-      const type=$('#nType').value, n={type,text:$('#nText').value.trim(),secs:Math.max(1,+$('#nSecs').value||4)};
-      if(ADVANCED_NOTES.includes(type) && !needPremium('notes_advanced')) return;
-      if(type==='texto' && !n.text){ alert('Escribe el texto.'); return; }
-      if(type==='flecha' && NOTEDRAFT.refs.length<2){ alert('Elige dos cartas (origen y destino) en la mesa.'); return; }
-      if(type==='circulo' && !NOTEDRAFT.refs.length){ alert('Elige al menos una carta en la mesa.'); return; }
-      if(['flecha','circulo'].includes(type)){ n.refs=NOTEDRAFT.refs; n.names=NOTEDRAFT.names; }
-      (PROJ.notes[ci]=PROJ.notes[ci]||[]).push(n); saveProj(); if(app.R) buildFrameList(); renderNotes();
-    }
+    else if(b.id==='nAdd') addNote($('#nType').value,{text:$('#nText').value.trim(),secs:$('#nSecs').value,refs:NOTEDRAFT.refs,names:NOTEDRAFT.names});
     else if(b.id==='nTest'){ app.playing=false; await PB.jump(ci-1); await sleep(200); app.playing=true; PB.pos(); await PB.step(); app.playing=false; PB.pos(); }
-    else if(b.id==='nDone') endPick();
   });
   stage.addEventListener('click',e=>{
     if(!PICK) return;
@@ -139,7 +148,8 @@ export function init() {
     const ref = c&&c._cid ? c._cid : f ? 'f:'+(f.dataset.z||f.dataset.f) : null; if(!ref) return;
     e.stopPropagation(); NOTEDRAFT.refs.push(ref); NOTEDRAFT.names.push(refName(ref));
     if(NOTEDRAFT.refs.length>=PICK.need) endPick();
-    else $('#nPicked').innerHTML=esc(NOTEDRAFT.names.join(' → '))+(PICK.need===2?' → haz clic en el <b>destino</b>…':' <button class="btn mini" id="nDone">Listo</button>');
+    else pickStatus(esc(NOTEDRAFT.names.join(' → '))+(PICK.need===2?' → haz clic en el <b>destino</b>…':' '+DONE));
   },true);
-  document.addEventListener('keydown',e=>{ if(PICK && e.key==='Enter') endPick(); });
+  document.addEventListener('keydown',e=>{ if(PICK && e.key==='Enter') endPick(); if(PICK && e.key==='Escape') cancelPick(); });
+  document.addEventListener('click',e=>{ if(e.target.closest('[data-pickdone]')) endPick(); });
 }

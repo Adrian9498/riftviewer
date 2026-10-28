@@ -4,6 +4,7 @@ import { newBattles, scoreDeltas } from '../replay/events';
 import { clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
 import { $, ic, stage } from './base';
 import { cardTextHTML } from '../data/symbols';
+import { posLabel } from './transport';
 import { innerRect, scale } from './fit';
 import { R_addField, compress, fitCells, fitField, fitWrap, rCardEl, rPaint } from './layout-lanes';
 import { PICK, renderNotes, runNotes, runQuiz } from './notes';
@@ -214,7 +215,8 @@ export async function rSpot(data,who,ms){
   s.classList.add('show'); await wait(ms); s.classList.remove('show');
 }
 export function rPos(){
-  $('#pos').textContent=`${app.R.i} / ${app.R.frames.length-1}`; $('#scrub').value=app.R.i;
+  $('#pos').textContent=posLabel(app.R.i); $('#pos').title=`Jugada ${app.R.i} de ${app.R.frames.length-1}`; $('#scrub').value=app.R.i;
+  document.dispatchEvent(new Event('rb:pos'));
   $('#bPlay').innerHTML=app.playing?ic('pause')+' Pausa':ic('play')+' Reproducir';
   const box=$('#frames'); box.querySelector('.cur')?.classList.remove('cur');
   const d=box.querySelector(`.tl[data-i="${app.R.i}"]`);
