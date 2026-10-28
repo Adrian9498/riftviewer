@@ -106,6 +106,24 @@ describe('app completa', () => {
       expect(document.querySelectorAll('#rboard .card').length).toBeGreaterThan(3);
       expect(document.querySelectorAll('#rfields .rfield').length).toBe(2);
       expect(document.querySelector('#rfields .rfield.ctrl')).not.toBeNull();   // Ana controla el campo A
+      // línea de tiempo: una sección para el mulligan y otra por turno, con la jugada actual marcada
+      expect(document.querySelector('#frames .tturn[data-sec="mull"]')).not.toBeNull();
+      expect(document.querySelectorAll('#frames .tl').length).toBe(state.R.frames.length);
+      expect(document.querySelector(`#frames .tl.cur[data-i="${state.R.i}"]`)).not.toBeNull();
+      // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
+      expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
+      expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
+      // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
+      Object.assign(navigator, { mediaDevices: { getDisplayMedia: () => Promise.reject(new Error('sin pantalla')) } });
+      (window as any).MediaRecorder = class {};
+      (document.querySelector('#bExport') as HTMLButtonElement).click();
+      const presets = [...document.querySelectorAll('#modal .preset')].map(b => (b as HTMLElement).dataset.p);
+      expect(presets).toEqual(['all', 'here', 'play', 'clips', 'turns']);
+      expect(document.querySelector('#modal .preset.on')).not.toBeNull();
+      expect(document.querySelector('#exSum')!.textContent).toMatch(/Se grabarán \d+ jugada/);
+      (document.querySelector('#modal .preset[data-p="turns"]') as HTMLButtonElement).click();
+      expect((document.querySelector('#modal .exturns') as HTMLElement).hidden).toBe(false);
+      expect([...document.querySelectorAll('#exFrom option')].map(o => o.textContent)).toContain('Mulligan');
       expect(errors).toEqual([]);
     }, 30000);
   }

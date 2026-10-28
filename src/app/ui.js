@@ -10,7 +10,7 @@ import { rJump, rPlay, rStep } from './replay-render';
 import { startFrame } from './replay';
 import { idx, jumpTo, play, reset, run, stepForward } from './script-engine';
 import { DOC, autosaveScript, openHelp, renderRecents, saveRecent, togglePanel } from './shell';
-import { SFX } from './sounds';
+import { SFX, openSounds } from './sounds';
 import { app } from './state';
 import { rerender } from './utils';
 
@@ -71,6 +71,6 @@ export function init() {
   IDB.entries().then(list=>{
     for(const [k,v] of list){ if(k.startsWith('card:')) CUSTOM.set(k,v); else if(k==='brand:logo') BRIMG.logo=v; else if(k==='brand:bg') BRIMG.bg=v;
       else if(k.startsWith('snd:')){ SFX.blobs[k.slice(4)]=v; if(SFX.ctx) SFX.decode(k.slice(4)); } }
-    applyBrand(); if(CUSTOM.size && CARDS.length) rerender();
+    applyBrand(); openSounds(); if(CUSTOM.size && CARDS.length) rerender();
   }).catch(()=>{});
 }

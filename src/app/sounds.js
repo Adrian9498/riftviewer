@@ -1,9 +1,8 @@
 // Generado a partir de legacy/app.js (sección "sounds").
 import { noteLocalChange } from '../cloud/sync';
-import { $ } from './base';
+import { $, ic } from './base';
 import { touchAsset } from './cloud-adapter';
 import { IDB, setStatus } from './cards';
-import { openModal } from './utils';
 
 /* ================= Sonidos: batalla, conquista y punto ================= */
 export let SND={on:true,vol:70,style:'epico',ev:{battle:true,conquest:true,point:true}};
@@ -97,18 +96,22 @@ export const SYN_EPIC={
     noise(ctx,out,{t,dur:.35,vol:.06,type:'highpass',freq:7000,q:.5});
   }
 };
-export function saveSnd(){ try{ localStorage.setItem('rb_snd',JSON.stringify(SND)); }catch(e){} SFX.setVol(); }
+export function saveSnd(){ try{ localStorage.setItem('rb_snd',JSON.stringify(SND)); }catch(e){} SFX.setVol();
+  // si cambia desde fuera (la nube), se redibuja; mientras el usuario mueve un control, no
+  if($('#insSnd') && !$('#insSnd').contains(document.activeElement)) openSounds(); }
 export let SNDTARGET=null;
+/* Sonido vive en el inspector de Ajustes (sección "Sonido") */
 export function openSounds(){
-  const body=openModal('🔊 Sonidos',`
+  const body=$('#insSnd'); body.innerHTML=`
     <span>Sonidos</span><select id="sOn"><option value="1">Activados</option><option value="0">Desactivados</option></select>
     <span>Volumen</span><input type="range" id="sVol" min="0" max="100" value="${SND.vol}">
     <span>Estilo</span><select id="sStyle"><option value="epico">Épico (cuernos, tambores, monedas)</option><option value="clasico">Clásico (suave)</option></select>
-    ${Object.keys(SND_NAMES).map(k=>`<span><label><input type="checkbox" data-ev="${k}" ${SND.ev[k]?'checked':''}> ${SND_NAMES[k]}</label></span>
-      <div><button class="btn mini" data-test="${k}">▶ Probar</button> <button class="btn mini" data-up="${k}">Usar mi audio</button>${SFX.blobs[k]?` <button class="btn mini" data-rm="${k}">Quitar el mío</button> <small style="color:var(--ok)">● propio</small>`:''}</div>`).join('')}
-    <div class="full hint">Los sonidos también quedan grabados al <b>exportar video</b>. Puedes reemplazar cualquiera por un audio tuyo (MP3, WAV, OGG); se guarda en este navegador.</div>`,
-    [['Listo','primary']]);
+    ${Object.keys(SND_NAMES).map(k=>`<div class="full sndrow"><label><input type="checkbox" data-ev="${k}" ${SND.ev[k]?'checked':''}> ${SND_NAMES[k]}</label>
+      <div class="sndb"><button class="btn mini ico" data-test="${k}" title="Probar">${ic('play')}</button> <button class="btn mini" data-up="${k}">Mi audio</button>${SFX.blobs[k]?` <button class="btn mini" data-rm="${k}">Quitar el mío</button> <small title="Usa tu propio audio">● propio</small>`:''}</div></div>`).join('')}
+    <div class="full hint">Los sonidos también quedan grabados al <b>exportar video</b>. Puedes reemplazar cualquiera por un audio tuyo (MP3, WAV, OGG).</div>`;
   $('#sOn').value=SND.on?'1':'0'; $('#sStyle').value=SND.style||'epico';
+}
+function bindSounds(body){
   body.oninput=e=>{ const t=e.target;
     if(t.id==='sOn') SND.on=t.value==='1'; if(t.id==='sStyle') SND.style=t.value; if(t.id==='sVol') SND.vol=+t.value; if(t.dataset.ev) SND.ev[t.dataset.ev]=t.checked; saveSnd(); noteLocalChange('settings'); };
   body.onclick=async e=>{ const b=e.target.closest('button'); if(!b) return;
@@ -121,7 +124,7 @@ export function init() {
   try{ const s=JSON.parse(localStorage.getItem('rb_snd')||'null'); if(s) SND={...SND,...s,ev:{...SND.ev,...s.ev}}; }catch(e){}
   // el navegador solo deja sonar audio después de un clic o tecla del usuario
   ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{ if(SFX.ctx||SND.on) SFX.ensure(); },true));
-  $('#bSnd').onclick=()=>{ SFX.ensure(); openSounds(); };
+  bindSounds($('#insSnd')); openSounds();
   $('#sndIn').onchange=async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f||!SNDTARGET) return;
     if(f.size>3*1048576){ alert('El audio es muy pesado (máximo 3 MB). Usa un clip corto.'); return; }

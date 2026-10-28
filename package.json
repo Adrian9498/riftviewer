@@ -1,9 +1,9 @@
 {
-  "name": "riftbound-visualizador",
+  "name": "riftviewer",
   "private": true,
   "version": "0.2.0",
   "type": "module",
-  "description": "Visualizador de partidas de Riftbound para crear videos (replays de RiftAtlas y guiones).",
+  "description": "Riftviewer: visualizador de partidas de Riftbound para crear videos (replays de RiftAtlas y guiones).",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

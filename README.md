@@ -1,4 +1,6 @@
-# Visualizador de partidas de Riftbound
+# Riftviewer
+
+Visualizador de partidas de Riftbound para crear videos.
 
 Convierte replays de RiftAtlas (`.json`) y guiones escritos a mano (`.txt`) en partidas animadas, listas para grabar o exportar como video.
 

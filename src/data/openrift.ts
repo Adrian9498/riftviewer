@@ -36,8 +36,8 @@ interface Printing {
 interface Card { name?: string; slug?: string; types?: string[]; superTypes?: string[]; might?: number | null }
 export interface OpenRiftCatalog { cards?: Record<string, Card>; printings?: Record<string, Printing> }
 
-const ICON: Record<string, string> = { might: '⚔', energy: '⚡', power: '◆', exhaust: '⟳' };
-const cleanText = (t?: string | null) => (t || '').replace(/:rb_([a-z_]+):/g, (_m, w: string) => ICON[w] || w);
+// los códigos de símbolos (:rb_might:…) se dejan tal cual: los dibuja cardTextHTML al mostrar el texto
+const cleanText = (t?: string | null) => t || '';
 const score = (p: Printing) =>
   (p.artVariant === 'normal' ? 4 : 0) + (p.isSigned ? 0 : 2) + (p.isOvernumbered ? 0 : 1) + (p.finish === 'normal' ? 0.5 : 0);
 

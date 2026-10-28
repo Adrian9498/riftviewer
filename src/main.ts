@@ -1,6 +1,7 @@
 // Punto de entrada. Los módulos de src/app solo declaran; aquí se inicializan
 // en orden (eventos, preferencias guardadas, carga de cartas…).
 import './styles/app.css';
+import './styles/ui.css';
 import './styles/skins.css';
 import './styles/skins-fx.css';
 import { init as initCards } from './app/cards.js';
@@ -20,10 +21,12 @@ import { init as initFit } from './app/fit.js';
 import { init as initUi } from './app/ui.js';
 import { init as initAccount } from './app/account.js';
 import { init as initPremium } from './app/premium.js';
+import { init as initInspector } from './app/inspector.js';
+import { init as initAnnot } from './app/annot.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot]) init();
 }
 
 start();

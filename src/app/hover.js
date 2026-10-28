@@ -3,6 +3,7 @@ import { stage } from './base';
 import { REC } from './export';
 import { PICK } from './notes';
 import { esc } from './utils';
+import { cardTextHTML } from '../data/symbols';
 
 /* ================= Vista ampliada al pasar el mouse (no aparece al grabar) ================= */
 export const HP={el:null,timer:null,target:null,pinned:false,x:0,y:0};
@@ -19,7 +20,7 @@ export function hpShow(t){
   const land=t.classList.contains('fhead') || d?.type==='Battlefield' || d?.type==='battlefield';
   HP.el.className='show'+(land?' land':'');
   HP.el.innerHTML=(d?.img?`<img src="${d.img}" alt="">`:`<div class="noimg">Sin imagen<br><small>clic derecho para poner una</small></div>`)
-    +`<div class="hn">${esc(name)}</div>${d?.text?`<div class="ht">${esc(d.text)}</div>`:''}<div class="hk">Mantén <b>Shift</b> para fijarla</div>`;
+    +`<div class="hn">${esc(name)}</div>${d?.text||d?.rich?`<div class="ht">${cardTextHTML(d.rich,d.text)}</div>`:''}<div class="hk">Mantén <b>Shift</b> para fijarla</div>`;
   const img=HP.el.querySelector('img'); if(img) img.onload=hpPlace;
   hpPlace();
 }

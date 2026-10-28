@@ -17,7 +17,7 @@ En tu página de creador define los niveles (nombre, precio y qué incluye). Cad
 
 ## 2. Cliente OAuth
 [Portal de desarrolladores → Clients & API Keys](https://www.patreon.com/portal/registration/register-clients) → **Create Client**:
-- **App Name / Description:** Visualizador de partidas (lo ven tus patrones al conectar).
+- **App Name / Description:** Riftviewer (lo ven tus patrones al conectar).
 - **Redirect URIs:** `https://yubdphyswoviehwvuiaj.supabase.co/functions/v1/patreon-callback`
 - **Client API Version:** 2
 

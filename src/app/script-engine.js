@@ -1,7 +1,8 @@
 // Generado a partir de legacy/app.js (sección "script-engine").
 import { norm } from '../data/text';
+import { cardTextHTML } from '../data/symbols';
 import { isSetup, parse } from '../script/parser';
-import { $ } from './base';
+import { $, ic } from './base';
 import { findCard } from './cards';
 import { renderClips } from './clips';
 import { innerRect, scale } from './fit';
@@ -105,7 +106,7 @@ export async function spotlight(c,who,ms=1600){
   const s=$('#spot');
   s.querySelector('.who').textContent=who||''; s.querySelector('.who').style.color=c.owner?`var(--p${c.owner})`:'';
   const img=s.querySelector('img'); img.style.display=c.data?'':'none'; if(c.data) img.src=c.data.img;
-  s.querySelector('.txt').textContent=c.data?c.data.text:c.name;
+  s.querySelector('.txt').innerHTML=c.data?cardTextHTML(c.data.rich,c.data.text):esc(c.name);
   s.classList.add('show'); await wait(ms); s.classList.remove('show');
 }
 export function floatText(target,text,color){
@@ -229,8 +230,9 @@ export async function play(){
 }
 export function showRuntime(e){ const d=document.createElement('div'); d.textContent=e.message; $('#errors').appendChild(d); }
 export function updatePos(){
-  $('#pos').textContent=`${idx} / ${STEPS.length}`;
-  $('#bPlay').textContent=app.playing?'❚❚ Pausa':'▶ Reproducir';
+  $('#pos').textContent=`Paso ${idx} de ${STEPS.length}`; $('#pos').title='';
+  document.dispatchEvent(new Event('rb:pos'));
+  $('#bPlay').innerHTML=app.playing?ic('pause')+' Pausa':ic('play')+' Reproducir';
   const cur=STEPS[idx]; $('#progress').textContent=app.R?'':(cur?`Siguiente: línea ${cur.line}`:'Fin del guion');
   if(!app.R && DOC.kind==='script' && !PICK){ if($('#tnotas').classList.contains('on')) renderNotes(); if($('#tclips').classList.contains('on')) renderClips(); }
 }

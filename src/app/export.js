@@ -1,6 +1,6 @@
 // Generado a partir de legacy/app.js (sección "export").
 import { isPremium } from '../cloud/plan';
-import { $, stage } from './base';
+import { $, ic, stage } from './base';
 import { startFrame } from './replay';
 import { openUpsell } from './premium';
 import { setStatus } from './cards';
@@ -11,11 +11,22 @@ import { STEPS, banner, idx, jumpTo, stepForward, updatePos, wait } from './scri
 import { DOC, setFmt, toast } from './shell';
 import { SFX, SND } from './sounds';
 import { app } from './state';
+import { posLabel, sectionLabel } from './transport';
 import { esc, hold, openModal, sleep } from './utils';
 
 /* ================= 1. Exportar video ================= */
 export const REC={on:false,stopped:false,track:null,stop(){ this.stopped=true; app.token++; app.playing=false; try{ this.track?.stop(); }catch(e){} }};
 // cambia al formato de la plantilla mientras graba y luego vuelve al que tenías
+/* tramos para "Un tramo de turnos": Preparación, Mulligan y cada turno, con su primera y última jugada */
+export function exportSections(){
+  const out=[], n=PB.count();
+  for(let i=0;i<n;i++){
+    const label=app.R?sectionLabel(i):(PB.turn(i)?`Turno ${PB.turn(i)}`:'Preparación'), s=out[out.length-1];
+    if(s&&s.label===label) s.last=i; else out.push({label,first:i,last:i});
+  }
+  return out;
+}
+const placeText = i => app.R ? posLabel(i) : `el paso ${i+1}`;
 export async function exportWith(segs,fmt,fps){
   const prev=stage.className; if(fmt!==prev) setFmt(fmt);
   await recordVideo(segs,fps);
@@ -35,7 +46,7 @@ export async function recordVideo(segs,fps=60){
     $('#bGo').onclick=async()=>{ $('#startrec').classList.remove('show'); try{ await document.documentElement.requestFullscreen(); }catch(e){} res(); }; });
   REC.on=true; REC.stopped=false;
   document.body.classList.add('rec','recording'); await sleep(900); fit(); await sleep(500);
-  // mezclar el video de la pestaña con los efectos de sonido del visualizador
+  // mezclar el video de la pestaña con los efectos de sonido de Riftviewer
   const actx=SND.on?SFX.ensure():null, withAudio=!!(actx&&SFX.dest);
   const recStream=new MediaStream([...stream.getVideoTracks(), ...(withAudio?SFX.dest.stream.getAudioTracks():[])]);
   const types=withAudio ? ['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
@@ -86,40 +97,51 @@ export function init() {
     app.playing=false;
     // "inicio" de la partida: en replay, donde empieza el juego (o el principio); en guion, antes del primer paso
     const last=PB.count()-1, start=app.R?startFrame():-1, cur=PB.cur(), nClips=markIds().length;
-    const P={
-      yt:   {ic:'▶', t:'YouTube', d:'16:9 · 60 fps · partida completa', fmt:'h', fps:60, prem:true, segs:()=>[{from:start,to:last}]},
-      short:{ic:'📱', t:'Short / TikTok / Reels', d:`9:16 · 30 fps · desde la jugada actual${cur>start?` (#${cur})`:''} hasta el final`, fmt:'v', fps:30, prem:true, segs:()=>[{from:Math.max(start,cur),to:last}]},
-      clip: {ic:'✂', t:'Clip de la jugada actual', d:cur>=0?`Jugada #${cur} con ${PROJ.before} antes y ${PROJ.after} después · formato actual`:'Avanza primero a una jugada', fps:60, off:cur<0, segs:()=>[clipSeg(cur)]},
-      clips:{ic:'⭐', t:'Todos los clips', d:nClips?`${nClips} clip${nClips>1?'s':''} en un solo video, con su título · formato actual`:'Todavía no marcaste clips (pestaña ⭐ Clips)', fps:60, prem:true, off:!nClips, segs:()=>markIds().map(clipSeg)},
-      custom:{ic:'⚙', t:'Personalizado', d:'Tú eliges formato, rango, título y fotogramas'}
+    // qué grabar: se elige en palabras (partida, desde aquí, jugada, clips o un tramo de turnos), no por número de jugada
+    const full=isPremium(), secs=exportSections(), where=cur>=0?placeText(cur):'';
+    const curSec=Math.max(0,secs.findIndex(s=>cur>=s.first&&cur<=s.last)), minFrom=app.R?0:-1;
+    const W={
+      all:  {ic:'replay', t:'Partida completa', d:'De principio a fin', prem:true, segs:()=>[{from:start,to:last}]},
+      here: {ic:'next', t:'Desde aquí hasta el final', d:cur>start?`Desde ${where}`:'Avanza primero a una jugada', prem:true, off:cur<=start, segs:()=>[{from:Math.max(start,cur),to:last}]},
+      play: {ic:'target', t:'Solo esta jugada', d:cur>=0?`${where}, con ${PROJ.before} jugadas antes y ${PROJ.after} después`:'Avanza primero a una jugada', off:cur<0, segs:()=>[clipSeg(cur)]},
+      clips:{ic:'star', t:`Mis clips${nClips?` (${nClips})`:''}`, d:nClips?'Todos en un solo video, cada uno con su título':'Márcalos con la estrella o con el botón Clip', prem:true, off:!nClips, segs:()=>markIds().map(clipSeg)},
+      turns:{ic:'list', t:'Un tramo de turnos', d:'Eliges desde qué turno y hasta cuál', segs:()=>{ const a=+$('#exFrom').value, b=+$('#exTo').value; return [{from:Math.max(minFrom,secs[a].first-1),to:secs[b].last}]; }},
     };
-    const full=isPremium();
-    const body=openModal('⏺ Exportar video',`
+    const opts=secs.map((s,k)=>`<option value="${k}">${esc(s.label)}</option>`).join('');
+    const body=openModal('Exportar video',`
+      <h4 class="full exh">Qué grabar</h4>
+      <div class="full presets">${Object.entries(W).map(([k,p])=>{ const lock=p.prem&&!full;
+        return `<button class="preset${lock?' locked':''}" data-p="${k}" ${p.off?'disabled':''}><span class="pi">${ic(p.ic)}</span><span><b>${p.t}${lock?' 🔒':''}</b><small>${esc(p.d)}</small></span></button>`; }).join('')}</div>
+      <div class="full exturns" hidden><span>Desde</span><select id="exFrom">${opts}</select><span>hasta</span><select id="exTo">${opts}</select></div>
+      <h4 class="full exh">Formato</h4>
+      <div class="full exfmt"><button data-fmt="h"><span class="ar h"></span><span><b>16:9</b><small>YouTube</small></span></button><button data-fmt="v"><span class="ar v"></span><span><b>9:16</b><small>Shorts, TikTok, Reels</small></span></button></div>
+      <h4 class="full exh">Detalles</h4>
+      <span>Fluidez</span><select id="exFps"><option value="60">60 fps (más fluido)</option><option value="30">30 fps (archivo más ligero)</option></select>
+      <span>Título inicial</span><input type="text" id="exTitle" placeholder="Opcional: Diana vs Seraphine">
       ${full?'':`<div class="full hint">Plan Gratis: 720p · 30 fps, con una marca de agua pequeña. <a href="#" data-up>Ver Full Access</a></div>`}
-      <div class="full presets">${Object.entries(P).map(([k,p])=>`<button class="preset${p.prem&&!full?' locked':''}" data-p="${k}" ${p.off?'disabled':''}><span class="pi">${p.ic}</span><span><b>${p.t}${p.prem&&!full?' 🔒':''}</b><small>${esc(p.d)}</small></span></button>`).join('')}</div>
-      <div class="full exc" hidden><div class="form">
-        <span>Formato</span><select id="exFmt"><option value="h">16:9 horizontal</option><option value="v">9:16 vertical</option></select>
-        <span>Desde la jugada</span><input type="number" id="exFrom" min="0" max="${last}" value="${Math.max(0,app.R?(cur>=last?start:cur):cur+1)}">
-        <span>Hasta la jugada</span><input type="number" id="exTo" min="0" max="${last}" value="${last}">
-        <span>Fotogramas</span><select id="exFps"><option>60</option><option>30</option></select>
-      </div></div>
-      <span>Título inicial</span><input type="text" id="exTitle" placeholder="Opcional. Ej: Diana vs Seraphine">
-      <div class="full hint">El navegador te pedirá permiso para grabar <b>esta pestaña</b>: elígela y acepta. Se graba solo el tablero (con sonido), en pantalla completa.${app.R?' Si el video llega al final y "Al terminar" está en resumen, incluye el resumen y los mazos.':''}</div>`,
-      [['Cancelar'],['⏺ Grabar','primary',()=>{
-        const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ alert('Elige una plantilla.'); return false; }
-        let segs, fmt, fps;
-        if(k==='custom'){
-          const a=+$('#exFrom').value, b=+$('#exTo').value; if(!(b>=a)){ alert('"Hasta" debe ser mayor o igual que "Desde".'); return false; }
-          segs=[{from:app.R?a:a-1,to:b}]; fmt=$('#exFmt').value; fps=+$('#exFps').value;
-        } else { segs=P[k].segs(); fmt=P[k].fmt||stage.className; fps=P[k].fps; }
+      <div class="full exsum" id="exSum"></div>
+      <div class="full hint">Al pulsar <b>Grabar</b>, el navegador te pedirá compartir <b>esta pestaña</b>: elígela y acepta. Se graba solo la mesa, con sonido y en pantalla completa.${app.R&&$('#rauto').value==='1'?' Si el video llega al final, incluye el resumen y los mazos.':''}</div>`,
+      [['Cancelar'],['Grabar','primary',()=>{
+        const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ alert('Elige qué quieres grabar.'); return false; }
+        if(k==='turns' && +$('#exTo').value < +$('#exFrom').value){ alert('El turno final debe ser igual o posterior al inicial.'); return false; }
+        const segs=W[k].segs(), fmt=body.querySelector('.exfmt .on')?.dataset.fmt||stage.className, fps=+$('#exFps').value;
         const title=$('#exTitle').value.trim(); if(title && segs.length===1) segs[0].label=title;
         exportWith(segs,fmt,fps); }]]);
-    $('#exFmt').value=stage.className;
+    $('#exFrom').value=curSec; $('#exTo').value=secs.length-1;
+    const summary=()=>{
+      const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ $('#exSum').textContent=''; return; }
+      const n=W[k].segs().reduce((t,s)=>t+Math.max(0,s.to-s.from),0);
+      $('#exSum').innerHTML=`${ic('replay')} Se grabarán <b>${n} jugada${n===1?'':'s'}</b>${W[k].segs().length>1?` en ${W[k].segs().length} partes`:''}.`;
+    };
+    const setFmt=f=>body.querySelectorAll('.exfmt button').forEach(b=>b.classList.toggle('on',b.dataset.fmt===f));
+    setFmt(stage.className);
+    body.onchange=summary;
     body.onclick=e=>{
       if(e.target.closest('[data-up]')){ e.preventDefault(); openUpsell('export_hd'); return; }
+      const f=e.target.closest('[data-fmt]'); if(f){ setFmt(f.dataset.fmt); return; }
       const b=e.target.closest('.preset'); if(!b||b.disabled) return;
       if(b.classList.contains('locked')){ openUpsell('export_presets'); return; }
-      body.querySelectorAll('.preset').forEach(x=>x.classList.toggle('on',x===b)); body.querySelector('.exc').hidden=b.dataset.p!=='custom'; };
+      body.querySelectorAll('.preset').forEach(x=>x.classList.toggle('on',x===b)); body.querySelector('.exturns').hidden=b.dataset.p!=='turns'; summary(); };
     const first=body.querySelector('.preset:not(.locked):not([disabled])'); if(first) first.click();
   };
 }
