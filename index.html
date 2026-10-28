@@ -46,7 +46,7 @@
         <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
         <span>Registro</span><select id="rlang"><option value="es">Traducido al español</option><option value="en">Original (inglés)</option></select>
         <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
-        <span>Saltar inicio</span><select id="rskip"><option value="1">Sí (empezar en la partida)</option><option value="0">No (incluir iniciativa y mulligan)</option></select>
+        <span>Empezar en</span><select id="rskip"><option value="mull">El mulligan</option><option value="1">La primera jugada</option><option value="0">El principio (iniciativa y campos)</option></select>
         <span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select>
       </div>
     </div>
@@ -111,6 +111,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
         <div class="zone z-trash" data-z="trash"><label>Descarte</label><span class="count">0</span></div>
         <div class="zone z-hand" data-z="hand"></div>
       </section>
+      <svg id="tarrows"></svg><div id="mullov"></div>
       <section id="rboard"><div id="rclip"><div id="rcam"><div id="rfields"></div></div></div><div id="rchain"></div><div id="minimap"></div></section>
       <div id="turninfo"></div>
       <div id="log"></div>

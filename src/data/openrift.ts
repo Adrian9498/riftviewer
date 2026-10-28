@@ -7,6 +7,8 @@ export interface CardInfo {
   text: string;
   type: string;
   slug?: string;
+  /** poder base (solo unidades) */
+  might: number | null;
   src: 'openrift';
   /** prioridad de la impresión: la normal, sin firma y sin numeración especial gana */
   _s: number;
@@ -29,7 +31,7 @@ interface Printing {
   printedRulesText?: string | null;
   printedName?: string;
 }
-interface Card { name?: string; slug?: string; types?: string[] }
+interface Card { name?: string; slug?: string; types?: string[]; might?: number | null }
 export interface OpenRiftCatalog { cards?: Record<string, Card>; printings?: Record<string, Printing> }
 
 const ICON: Record<string, string> = { might: '⚔', energy: '⚡', power: '◆', exhaust: '⟳' };
@@ -55,6 +57,7 @@ export function buildOpenRiftIndex(cat: OpenRiftCatalog, norm: (s: string) => st
       text: cleanText(p.printedRulesText),
       type: (c.types || [])[0] || '',
       slug: c.slug,
+      might: typeof c.might === 'number' ? c.might : null,
       src: 'openrift',
       _s: score(p),
     };

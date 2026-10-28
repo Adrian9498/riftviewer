@@ -20,14 +20,14 @@ function encodeReplay(root: unknown) {
 }
 const card = (id: string, name: string, code: string, type = 'unit', exhausted = false) =>
   ({ id, name, cardCode: code, type, exhausted, ownerPlayerId: id.startsWith('a') ? 'pa' : 'pb' });
-function frame(n: number, opts: { aBase?: object[]; aField?: object[]; bField?: object[]; aScore?: number; active?: string; log?: string }) {
+function frame(n: number, opts: { aBase?: object[]; aField?: object[]; bField?: object[]; aScore?: number; active?: string; log?: string; phase?: string; hand?: object[]; arrows?: object; xp?: number }) {
   const board = (legend: object, base: object[], field: object[], score: number) =>
-    ({ legend: [legend], champion: [], base, hand: [card('h' + n, 'Stupefy', 'OGN-095', 'spell')], trash: [], deck: [], runeArea: [],
+    ({ legend: [legend], champion: [], base, hand: opts.hand || [card('h' + n, 'Stupefy', 'OGN-095', 'spell')], trash: [], deck: [], runeArea: [], legendXp: opts.xp || 0, floatingEnergy: 1,
       battlefieldA: field, battlefieldB: [], battlefieldC: [], battlefieldToken: [], score });
   return {
     actionType: 'move_card', elapsedMs: n * 1000,
     state: {
-      phase: 'in_game', turnNumber: 1 + (n >> 1), activeTurnPlayerId: opts.active || 'pa', chainEntries: [],
+      phase: opts.phase || 'in_game', targetArrowsByPlayer: opts.arrows || {}, turnNumber: 1 + (n >> 1), activeTurnPlayerId: opts.active || 'pa', chainEntries: [],
       log: opts.log ? [{ id: 'l' + n, text: opts.log, at: n, authorPlayerId: 'pa', turnNumber: 1 }] : [],
       players: [
         { id: 'pa', name: 'Ana', seat: 0, selectedBattlefield: 'Campo Uno', selectedBattlefieldCardCode: 'OGN-001', board: board(card('aL', 'Leyenda A', 'UNL-234', 'legend'), opts.aBase || [], opts.aField || [], opts.aScore || 0) },
@@ -40,10 +40,11 @@ const u1 = card('a1', 'Unidad Uno', 'OGN-010'), u2 = card('b1', 'Unidad Dos', 'O
 const replay = encodeReplay({
   replayId: 'smoke:1', viewerPlayerId: 'pa',
   frames: [
-    frame(0, {}),
+    frame(0, { phase: 'mulligan', hand: [card('m1', 'Uno', 'OGN-095'), card('m2', 'Dos', 'OGN-095')] }),
+    frame(0, { hand: [card('m1', 'Uno', 'OGN-095'), card('m3', 'Tres', 'OGN-095')] }),
     frame(1, { aBase: [u1], log: 'Ana played Unidad Uno from hand to base.' }),
     frame(2, { aField: [u1], log: 'Ana moved Unidad Uno to Campo Uno.' }),
-    frame(3, { aField: [u1], bField: [u2], active: 'pb' }),
+    frame(3, { aField: [u1], bField: [u2], active: 'pb', xp: 1, arrows: { pb: [{ sourceAnchor: 'chain', sourceCardId: 'chain-pb-x', targetAnchor: 'board', targetCardId: 'a1' }] } }),
     frame(4, { aField: [{ ...u1, exhausted: true }], aScore: 1, log: 'Ana conquered Campo Uno and scored 1.' }),
   ],
 });
@@ -99,7 +100,9 @@ describe('app completa', () => {
       state.playing = true;
       while (state.R.i < state.R.frames.length - 1) await render.rStep();
       state.playing = false;
-      expect(state.R.i).toBe(4);
+      expect(state.R.i).toBe(5);
+      expect(state.R.mull).toMatchObject({ start: 0, end: 1 });
+      expect(state.R.mull.players.pa.returned).toEqual(['m2']);
       expect(document.querySelectorAll('#rboard .card').length).toBeGreaterThan(3);
       expect(document.querySelectorAll('#rfields .rfield').length).toBe(2);
       expect(document.querySelector('#rfields .rfield.ctrl')).not.toBeNull();   // Ana controla el campo A

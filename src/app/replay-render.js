@@ -1,11 +1,12 @@
 // Generado a partir de legacy/app.js (sección "replay-render").
 import { computeCamera, padTarget as padRect, union } from '../replay/camera';
 import { newBattles, scoreDeltas } from '../replay/events';
+import { clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
 import { $, stage } from './base';
 import { innerRect, scale } from './fit';
 import { R_addField, compress, fitCells, fitField, fitWrap, rCardEl, rPaint } from './layout-lanes';
 import { PICK, renderNotes, runNotes, runQuiz } from './notes';
-import { BFZ, arr, rBuild, tr } from './replay';
+import { BFZ, arr, rBuild, startFrame, tr } from './replay';
 import { banner, el, floatText, log, place, wait } from './script-engine';
 import { SFX } from './sounds';
 import { app } from './state';
@@ -41,6 +42,9 @@ export function fieldTarget(z){
 // decide a dónde mirar: undefined = no mover; null = vista completa
 export function camFocus(f,st,prev,zoneOf,prevZone){
   if(st.phase==='in_game' && prev.activeTurnPlayerId!==st.activeTurnPlayerId) return null;
+  // una flecha nueva de la cadena: encuadrar lo que apunta
+  const aimed=newArrowTargets(st,prev)?.filter(e=>e.closest('#rcam'));
+  if(aimed?.length) return padTarget(union(aimed.map(offIn)));
   const conq=f.newLogs.find(l=>/conquered/.test(l.text));
   if(conq){ const fd=app.R.fieldDefs.find(x=>x.name&&conq.text.includes(x.name)); if(fd) return fieldTarget(fd.z); }
   let lane;
@@ -95,7 +99,9 @@ export async function rRender(i,anim){
       let fe=$(`#rfields .rfield[data-z=${z}]`); if(!fe) fe=R_addField(z,null,z==='battlefieldToken'?'Campo extra':z.slice(-1),z.slice(-1));
       add(cards,z,fe.querySelector(`.grp[data-p="${p.id}"]`)); });
     const runes=arr(b.runeArea);
-    counts[p.id]={score:b.score||0,runes:`${runes.filter(r=>!r.exhausted).length}/${runes.length}`,hand:arr(b.hand).length,deck:arr(b.deck).length,trash:trash.length};
+    // runas listas/total, más la energía y el poder que quedaron flotando este turno
+    const pool=(b.floatingEnergy?` +${b.floatingEnergy}⚡`:'')+(b.floatingPower?` +${b.floatingPower}◆`:'');
+    counts[p.id]={score:b.score||0,runes:`${runes.filter(r=>!r.exhausted).length}/${runes.length}${pool}`,hand:arr(b.hand).length,deck:arr(b.deck).length,trash:trash.length};
   }
   // cadena
   for(const ce of arr(st.chainEntries)){
@@ -121,12 +127,15 @@ export async function rRender(i,anim){
   document.querySelectorAll('#rfields .rfield').forEach(stage.dataset.lay==='lanes'?fitCells:fitField);
   document.querySelectorAll('#rboard .cmp').forEach(b=>compress(b, b.dataset.z==='hand'&&!b.classList.contains('inl')&&b.closest('.rstrip') ? b.closest('.rstrip').clientWidth*0.55 : 0));
   document.querySelectorAll('#rboard .fitwrap').forEach(fitWrap);
+  paintFieldSums();
   // HUD
   for(const pid in counts){ const s=strips[pid], c=counts[pid];
     for(const k of ['score','runes','hand','deck']) s.querySelector(`[data-k=${k}]`).textContent=c[k];
     s.querySelector('.count').textContent=c.trash;
     s.classList.toggle('active',st.activeTurnPlayerId===pid && st.phase==='in_game');
     document.querySelector(`.laneb[data-p="${pid}"]`)?.classList.toggle('active',st.activeTurnPlayerId===pid && st.phase==='in_game'); }
+  paintLegendXp(st,prev,anim);
+  renderMulligan(i,anim);
   // control de campos (unidades de un solo jugador)
   document.querySelectorAll('#rfields .rfield').forEach(fe=>{
     const z=fe.dataset.z, who=st.players.filter(p=>arr(p.board?.[z]).length).map(p=>p.id);
@@ -156,6 +165,10 @@ export async function rRender(i,anim){
   }
   app.R.zoneOf=zoneOf;
   const prevI=app.R.i; app.R.i=i; app.R.shown=st; rPos();
+  // flechas de objetivo: se dibujan cuando las cartas y la cámara terminan de moverse
+  clearTargetArrows();
+  if(anim){ const tok=app.token; setTimeout(()=>{ if(tok===app.token && app.R?.shown===st) drawTargetArrows(st); },850/app.speed); }
+  else drawTargetArrows(st);
   const out=st.gameOutcome?.winnerPlayerIds;
   if(!anim){ $('#victory').classList.toggle('show',!!(out&&out.length&&i===app.R.frames.length-1)); if(out&&i===app.R.frames.length-1) rVictory(out); return; }
   $('#victory').classList.remove('show');
@@ -189,6 +202,7 @@ export async function rRender(i,anim){
     e.classList.add('highlight'); await rSpot(e._data,who,1500); e.classList.remove('highlight'); } }
   await wait(t);
   if($('#rcap').value==='1') $('#caption').classList.remove('show');
+  await finishMulligan(i);
   if(out&&out.length&&!prev?.gameOutcome){ rVictory(out); $('#victory').classList.add('show'); await wait(2500);
     if($('#rauto').value==='1' && i===app.R.frames.length-1){ await summarySequence(); } }
 }
@@ -208,7 +222,7 @@ export function rPos(){
 export function rJump(i){
   app.token++; i=Math.max(0,Math.min(app.R.frames.length-1,i));
   ['#spot','#caption','#banner'].forEach(s=>$(s).classList.remove('show')); $('#log').innerHTML='';
-  document.querySelectorAll('.ov').forEach(o=>o.classList.remove('show')); $('#fx').innerHTML='';
+  document.querySelectorAll('.ov').forEach(o=>o.classList.remove('show')); $('#fx').innerHTML=''; clearTargetArrows();
   app.R.shown=null; app.R.zoneOf=null; rRender(i,false);
 }
 export async function rStep(){
@@ -220,7 +234,7 @@ export async function rStep(){
 }
 export async function rPlay(){
   if(app.playing){ app.playing=false; rPos(); return; }
-  if(app.R.i>=app.R.frames.length-1) rJump($('#rskip').value==='1'?app.R.start:0);
+  if(app.R.i>=app.R.frames.length-1) rJump(startFrame());
   app.playing=true; rPos(); const my=app.token;
   while(app.playing && my===app.token && app.R.i<app.R.frames.length-1){ if(!await rStep()) break; await wait(150); }
   if(my===app.token){ app.playing=false; rPos(); }

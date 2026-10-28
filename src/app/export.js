@@ -1,6 +1,7 @@
 // Generado a partir de legacy/app.js (sección "export").
 import { isPremium } from '../cloud/plan';
 import { $, stage } from './base';
+import { startFrame } from './replay';
 import { openUpsell } from './premium';
 import { setStatus } from './cards';
 import { PROJ, clipSeg, frameText, markIds } from './clips';
@@ -84,7 +85,7 @@ export function init() {
     if(!DOC.kind){ toast('Abre primero un replay o un guion','err'); return; }
     app.playing=false;
     // "inicio" de la partida: en replay, donde empieza el juego (o el principio); en guion, antes del primer paso
-    const last=PB.count()-1, start=app.R?($('#rskip').value==='1'?app.R.start:0):-1, cur=PB.cur(), nClips=markIds().length;
+    const last=PB.count()-1, start=app.R?startFrame():-1, cur=PB.cur(), nClips=markIds().length;
     const P={
       yt:   {ic:'▶', t:'YouTube', d:'16:9 · 60 fps · partida completa', fmt:'h', fps:60, prem:true, segs:()=>[{from:start,to:last}]},
       short:{ic:'📱', t:'Short / TikTok / Reels', d:`9:16 · 30 fps · desde la jugada actual${cur>start?` (#${cur})`:''} hasta el final`, fmt:'v', fps:30, prem:true, segs:()=>[{from:Math.max(start,cur),to:last}]},
