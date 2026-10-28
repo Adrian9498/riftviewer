@@ -10,7 +10,7 @@ import { closeModal, esc, openModal } from './utils';
 
 let tier = 'free', lastError = '';
 // nombres visibles de los planes; los demás se muestran con su clave (los define el secreto PATREON_TIERS)
-const TIERS = { free: 'Gratis' };
+const TIERS = { free: 'Gratis', full: 'Full Access' };
 const tierLabel = t => TIERS[t] || (t ? t[0].toUpperCase() + t.slice(1) : 'Gratis');
 
 // el botón está en la barra superior y también en la pantalla de inicio (que tapa la barra)
