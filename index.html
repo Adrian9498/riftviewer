@@ -38,6 +38,10 @@
   <symbol id="i-crown" viewBox="0 0 24 24"><path d="M4 18l-1-10 5 4 4-7 4 7 5-4-1 10z"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
   <!-- símbolos del texto de reglas (:rb_might:, :rb_exhaust:, runas…), dibujados para este proyecto -->
   <symbol id="s-might" viewBox="0 0 24 24"><path d="M20 4l-1 4-9 9-3-3 9-9z"/><path d="M5 12l7 7M7.5 16.5L4 20"/></symbol>
   <symbol id="s-exhaust" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></symbol>
@@ -52,14 +56,8 @@
     <span class="logo"><span class="lmark"></span>Visualizador</span>
     <div id="docname"></div>
     <div class="tgroup">
-      <div class="seg" id="fmtseg" title="Relación de aspecto"><button data-f="h" class="on">16:9</button><button data-f="v">9:16</button></div>
-      <div class="seg" id="skinseg" title="Estilo de la mesa"><button data-s="fan" class="on"><svg class="i"><use href="#i-sparkle"/></svg> Fantasía</button><button data-s="pro"><svg class="i"><use href="#i-trophy"/></svg> Torneo</button></div>
-      <label class="tbl" title="Velocidad de reproducción"><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
-    </div>
-    <div class="tgroup">
+      <button class="btn" id="bSettings" title="Estilo, cámara, sonido, tu marca y más"><svg class="i"><use href="#i-sliders"/></svg> Ajustes</button>
       <button class="btn ico" id="bRec" title="Modo grabación: oculta los menús (H)"><svg class="i"><use href="#i-rec"/></svg></button>
-      <button class="btn ico" id="bSnd" title="Sonidos"><svg class="i"><use href="#i-sound"/></svg></button>
-      <button class="btn" id="bBrand" title="Logo, colores y fondo"><svg class="i"><use href="#i-brand"/></svg> Mi marca</button>
       <button class="btn primary recb" id="bExport" title="Exportar video"><svg class="i"><use href="#i-export"/></svg> Exportar</button>
     </div>
     <button class="btn ico" id="bHelp" title="Ayuda y atajos (?)"><svg class="i"><use href="#i-help"/></svg></button>
@@ -68,7 +66,7 @@
   <div id="work">
   <aside id="editor">
     <div id="pinfo"></div>
-    <div class="tabs"><button data-t="jug" class="on"><span class="ronly">Jugadas</span><span class="sonly">Guion</span></button><button data-t="vista" class="ronly">Vista</button><button data-t="clips"><svg class="i"><use href="#i-star"/></svg> Clips</button><button data-t="notas"><svg class="i"><use href="#i-note"/></svg> Notas</button></div>
+    <div class="tabs"><button data-t="jug" class="on"><span class="ronly">Jugadas</span><span class="sonly">Guion</span></button><button data-t="clips"><svg class="i"><use href="#i-star"/></svg> Clips</button><button data-t="notas"><svg class="i"><use href="#i-note"/></svg> Notas</button></div>
     <div id="frames" class="tab on" data-t="jug"></div>
     <div id="tscript" class="tab on" data-t="jug">
       <div class="sbar">
@@ -79,18 +77,6 @@
       <div class="row"><div id="search"><input type="text" id="q" placeholder="Buscar carta para insertar su nombre…"><div id="results"></div></div></div>
       <textarea id="script" spellcheck="false" placeholder="Escribe aquí tu guion. Pulsa Comandos para ver qué puedes escribir."></textarea>
       <div id="errors"></div>
-    </div>
-    <div id="tvista" class="tab" data-t="vista">
-      <div class="opts">
-        <span>Distribución</span><select id="rlay"><option value="lanes">Carriles (todos iguales)</option><option value="lat">Amplia (rivales a los lados)</option><option value="classic">Clásica (arriba y abajo)</option></select>
-        <span>Cámara</span><select id="rcamsel"><option value="suave">Sigue la acción (suave)</option><option value="intensa">Sigue la acción (intensa)</option><option value="off">Fija, sin zoom</option></select>
-        <span>Perspectiva</span><select id="rview"></select>
-        <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
-        <span>Registro</span><select id="rlang"><option value="es">Traducido al español</option><option value="en">Original (inglés)</option></select>
-        <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
-        <span>Empezar en</span><select id="rskip"><option value="mull">El mulligan</option><option value="1">La primera jugada</option><option value="0">El principio (iniciativa y campos)</option></select>
-        <span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select>
-      </div>
     </div>
     <div id="tclips" class="tab" data-t="clips"></div>
     <div id="tnotas" class="tab" data-t="notas"></div>
@@ -181,6 +167,48 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       <button class="btn ico ronly" id="bSum" title="Resumen de la partida"><svg class="i"><use href="#i-list"/></svg></button>
     </div>
   </main>
+  <!-- Inspector de ajustes: todo lo que cambia cómo se ve y suena la mesa, en un solo lugar -->
+  <aside id="inspector">
+    <div class="ihead"><b>Ajustes</b><button class="btn ico" id="bInspX" title="Cerrar ajustes"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="ibody">
+      <details class="isec" data-s="look" open><summary><svg class="i"><use href="#i-sparkle"/></svg>Apariencia<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Estilo</span><div class="seg" id="skinseg"><button data-s="fan" class="on"><svg class="i"><use href="#i-sparkle"/></svg> Fantasía</button><button data-s="pro"><svg class="i"><use href="#i-trophy"/></svg> Torneo</button></div>
+          <span>Formato</span><div class="seg" id="fmtseg"><button data-f="h" class="on">16:9</button><button data-f="v">9:16</button></div>
+          <div class="full igrid" id="insLook"></div>
+        </div>
+      </details>
+      <details class="isec" data-s="cam"><summary><svg class="i"><use href="#i-camera"/></svg>Cámara y mesa<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <div class="irow ronly"><span>Distribución</span><select id="rlay"><option value="lanes">Carriles (todos iguales)</option><option value="lat">Amplia (rivales a los lados)</option><option value="classic">Clásica (arriba y abajo)</option></select></div>
+          <div class="irow ronly"><span>Cámara</span><select id="rcamsel"><option value="suave">Sigue la acción (suave)</option><option value="intensa">Sigue la acción (intensa)</option><option value="off">Fija, sin zoom</option></select></div>
+          <div class="full igrid" id="insBoard"></div>
+        </div>
+      </details>
+      <details class="isec ronly" data-s="see"><summary><svg class="i"><use href="#i-eye"/></svg>Qué se ve<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Perspectiva</span><select id="rview"></select>
+          <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
+          <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
+          <span>Idioma del registro</span><select id="rlang"><option value="es">Español</option><option value="en">Original (inglés)</option></select>
+          <div class="full hint">La perspectiva es el jugador cuya mano va abajo. Con "Solo la perspectiva", las cartas del rival se ven boca abajo.</div>
+        </div>
+      </details>
+      <details class="isec" data-s="play"><summary><svg class="i"><use href="#i-play"/></svg>Reproducción<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Velocidad</span><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select>
+          <div class="irow ronly"><span>Empezar en</span><select id="rskip"><option value="mull">El mulligan</option><option value="1">La primera jugada</option><option value="0">El principio (iniciativa y campos)</option></select></div>
+          <div class="irow ronly"><span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select></div>
+        </div>
+      </details>
+      <details class="isec" data-s="snd"><summary><svg class="i"><use href="#i-sound"/></svg>Sonido<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid" id="insSnd"></div>
+      </details>
+      <details class="isec" data-s="brand"><summary><svg class="i"><use href="#i-brand"/></svg>Mi marca<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid" id="insBrand"></div>
+      </details>
+    </div>
+  </aside>
   </div>
 </div>
 

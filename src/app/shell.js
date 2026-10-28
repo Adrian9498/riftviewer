@@ -158,8 +158,9 @@ export function openHelp(){
 
 /* recorrido de bienvenida: 3 pasos, solo la primera vez que se abre una partida */
 export const TOUR=[
-  {sel:'#topbar',t:'Barra superior',d:'Aquí eliges el <b>formato</b> (16:9 o 9:16), la velocidad, los sonidos 🔊 y tu marca 🎨. Con <b>⏺ Exportar</b> sacas el video con plantillas para YouTube, Shorts o clips.'},
-  {sel:'#editor .tabs',t:'Panel lateral',d:'<b>Jugadas</b> o <b>Guion</b> para moverte por la partida, <b>Vista</b> para la distribución y la cámara, <b>⭐ Clips</b> para marcar momentos y <b>💬 Notas</b> para flechas, textos y "adivina la jugada".'},
+  {sel:'#bSettings',t:'Ajustes',d:'Aquí está todo lo que cambia cómo se ve y suena la mesa: <b>estilo</b> (Fantasía o Torneo), <b>formato</b> 16:9 o 9:16, cámara, qué se ve, velocidad, sonidos y <b>tu marca</b>.'},
+  {sel:'#bExport',t:'Exportar',d:'Saca el video con plantillas para YouTube, Shorts o clips.'},
+  {sel:'#editor .tabs',t:'Panel lateral',d:'<b>Jugadas</b> o <b>Guion</b> para moverte por la partida, <b>Clips</b> para marcar momentos y <b>Notas</b> para flechas, textos y "adivina la jugada".'},
   {sel:'#ctrl',t:'Reproducción',d:'Reproduce, pausa o avanza jugada por jugada. Atajos: <b>Espacio</b> y <b>← →</b>. Pulsa <b>?</b> cuando quieras ver todos los atajos.'}
 ];
 export let TK=0;

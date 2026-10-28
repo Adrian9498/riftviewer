@@ -27,37 +27,45 @@ export function applyBrand(){
   const inn=$('#inner'); inn.style.transformOrigin=org[E.align]||'center center'; inn.style.transform=s<1?`scale(${s})`:''; stage.dataset.is=s;
   try{ localStorage.setItem('rb_brand',JSON.stringify(BR)); }catch(e){}
   if(app.R){ app.R.players.forEach((p,k)=>p.col=app.PCOL[k%4]); buildFrameList(); }
+  if($('#insLook') && !$('#inspector').contains(document.activeElement)) renderBrandPanels();
 }
 export let BRTARGET=null;
+/* Mi marca vive en el inspector de Ajustes, repartida en tres secciones:
+   Apariencia (fondo y colores), Cámara y mesa (tamaño y alineación) y Mi marca (nombre, logo e imágenes de cartas). */
+export function renderBrandPanels(){
+  const lk=isPremium()?'':' 🔒';
+  $('#insLook').innerHTML=`
+    <span>Fondo</span><select id="brBg"><option value="skin">Del estilo de la mesa</option><option value="night">Azul noche</option><option value="purple">Morado</option><option value="green">Verde bosque</option><option value="red">Rojo</option><option value="black">Negro</option><option value="chroma">Pantalla verde (chroma key)${lk}</option><option value="img">Imagen propia${lk}</option></select>
+    <span></span><div><button class="btn mini lockable" data-up="bg">Subir imagen de fondo</button></div>
+    <span>Colores</span><div class="cols">${BR.cols.map((c,k)=>`<input type="color" data-col="${k}" value="${c}" title="Jugador ${k+1}">`).join('')}</div>`;
+  $('#insBoard').innerHTML=`
+    <span>Tamaño${lk}</span><select id="brScale">${[100,95,90,85,80,75,70,65].map(v=>`<option value="${v}">${v}%</option>`).join('')}</select>
+    <span>Alinear${lk}</span><select id="brAlign"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option><option value="top">Arriba</option><option value="bottom">Abajo</option><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
+    <div class="full hint">Reduce la mesa y pégala a un lado para dejar espacio a tu cámara.</div>`;
+  $('#insBrand').innerHTML=`
+    <span>Nombre o canal</span><input type="text" id="brName" value="${esc(BR.name)}" placeholder="@MiCanal">
+    <span>Logo</span><div><button class="btn mini lockable" data-up="logo">Elegir imagen</button> <button class="btn mini" data-rm="logo">Quitar</button></div>
+    <span>Posición</span><select id="brPos"><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
+    <span>Imágenes de cartas</span><div><span id="brImgs">${CUSTOM.size} propia${CUSTOM.size===1?'':'s'}</span> <button class="btn mini" id="brImgsX">Borrar todas</button></div>
+    <div class="full hint">Para cambiar la imagen de una carta: <b>clic derecho</b> sobre ella en la mesa, o <b>arrastra</b> una imagen encima. Con <b>Pantalla verde</b> puedes recortar el fondo en tu editor.</div>`;
+  $('#brPos').value=BR.pos; $('#brBg').value=BR.bg; $('#brScale').value=BR.scale; $('#brAlign').value=BR.align;
+}
+function onBrandInput(e){ const t=e.target;
+  // opciones de Full Access: se regresa al valor anterior y se explica cómo desbloquear
+  const premiumChange=(t.id==='brBg'&&PREMIUM_BG.includes(t.value))||t.id==='brScale'||t.id==='brAlign';
+  if(premiumChange && !needPremium('brand_full')){ t.value=t.id==='brBg'?BR.bg:t.id==='brScale'?BR.scale:BR.align; return; }
+  if(t.id==='brName') BR.name=t.value; if(t.id==='brPos') BR.pos=t.value; if(t.id==='brBg') BR.bg=t.value;
+  if(t.id==='brScale') BR.scale=+t.value; if(t.id==='brAlign') BR.align=t.value; if(t.dataset.col) BR.cols[+t.dataset.col]=t.value;
+  applyBrand(); noteLocalChange('settings'); if(t.dataset.col || t.id==='brScale' || t.id==='brAlign') rerender(); }
+async function onBrandClick(e){ const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.up){ if(!needPremium('brand_full')) return; BRTARGET=b.dataset.up; $('#brandImgIn').click(); }
+  if(b.dataset.rm){ BRIMG[b.dataset.rm]=null; IDB.del('brand:'+b.dataset.rm).catch(()=>{}); touchAsset('brand:'+b.dataset.rm,true); applyBrand(); }
+  if(b.id==='brImgsX' && confirm('¿Borrar todas las imágenes de cartas que subiste?')){ for(const k of [...CUSTOM.keys()]){ CUSTOM.delete(k); await IDB.del(k).catch(()=>{}); touchAsset(k,true); } $('#brImgs').textContent='0 propias'; rerender(); } }
+
 
 export function init() {
-  $('#bBrand').onclick=()=>{
-    const lk=isPremium()?'':' 🔒';
-    const body=openModal('🎨 Mi marca',`
-      <span>Nombre / canal</span><input type="text" id="brName" value="${esc(BR.name)}" placeholder="Ej: @MiCanal">
-      <span>Logo</span><div><button class="btn mini lockable" data-up="logo">Elegir imagen</button> <button class="btn mini" data-rm="logo">Quitar</button></div>
-      <span>Posición del logo</span><select id="brPos"><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
-      <span>Colores de jugadores</span><div>${BR.cols.map((c,k)=>`<input type="color" data-col="${k}" value="${c}" title="Jugador ${k+1}">`).join(' ')}</div>
-      <span>Fondo</span><div><select id="brBg"><option value="skin">Del estilo de la mesa</option><option value="night">Azul noche</option><option value="purple">Morado</option><option value="green">Verde bosque</option><option value="red">Rojo</option><option value="black">Negro</option><option value="chroma">Pantalla verde (chroma key)${lk}</option><option value="img">Imagen propia${lk}</option></select> <button class="btn mini lockable" data-up="bg">Subir imagen</button></div>
-      <span>Tamaño del tablero${lk}</span><select id="brScale">${[100,95,90,85,80,75,70,65].map(v=>`<option value="${v}">${v}%</option>`).join('')}</select>
-      <span>Alinear tablero${lk}</span><select id="brAlign"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option><option value="top">Arriba</option><option value="bottom">Abajo</option><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
-      <div class="full hint">Reduce el tablero y pégalo a un lado para dejar espacio libre a tu cámara. Con <b>Pantalla verde</b> puedes recortar el fondo en tu editor.</div>
-      <span>Imágenes de cartas</span><div><span id="brImgs">${CUSTOM.size} personalizada${CUSTOM.size===1?'':'s'}</span> <button class="btn mini" id="brImgsX">Borrar todas</button></div>
-      <div class="full hint">Para poner o cambiar la imagen de una carta: <b>clic derecho</b> sobre ella en la mesa, o <b>arrastra</b> una imagen encima.</div>`,
-      [['Listo','primary']]);
-    $('#brPos').value=BR.pos; $('#brBg').value=BR.bg; $('#brScale').value=BR.scale; $('#brAlign').value=BR.align;
-    body.oninput=e=>{ const t=e.target;
-      // opciones de Full Access: se regresa al valor anterior y se explica cómo desbloquear
-      const premiumChange=(t.id==='brBg'&&PREMIUM_BG.includes(t.value))||t.id==='brScale'||t.id==='brAlign';
-      if(premiumChange && !needPremium('brand_full')){ t.value=t.id==='brBg'?BR.bg:t.id==='brScale'?BR.scale:BR.align; return; }
-      if(t.id==='brName') BR.name=t.value; if(t.id==='brPos') BR.pos=t.value; if(t.id==='brBg') BR.bg=t.value;
-      if(t.id==='brScale') BR.scale=+t.value; if(t.id==='brAlign') BR.align=t.value; if(t.dataset.col) BR.cols[+t.dataset.col]=t.value;
-      applyBrand(); noteLocalChange('settings'); if(t.dataset.col || t.id==='brScale' || t.id==='brAlign') rerender(); };
-    body.onclick=async e=>{ const b=e.target.closest('button'); if(!b) return;
-      if(b.dataset.up){ if(!needPremium('brand_full')) return; BRTARGET=b.dataset.up; $('#brandImgIn').click(); }
-      if(b.dataset.rm){ BRIMG[b.dataset.rm]=null; IDB.del('brand:'+b.dataset.rm).catch(()=>{}); touchAsset('brand:'+b.dataset.rm,true); applyBrand(); }
-      if(b.id==='brImgsX' && confirm('¿Borrar todas las imágenes de cartas que subiste?')){ for(const k of [...CUSTOM.keys()]){ CUSTOM.delete(k); await IDB.del(k).catch(()=>{}); touchAsset(k,true); } $('#brImgs').textContent='0 personalizadas'; rerender(); } };
-  };
+  renderBrandPanels();
+  for(const id of ['#insLook','#insBoard','#insBrand']){ $(id).oninput=onBrandInput; $(id).onclick=onBrandClick; }
   $('#brandImgIn').onchange=async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f||!BRTARGET) return;
     try{ const url=await fileToDataURL(f, BRTARGET==='bg'?1080:240); BRIMG[BRTARGET]=url; await IDB.set('brand:'+BRTARGET,url).catch(()=>{}); touchAsset('brand:'+BRTARGET);

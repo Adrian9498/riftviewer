@@ -21,10 +21,11 @@ import { init as initFit } from './app/fit.js';
 import { init as initUi } from './app/ui.js';
 import { init as initAccount } from './app/account.js';
 import { init as initPremium } from './app/premium.js';
+import { init as initInspector } from './app/inspector.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector]) init();
 }
 
 start();

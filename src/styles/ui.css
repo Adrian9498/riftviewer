@@ -207,3 +207,32 @@ kbd{background:#070e1a;border-color:var(--line2)}
 :is(#hoverprev .ht,#spot .txt) :is(ul,ol){margin:2px 0 5px;padding-left:18px}
 :is(#hoverprev .ht,#spot .txt) li{margin:1px 0}
 #spot .txt{text-align:left}
+
+/* ===================== Inspector de Ajustes (panel derecho) ===================== */
+#inspector{width:310px;min-width:310px;display:flex;flex-direction:column;background:var(--panel);border-left:1px solid var(--line)}
+body.noinsp #inspector,body.rec #inspector,body.recording #inspector{display:none}
+.ihead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px 8px 16px;border-bottom:1px solid var(--line);min-height:50px}
+.ihead b{font-family:Cinzel,serif;font-weight:700;letter-spacing:1.5px;color:var(--acc2)}
+.ibody{flex:1;overflow:auto;padding-bottom:24px}
+.isec{border-bottom:1px solid var(--line)}
+.isec>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-weight:600;user-select:none;transition:background .15s}
+.isec>summary::-webkit-details-marker{display:none}
+.isec>summary:hover{background:#ffffff06}
+.isec>summary .i{color:var(--acc)}
+.isec>summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+.isec[open]>summary .chev{transform:rotate(90deg)}
+.igrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 12px;align-items:center;font-size:13px}
+.isec>.igrid{padding:2px 16px 16px}
+.igrid>.igrid,.irow{display:contents}
+.igrid span{color:var(--muted)}
+.igrid .full{grid-column:1/-1}
+.igrid select,.igrid input[type=text]{width:100%;min-width:0}
+.igrid input[type=range]{width:100%}
+.igrid .seg{justify-self:start}
+.igrid .hint{font-size:12px;color:var(--muted);line-height:1.45}
+.igrid .cols{display:flex;gap:6px}
+.igrid input[type=color]{width:34px;height:28px;padding:2px;border:1px solid var(--line2);border-radius:6px;background:none;cursor:pointer}
+.igrid label{display:inline-flex;align-items:center;gap:6px;color:var(--text)}
+.btn.mini{padding:4px 9px;font-size:12px;border-radius:6px}
+.btn.mini.ico{width:26px;height:26px;padding:0}
+#bSettings.on{background:#c8aa6e1f;border-color:#c8aa6e66;color:var(--acc2)}
