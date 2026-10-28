@@ -7,6 +7,7 @@ import { PROJ, saveProj } from './clips';
 import { PB } from './export';
 import { innerRect, scale } from './fit';
 import { buildFrameList } from './replay';
+import { frameElements } from './replay-render';
 import { G, el } from './script-engine';
 import { DOC } from './shell';
 import { app } from './state';
@@ -78,6 +79,9 @@ export async function runNotes(i){
   const list=(PROJ.notes[i]||[]).filter(allowed); if(!list.length) return;
   const vis=list.filter(n=>['texto','flecha','circulo'].includes(n.type));
   if(vis.length){
+    // antes de dibujar, la cámara encuadra todas las cartas/campos de las flechas y círculos
+    const anchors=vis.flatMap(n=>(n.refs||[]).map(anchorEl)).filter(Boolean);
+    if(anchors.length && app.R) await frameElements(anchors);
     const layer=document.createElement('div'); $('#fx').appendChild(layer);
     let svg='', secs=0; const texts=[];
     for(const n of vis){

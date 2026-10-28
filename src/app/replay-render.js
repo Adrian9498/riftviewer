@@ -16,6 +16,14 @@ import { esc } from './utils';
 export function camNow(){ const c=$('#rcam'); return c.offsetWidth ? c.getBoundingClientRect().width/(c.offsetWidth*scale()) : 1; }
 export function offIn(el){ let x=0,y=0,e=el; while(e && e.id!=='rcam'){ x+=e.offsetLeft; y+=e.offsetTop; e=e.offsetParent; } return {x,y,w:el.offsetWidth,h:el.offsetHeight}; }
 const padTarget = T => padRect(T, app.R.geo.VR);
+/** Encuadra varios elementos a la vez (p. ej. origen y destino de una flecha) y espera a que la cámara llegue. */
+export async function frameElements(els){
+  if(!app.R?.geo) return;
+  const inCam=els.filter(e=>e && e.closest && e.closest('#rcam'));   // la mano fija (fuera de la cámara) siempre se ve
+  if(!inCam.length) return;
+  camTo(padTarget(union(inCam.map(offIn))));
+  await new Promise(r=>setTimeout(r,800/app.speed));
+}
 // zona de un jugador: sus cartas en la base (o su franja si no hay ninguna)
 export function laneTarget(pid){
   const s=$(`#rcam .rstrip[data-p="${pid}"]`); if(!s) return app.R.geo.lanes.get(pid);
