@@ -3,7 +3,7 @@
 import { currentUser } from './auth';
 import { supabase } from './client';
 
-export type Feature = 'export_hd' | 'no_watermark' | 'export_presets' | 'brand_full' | 'notes_advanced';
+export type Feature = 'export_hd' | 'no_watermark' | 'export_presets' | 'brand_full' | 'notes_advanced' | 'thumbnail';
 
 /** Lo que desbloquea Full Access (en el orden en que se muestra). */
 export const FEATURES: Record<Feature, string> = {
@@ -12,6 +12,7 @@ export const FEATURES: Record<Feature, string> = {
   export_presets: 'Todos tus clips en un solo video, cada uno con su título',
   brand_full: 'Tu marca completa: logo, fondo propio, pantalla verde y tamaño y alineación de la mesa',
   notes_advanced: 'Notas avanzadas: flechas, resaltar cartas, "Adivina la jugada" y gráfica de puntos',
+  thumbnail: 'Miniaturas para YouTube con las leyendas, el marcador y tu marca',
 };
 
 export interface PlanState { tier: string; validUntil: number | null; userId: string | null }

@@ -12,6 +12,8 @@ import { DOC, setFmt, toast } from './shell';
 import { SFX, SND } from './sounds';
 import { app } from './state';
 import { posLabel, sectionLabel } from './transport';
+import { openThumbnail } from './thumbnail';
+import { chaptersText, cleanChapters } from '../replay/chapters';
 import { esc, hold, openModal, sleep } from './utils';
 
 /* ================= 1. Exportar video ================= */
@@ -57,7 +59,13 @@ export async function recordVideo(segs,fps=60){
   const done=new Promise(r=>rec.onstop=r);
   track.onended=()=>{ if(REC.on) REC.stop(); };
   rec.start(1000);
-  for(const s of segs){ if(REC.stopped) break; if(await playSegment(s)===false && !REC.stopped) break; }
+  // capítulos: con varios clips, uno por clip; con un solo tramo, uno por turno
+  const t0=performance.now(), marks=[], multi=segs.length>1, now=()=>(performance.now()-t0)/1000;
+  const onPos=()=>{ if(!multi){ const c=PB.cur(); marks.push({t:now(),label:c<0?'Inicio':app.R?sectionLabel(c):(PB.turn(c)?`Turno ${PB.turn(c)}`:'Preparación')}); } };
+  document.addEventListener('rb:pos',onPos);
+  for(const [k,s] of segs.entries()){ if(REC.stopped) break; if(multi) marks.push({t:now(),label:s.label||`Clip ${k+1}`}); if(await playSegment(s)===false && !REC.stopped) break; }
+  document.removeEventListener('rb:pos',onPos);
+  const duration=now();
   if(!REC.stopped) await sleep(700);
   REC.on=false;
   if(rec.state!=='inactive') rec.stop();
@@ -69,6 +77,16 @@ export async function recordVideo(segs,fps=60){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`partida-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')}.${ext}`; a.click();
   setStatus(`Video exportado: ${a.download} (${(blob.size/1048576).toFixed(1)} MB)`,'ok');
+  showChapters(cleanChapters(marks,duration),a.download);
+}
+/* al terminar, los capítulos listos para pegar en la descripción de YouTube */
+function showChapters(cs,file){
+  if(cs.length<2) return;
+  const txt=chaptersText(cs);
+  const body=openModal('Video listo',`
+    <div class="full hint">Se descargó <b>${esc(file)}</b>. Pega estos capítulos en la descripción de YouTube para que el video tenga secciones.${cs.length<3?' YouTube necesita al menos 3 capítulos; este video tiene '+cs.length+'.':''}</div>
+    <textarea class="full chtxt" readonly rows="${Math.min(12,cs.length+1)}">${esc(txt)}</textarea>`,
+    [['Cerrar'],['Copiar capítulos','primary',()=>{ navigator.clipboard?.writeText(txt).then(()=>toast('Capítulos copiados','ok')).catch(()=>{ body.querySelector('textarea').select(); document.execCommand('copy'); }); return false; }]]);
 }
 /* Reproducción común: la misma interfaz para guiones y replays.
    En un guion, la "jugada actual" es el último paso ejecutado (idx-1). */
@@ -122,7 +140,7 @@ export function init() {
       ${full?'':`<div class="full hint">Plan Gratis: 720p · 30 fps, con una marca de agua pequeña. <a href="#" data-up>Ver Full Access</a></div>`}
       <div class="full exsum" id="exSum"></div>
       <div class="full hint">Al pulsar <b>Grabar</b>, el navegador te pedirá compartir <b>esta pestaña</b>: elígela y acepta. Se graba solo la mesa, con sonido y en pantalla completa.${app.R&&$('#rauto').value==='1'?' Si el video llega al final, incluye el resumen y los mazos.':''}</div>`,
-      [['Cancelar'],['Grabar','primary',()=>{
+      [['Miniatura para YouTube','ghost',()=>{ openThumbnail(); return false; }],['Cancelar'],['Grabar','primary',()=>{
         const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ alert('Elige qué quieres grabar.'); return false; }
         if(k==='turns' && +$('#exTo').value < +$('#exFrom').value){ alert('El turno final debe ser igual o posterior al inicial.'); return false; }
         const segs=W[k].segs(), fmt=body.querySelector('.exfmt .on')?.dataset.fmt||stage.className, fps=+$('#exFps').value;
