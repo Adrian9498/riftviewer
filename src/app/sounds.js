@@ -106,8 +106,8 @@ export function openSounds(){
     <span>Sonidos</span><select id="sOn"><option value="1">Activados</option><option value="0">Desactivados</option></select>
     <span>Volumen</span><input type="range" id="sVol" min="0" max="100" value="${SND.vol}">
     <span>Estilo</span><select id="sStyle"><option value="epico">Épico (cuernos, tambores, monedas)</option><option value="clasico">Clásico (suave)</option></select>
-    ${Object.keys(SND_NAMES).map(k=>`<span><label><input type="checkbox" data-ev="${k}" ${SND.ev[k]?'checked':''}> ${SND_NAMES[k]}</label></span>
-      <div><button class="btn mini ico" data-test="${k}" title="Probar">${ic('play')}</button> <button class="btn mini" data-up="${k}">Mi audio</button>${SFX.blobs[k]?` <button class="btn mini" data-rm="${k}">Quitar el mío</button> <small style="color:var(--ok)">● propio</small>`:''}</div>`).join('')}
+    ${Object.keys(SND_NAMES).map(k=>`<div class="full sndrow"><label><input type="checkbox" data-ev="${k}" ${SND.ev[k]?'checked':''}> ${SND_NAMES[k]}</label>
+      <div class="sndb"><button class="btn mini ico" data-test="${k}" title="Probar">${ic('play')}</button> <button class="btn mini" data-up="${k}">Mi audio</button>${SFX.blobs[k]?` <button class="btn mini" data-rm="${k}">Quitar el mío</button> <small title="Usa tu propio audio">● propio</small>`:''}</div></div>`).join('')}
     <div class="full hint">Los sonidos también quedan grabados al <b>exportar video</b>. Puedes reemplazar cualquiera por un audio tuyo (MP3, WAV, OGG).</div>`;
   $('#sOn').value=SND.on?'1':'0'; $('#sStyle').value=SND.style||'epico';
 }

@@ -3,7 +3,7 @@ import { isPremium } from '../cloud/plan';
 import { $, stage } from './base';
 import { needPremium } from './premium';
 import { showChart } from './chart';
-import { PROJ, saveProj } from './clips';
+import { PROJ, placeOf, saveProj } from './clips';
 import { PB } from './export';
 import { innerRect, scale } from './fit';
 import { buildFrameList } from './replay';
@@ -34,7 +34,7 @@ export function renderNotes(){
   if(i<0){ $('#tnotas').innerHTML=`<div class="tpad"><div class="hint">Avanza al menos una jugada con <b>▶|</b> para añadirle notas. Las notas aparecen cuando la reproducción llega a esa jugada.</div></div>`; return; }
   $('#tnotas').innerHTML=`<div class="tpad">
     <div class="hint">Las notas aparecen cuando la reproducción llega a esta jugada. Elige la jugada con ◀ ▶${app.R?' o desde la pestaña Jugadas':''}.</div>
-    <h4>Jugada #${i}</h4><div class="hint">${esc(PB.label(i))}</div>
+    <h4>${esc(placeOf(i))}</h4><div class="hint">${esc(PB.label(i))}</div>
     ${list.map((n,k)=>`<div class="note"><span>${noteLabel(n)}</span><button class="btn mini" data-nd="${k}">✕</button></div>`).join('') || '<div class="hint" style="margin:6px 0">Sin notas en esta jugada.</div>'}
     <h4>Añadir nota</h4>
     <div class="form">

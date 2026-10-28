@@ -46,7 +46,7 @@ export function loadReplay(json){
   document.body.classList.add('replay');
   $('#rview').innerHTML=players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   $('#rview').value=app.R.view;
-  $('#pinfo').innerHTML=`Replay · sala <b>${esc(last.roomCode||'?')}</b> · ${players.map(p=>`<b style="color:${p.col}">${esc(p.name)}</b>`).join(' vs ')}<br>${frames.length} momentos · ${last.turnNumber||'?'} turnos`;
+  $('#pinfo').innerHTML=`${players.map(p=>`<b style="color:${p.col}">${esc(p.name)}</b>`).join(' vs ')}<br>${last.turnNumber||'?'} turnos · ${frames.length} jugadas`;
   buildFrameList();
   app.playing=false; app.token++;
   $('#scrub').max=frames.length-1;

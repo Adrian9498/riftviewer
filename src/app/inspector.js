@@ -21,10 +21,15 @@ export function openSection(name) {
 }
 
 export function init() {
-  // abierto por defecto solo si hay espacio de sobra para la mesa
-  setInspector(read('rb_insp', innerWidth >= 1500));
+  // flota sobre la mesa: empieza cerrado salvo que lo hayas dejado abierto
+  setInspector(read('rb_insp', false));
   $('#bSettings').onclick = toggleInspector;
   $('#bInspX').onclick = () => setInspector(false);
+  // Esc lo cierra, salvo que haya una ventana abierta o estés eligiendo cartas
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || document.body.classList.contains('noinsp') || document.body.classList.contains('picking') || $('#modal').classList.contains('show')) return;
+    setInspector(false);
+  });
   const open = read('rb_isec', ['look']);
   document.querySelectorAll('#inspector .isec').forEach(d => {
     d.open = open.includes(d.dataset.s);

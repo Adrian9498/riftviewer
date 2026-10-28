@@ -49,3 +49,5 @@ export function buildScrubMarks() {
   });
   box.innerHTML = h;
 }
+/** nombre del tramo de una jugada: "Preparación", "Mulligan" o "Turno 4" */
+export const sectionLabel = i => SEC[i]?.label || '';

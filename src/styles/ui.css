@@ -313,3 +313,39 @@ body:not(.replay) .scrubw{display:none}
 .mk-conq .i{width:13px;height:13px}
 .mk-note{position:absolute;top:1px;width:5px;height:5px;margin-left:-2px;border-radius:50%;background:#7fd3ff;pointer-events:auto;cursor:pointer;z-index:2}
 #ctrl .pos{min-width:110px;font-variant-numeric:tabular-nums;color:var(--text)}
+
+/* ===================== Ventana de Exportar ===================== */
+.mbody .exh{margin:6px 0 -2px;font-family:Cinzel,serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--acc)}
+.mbody .exh:first-child{margin-top:0}
+.preset .pi{display:flex;align-items:center;justify-content:center;color:var(--acc2)}
+.preset .pi .i{width:20px;height:20px}
+.exturns{display:flex;align-items:center;gap:8px;padding:2px 2px 4px}
+.exturns span{color:var(--muted)}
+.exturns select{flex:1;min-width:0}
+.exturns[hidden]{display:none}
+.exfmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.exfmt button{display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left;background:var(--panel2);border:2px solid var(--line2);border-radius:10px;cursor:pointer;color:var(--text)}
+.exfmt button:hover{border-color:#c8aa6e88}
+.exfmt button.on{border-color:var(--acc);background:#c8aa6e14}
+.exfmt b{display:block;font-size:14px}
+.exfmt small{color:var(--muted);font-size:12px}
+.ar{flex:none;border:2px solid currentColor;border-radius:4px;color:var(--acc2)}
+.ar.h{width:34px;height:20px}
+.ar.v{width:16px;height:28px;margin:0 9px}
+.exsum{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;background:#c8aa6e10;border:1px solid #c8aa6e33;color:var(--ivory);font-size:13px}
+.exsum:empty{display:none}
+.exsum .i{color:var(--acc2)}
+
+/* inspector flotante: pasa por encima de la mesa, no la achica */
+#inspector{position:fixed;z-index:650;top:62px;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));min-width:0;
+  border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#0b1322f2;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 24px 70px #000d,inset 0 1px 0 #c8aa6e30;animation:inspin .18s ease-out}
+@keyframes inspin{from{opacity:0;transform:translateX(16px)}}
+body.nopanel #inspector{top:14px}
+.ibody{overflow-x:hidden}
+.igrid{grid-template-columns:120px minmax(0,1fr)}
+/* sonido: cada evento en su renglón, con sus botones a la derecha */
+.sndrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--line)}
+.sndrow label{flex:1;min-width:0}
+.sndrow .sndb{display:flex;gap:4px;align-items:center;flex:none}
+.sndrow small{color:var(--ok)}

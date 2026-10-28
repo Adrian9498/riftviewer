@@ -113,6 +113,17 @@ describe('app completa', () => {
       // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
       expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
       expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
+      // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
+      Object.assign(navigator, { mediaDevices: { getDisplayMedia: () => Promise.reject(new Error('sin pantalla')) } });
+      (window as any).MediaRecorder = class {};
+      (document.querySelector('#bExport') as HTMLButtonElement).click();
+      const presets = [...document.querySelectorAll('#modal .preset')].map(b => (b as HTMLElement).dataset.p);
+      expect(presets).toEqual(['all', 'here', 'play', 'clips', 'turns']);
+      expect(document.querySelector('#modal .preset.on')).not.toBeNull();
+      expect(document.querySelector('#exSum')!.textContent).toMatch(/Se grabarán \d+ jugada/);
+      (document.querySelector('#modal .preset[data-p="turns"]') as HTMLButtonElement).click();
+      expect((document.querySelector('#modal .exturns') as HTMLElement).hidden).toBe(false);
+      expect([...document.querySelectorAll('#exFrom option')].map(o => o.textContent)).toContain('Mulligan');
       expect(errors).toEqual([]);
     }, 30000);
   }
