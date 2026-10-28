@@ -3,6 +3,7 @@ import { $, stage } from './base';
 import { cardByCode, imgKey } from './cards';
 import { BFZ, ZHTML, hudHTML, setClip } from './replay';
 import { buildMinimap } from './replay-render';
+import { paintCardExtras } from './replay-extras';
 import { app } from './state';
 import { esc } from './utils';
 
@@ -83,6 +84,7 @@ export function rPaint(e,zone){
   if(back){ f.className='face'; f.style.backgroundImage=''; f.textContent=''; }
   else if(e._data){ f.className='face'; f.textContent=''; f.style.backgroundImage=`url("${e._data.img}")`; }
   else { f.className='face ph'; f.style.backgroundImage=''; f.textContent=c.name||'?'; }
+  paintCardExtras(e,zone,!!back);
 }
 export function compress(box,avail){
   const kids=[...box.children].filter(k=>k.classList.contains('card'));

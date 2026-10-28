@@ -1,5 +1,6 @@
 // Generado a partir de legacy/app.js (sección "replay").
 import { decodeReplay } from '../replay/decode';
+import { computeMulligans } from '../replay/mulligan';
 import { translateLog } from '../replay/translate';
 import { $, stage } from './base';
 import { analyze } from './chart';
@@ -35,6 +36,7 @@ export function loadReplay(json){
   app.R={rp,frames,players,start,i:-1,shown:null,ctrl:{},layoutKey:'',
      view:players.some(p=>p.id===rp.viewerPlayerId)?rp.viewerPlayerId:players[0].id};
   app.R.render=rRender;
+  app.R.mull=computeMulligans(frames);
   app.R.key='rb_proj_'+(rp.replayId||(last.roomCode+':'+last.createdAt));
   loadProj(app.R.key); analyze();
   document.body.classList.add('replay');
@@ -44,7 +46,12 @@ export function loadReplay(json){
   buildFrameList();
   app.playing=false; app.token++;
   $('#scrub').max=frames.length-1;
-  rJump($('#rskip').value==='1'?app.R.start:0);
+  rJump(startFrame());
+}
+/** Jugada en la que empieza la reproducción, según "Empezar en" (mulligan, partida o desde el principio). */
+export function startFrame(){
+  const v=$('#rskip').value, R=app.R;
+  return v==='mull' ? (R.mull?.start ?? R.start) : v==='1' ? R.start : 0;
 }
 
 export function buildFrameList(){

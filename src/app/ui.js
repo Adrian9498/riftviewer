@@ -7,6 +7,7 @@ import { DEMO } from './demo';
 import { REC } from './export';
 import { fit } from './fit';
 import { rJump, rPlay, rStep } from './replay-render';
+import { startFrame } from './replay';
 import { idx, jumpTo, play, reset, run, stepForward } from './script-engine';
 import { DOC, autosaveScript, openHelp, renderRecents, saveRecent, togglePanel } from './shell';
 import { SFX } from './sounds';
@@ -20,7 +21,7 @@ export function init() {
   $('#bPlay').onclick=()=> app.R ? rPlay() : play();
   $('#bNext').onclick=async()=>{ app.playing=false; if(app.R) await rStep(); else await stepForward(); };
   $('#bPrev').onclick=()=>{ app.playing=false; if(app.R) rJump(app.R.i-1); else jumpTo(Math.max(0,idx-1)); };
-  $('#bStart').onclick=()=>{ app.playing=false; if(app.R) rJump($('#rskip').value==='1'?app.R.start:0); else jumpTo(0); };
+  $('#bStart').onclick=()=>{ app.playing=false; if(app.R) rJump(startFrame()); else jumpTo(0); };
   $('#speed').onchange=e=>app.speed=parseFloat(e.target.value);
   $('#bRec').onclick=()=>{ document.body.classList.toggle('rec'); fit(); };
   $('#bSave').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('#script').value],{type:'text/plain'})); a.download=`${(DOC.name||'partida').replace(/[\\/:*?"<>|]+/g,'_')}.txt`; a.click(); };
