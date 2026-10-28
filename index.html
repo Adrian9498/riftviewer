@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visualizador de Partidas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <button class="btn" id="bHome" title="Pantalla de inicio">⌂ Inicio</button>
+    <button class="btn" id="bPanel" title="Mostrar u ocultar el panel lateral (P)">◧</button>
+    <span class="logo">VISUALIZADOR</span>
+    <div id="docname"></div>
+    <div class="seg" id="fmtseg" title="Relación de aspecto"><button data-f="h" class="on">16:9</button><button data-f="v">9:16</button></div>
+    <label class="tbl">Velocidad <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
+    <button class="btn" id="bRec" title="Ocultar menús para grabar (tecla H)">⛶ Grabación</button>
+    <button class="btn" id="bSnd" title="Sonidos">🔊</button>
+    <button class="btn" id="bBrand" title="Logo, colores y fondo">🎨 Mi marca</button>
+    <button class="btn recb" id="bExport" title="Exportar video">⏺ Exportar</button>
+    <button class="btn" id="bHelp" title="Ayuda y atajos (?)">?</button>
+  </header>
+  <div id="work">
+  <aside id="editor">
+    <div id="pinfo"></div>
+    <div class="tabs"><button data-t="jug" class="on"><span class="ronly">Jugadas</span><span class="sonly">✎ Guion</span></button><button data-t="vista" class="ronly">Vista</button><button data-t="clips">⭐ Clips</button><button data-t="notas">💬 Notas</button></div>
+    <div id="frames" class="tab on" data-t="jug"></div>
+    <div id="tscript" class="tab on" data-t="jug">
+      <div class="sbar">
+        <button class="btn primary" id="bLoad" title="Ctrl+Enter">▶ Aplicar cambios</button>
+        <button class="btn" id="bSave">Guardar .txt</button>
+        <button class="btn" id="bCmds">📖 Comandos</button>
+      </div>
+      <div class="row"><div id="search"><input type="text" id="q" placeholder="Buscar carta para insertar su nombre…"><div id="results"></div></div></div>
+      <textarea id="script" spellcheck="false" placeholder="Escribe aquí tu guion. Pulsa 📖 Comandos para ver qué puedes escribir."></textarea>
+      <div id="errors"></div>
+    </div>
+    <div id="tvista" class="tab" data-t="vista">
+      <div class="opts">
+        <span>Distribución</span><select id="rlay"><option value="lanes">Carriles (todos iguales)</option><option value="lat">Amplia (rivales a los lados)</option><option value="classic">Clásica (arriba y abajo)</option></select>
+        <span>Cámara</span><select id="rcamsel"><option value="suave">Sigue la acción (suave)</option><option value="intensa">Sigue la acción (intensa)</option><option value="off">Fija, sin zoom</option></select>
+        <span>Perspectiva</span><select id="rview"></select>
+        <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
+        <span>Registro</span><select id="rlang"><option value="es">Traducido al español</option><option value="en">Original (inglés)</option></select>
+        <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
+        <span>Saltar inicio</span><select id="rskip"><option value="1">Sí (empezar en la partida)</option><option value="0">No (incluir iniciativa y mulligan)</option></select>
+        <span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select>
+      </div>
+    </div>
+    <div id="tclips" class="tab" data-t="clips"></div>
+    <div id="tnotas" class="tab" data-t="notas"></div>
+    <footer id="pfoot"><div id="status">Cargando cartas…</div><div id="progress"></div>
+      <div class="credit">Datos de cartas: riftcodex · <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>. Imágenes y textos © Riot Games.</div></footer>
+    <template id="cmdHelp"><pre class="cmdpre">
+CONFIGURACIÓN (antes del primer "turno")
+  jugador j1 "Nombre"        jugador j2 "Nombre"
+  leyenda j1 "Carta"         campeon j1 "Carta"
+  campo A "Battlefield"      (A, B o C)
+  mano j1 4                  (cartas boca abajo)
+  meta 8                     (puntos para ganar)
+
+JUGADAS
+  turno j1                   fase "Texto"
+  roba j1 [n]                roba j1 "Carta" (visible)
+  runas j1 3  /  +2  / -1
+  juega j1 "Carta"           (hechizo → descarte)
+  juega j1 "Carta" a base    juega j1 "Carta" a A
+  mueve j1 "Carta" a B       mueve j1 "Carta" a base
+  agota "Carta"              prepara "Carta"
+  prepara j1 todo
+  daño "Carta" 3             cura "Carta"
+  poder "Carta" +2           (marcador de bonus)
+  combate A                  conquista j1 A
+  controla j1 A              libera A
+  muere "Carta"              regresa "Carta"  (a la mano)
+  puntos j1 +1               foco "Carta"
+  texto "Comentario"         pausa 2
+  gana j1
+
+Copias: "Poro#2" se refiere a la 2ª copia.
+Comentarios: líneas que empiezan con #.
+Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
+</pre></template>
+  </aside>
+
+  <main id="viewport">
+    <div id="stage" class="h">
+      <div id="bg"></div>
+      <div id="inner">
+      <section class="player p2" id="P2">
+        <div class="hud"><div class="pname" id="n2">Jugador 2</div>
+          <div class="stats"><div class="stat pts"><b id="s2">0</b><span>Puntos</span></div><div class="stat"><b id="r2">0</b><span>Runas</span></div><div class="stat"><b id="h2">0</b><span>Mano</span></div></div>
+          <div class="turnmark">SU TURNO</div></div>
+        <div class="zone z-legend" data-z="legend"><label>Leyenda</label></div>
+        <div class="zone z-champ" data-z="champ"><label>Campeón</label></div>
+        <div class="zone z-base" data-z="base"><label>Base</label></div>
+        <div class="zone z-trash" data-z="trash"><label>Descarte</label><span class="count">0</span></div>
+        <div class="zone z-hand" data-z="hand"></div>
+      </section>
+      <section id="fields"></section>
+      <section class="player p1" id="P1">
+        <div class="hud"><div class="pname" id="n1">Jugador 1</div>
+          <div class="stats"><div class="stat pts"><b id="s1">0</b><span>Puntos</span></div><div class="stat"><b id="r1">0</b><span>Runas</span></div><div class="stat"><b id="h1">0</b><span>Mano</span></div></div>
+          <div class="turnmark">SU TURNO</div></div>
+        <div class="zone z-legend" data-z="legend"><label>Leyenda</label></div>
+        <div class="zone z-champ" data-z="champ"><label>Campeón</label></div>
+        <div class="zone z-base" data-z="base"><label>Base</label></div>
+        <div class="zone z-trash" data-z="trash"><label>Descarte</label><span class="count">0</span></div>
+        <div class="zone z-hand" data-z="hand"></div>
+      </section>
+      <section id="rboard"><div id="rclip"><div id="rcam"><div id="rfields"></div></div></div><div id="rchain"></div><div id="minimap"></div></section>
+      <div id="turninfo"></div>
+      <div id="log"></div>
+      <div id="spot"><div class="who"></div><img alt=""><div class="txt"></div></div>
+      <div id="caption"></div>
+      <div id="banner"></div>
+      <div id="fx"></div>
+      <div id="victory"><h2>VICTORIA</h2><p></p></div>
+      </div>
+      <div id="brand"></div>
+      <div id="chartov" class="ov"><h3>EVOLUCIÓN DE PUNTOS</h3><div class="chartbox"></div></div>
+      <div id="sumov" class="ov"></div>
+      <div id="quiz" class="ov"><h3>¿QUÉ HARÍAS TÚ?</h3><p class="q"></p><div class="count"></div></div>
+    </div>
+    <div id="ctrl">
+      <button class="btn" id="bStart" title="Inicio">⏮</button>
+      <button class="btn" id="bPrev" title="←">◀</button>
+      <button class="btn primary" id="bPlay" title="Espacio">▶ Reproducir</button>
+      <button class="btn" id="bNext" title="→">▶|</button>
+      <input type="range" id="scrub" min="0" max="0" value="0">
+      <span class="pos" id="pos">0 / 0</span>
+      <button class="btn ronly" id="bChart" title="Gráfica de puntos">📈</button>
+      <button class="btn ronly" id="bSum" title="Resumen de la partida">📋</button>
+    </div>
+  </main>
+  </div>
+</div>
+
+<!-- Pantalla de inicio -->
+<div id="home" class="show">
+  <div class="hwrap">
+    <button class="btn" id="hClose" hidden>Volver a la partida ✕</button>
+    <h1>VISUALIZADOR DE PARTIDAS</h1>
+    <p class="sub">Convierte tus partidas de Riftbound en videos listos para publicar</p>
+    <div class="hcards">
+      <div class="hcard">
+        <div class="hic">▶</div>
+        <h2>Ver un replay</h2>
+        <p>Abre el archivo <b>.json</b> que descargas de <b>RiftAtlas</b>. La partida se reproduce sola, con todas las cartas y jugadas.</p>
+        <div class="drop-hint">Arrastra el archivo aquí o a cualquier parte de la ventana</div>
+        <div class="acts"><label class="btn primary">Elegir replay…<input type="file" id="replayIn" accept=".json" hidden></label></div>
+      </div>
+      <div class="hcard scr">
+        <div class="hic">✎</div>
+        <h2>Crear con guion</h2>
+        <p>Escribe la partida jugada a jugada (jugar cartas, mover, combatir, conquistar…) y la mesa se anima sola. Ideal para partidas en físico.</p>
+        <div class="acts"><button class="btn primary" id="hNew">Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
+      </div>
+    </div>
+    <div class="hrecent" id="hrecent" hidden><h3>RECIENTES</h3><div id="recents"></div></div>
+    <div class="hfoot">¿Primera vez? <button class="btn" id="hDemo">Ver un guion de ejemplo</button></div>
+  </div>
+</div>
+<div id="dropov"><div>Suelta el archivo para abrirlo</div></div>
+<div id="toasts"></div>
+<div id="tour"><div class="tbox"></div><div class="tbub"><small class="tstep"></small><h3></h3><p></p><div class="tacts"><button class="btn" id="tSkip">Saltar</button><button class="btn primary" id="tNext">Siguiente</button></div></div></div>
+
+<div id="modal"><div class="mbox"><h2></h2><div class="mbody"></div><div class="mfoot"></div></div></div>
+<div id="startrec"><div><h2>Todo listo para grabar</h2><p>Al pulsar el botón, la pantalla se pondrá completa y empezará la reproducción.<br>Pulsa <b>Esc</b> para detener la grabación antes de tiempo.</p><button class="btn primary" id="bGo">⏺ Comenzar grabación</button></div></div>
+<input type="file" id="imgIn" accept="image/*" hidden>
+<input type="file" id="projIn" accept=".json" hidden>
+<input type="file" id="brandImgIn" accept="image/*" hidden>
+<input type="file" id="sndIn" accept="audio/*" hidden>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
