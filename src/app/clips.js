@@ -1,4 +1,5 @@
 // Generado a partir de legacy/app.js (sección "clips").
+import { noteLocalChange } from '../cloud/sync';
 import { $ } from './base';
 import { setStatus } from './cards';
 import { PB, playSegment, recordVideo } from './export';
@@ -11,7 +12,7 @@ import { esc } from './utils';
 /* ================= 2. Marcadores y clips ================= */
 export let PROJ={marks:{},notes:{},before:3,after:3}, PROJKEY='';
 export function loadProj(key){ PROJKEY=key; PROJ={marks:{},notes:{},before:3,after:3}; try{ Object.assign(PROJ,JSON.parse(localStorage.getItem(key)||'{}')); }catch(e){} }
-export function saveProj(){ try{ localStorage.setItem(PROJKEY,JSON.stringify(PROJ)); }catch(e){ setStatus('No se pudo guardar el proyecto en el navegador','err'); } }
+export function saveProj(){ PROJ.ts=Date.now(); try{ localStorage.setItem(PROJKEY,JSON.stringify(PROJ)); }catch(e){ setStatus('No se pudo guardar el proyecto en el navegador','err'); } noteLocalChange('projects'); }
 export function frameText(i){ const f=app.R.frames[i]; return f.newLogs.length ? tr(f.newLogs[f.newLogs.length-1].text) : (f.actionType||'').replace(/_/g,' '); }
 export function toggleMark(i){ if(i<0) return; if(PROJ.marks[i]) delete PROJ.marks[i]; else PROJ.marks[i]={label:PB.label(i).slice(0,60)}; saveProj(); if(app.R) buildFrameList(); renderClips(); }
 export function clipSeg(i){ return {from:Math.max(app.R?0:-1,i-PROJ.before), to:Math.min(PB.count()-1,i+PROJ.after), label:PROJ.marks[i]?.label||''}; }

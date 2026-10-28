@@ -499,3 +499,22 @@ body:not(.replay) .ronly{display:none}
 #ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:#000c;border:1px solid var(--line);border-radius:10px;padding:6px 10px;z-index:100;transition:opacity .3s}
 body.rec #ctrl{opacity:0} body.rec #ctrl:hover{opacity:1}
 #ctrl .pos{font-size:12px;color:var(--muted);min-width:70px;text-align:center}
+
+/* ---------- Cuenta ---------- */
+.btn.acct{display:inline-flex;align-items:center;gap:7px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn.acct[hidden]{display:none}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.sdot.idle{background:var(--ok)} .sdot.error{background:var(--err)}
+.sdot.syncing{background:var(--gold);animation:ring 1s ease-in-out infinite}
+.oauth{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn.oa{padding:9px 10px;font-weight:600}
+.btn.oa.google{background:#fff;color:#1f1f1f;border-color:#dadce0}
+.btn.oa.discord{background:#5865f2;color:#fff;border-color:#5865f2}
+.sep{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
+.mbody input[type=email],.mbody input[type=password]{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+.aumsg{font-size:12.5px;min-height:1em}
+.aumsg.err{color:var(--err)} .aumsg.ok{color:var(--ok)}
+.mbody a{color:var(--p1)}
+.oauth[hidden],.sep[hidden],.btn.oa[hidden]{display:none}
+#hAccount{position:absolute;top:18px;left:24px}

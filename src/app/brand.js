@@ -1,5 +1,7 @@
 // Generado a partir de legacy/app.js (sección "brand").
+import { noteLocalChange } from '../cloud/sync';
 import { $, stage } from './base';
+import { touchAsset } from './cloud-adapter';
 import { CUSTOM, IDB, setStatus } from './cards';
 import { buildFrameList } from './replay';
 import { app } from './state';
@@ -39,16 +41,16 @@ export function init() {
     body.oninput=e=>{ const t=e.target;
       if(t.id==='brName') BR.name=t.value; if(t.id==='brPos') BR.pos=t.value; if(t.id==='brBg') BR.bg=t.value;
       if(t.id==='brScale') BR.scale=+t.value; if(t.id==='brAlign') BR.align=t.value; if(t.dataset.col) BR.cols[+t.dataset.col]=t.value;
-      applyBrand(); if(t.dataset.col || t.id==='brScale' || t.id==='brAlign') rerender(); };
+      applyBrand(); noteLocalChange('settings'); if(t.dataset.col || t.id==='brScale' || t.id==='brAlign') rerender(); };
     body.onclick=async e=>{ const b=e.target.closest('button'); if(!b) return;
       if(b.dataset.up){ BRTARGET=b.dataset.up; $('#brandImgIn').click(); }
-      if(b.dataset.rm){ BRIMG[b.dataset.rm]=null; IDB.del('brand:'+b.dataset.rm).catch(()=>{}); applyBrand(); }
-      if(b.id==='brImgsX' && confirm('¿Borrar todas las imágenes de cartas que subiste?')){ for(const k of [...CUSTOM.keys()]){ CUSTOM.delete(k); await IDB.del(k).catch(()=>{}); } $('#brImgs').textContent='0 personalizadas'; rerender(); } };
+      if(b.dataset.rm){ BRIMG[b.dataset.rm]=null; IDB.del('brand:'+b.dataset.rm).catch(()=>{}); touchAsset('brand:'+b.dataset.rm,true); applyBrand(); }
+      if(b.id==='brImgsX' && confirm('¿Borrar todas las imágenes de cartas que subiste?')){ for(const k of [...CUSTOM.keys()]){ CUSTOM.delete(k); await IDB.del(k).catch(()=>{}); touchAsset(k,true); } $('#brImgs').textContent='0 personalizadas'; rerender(); } };
   };
   $('#brandImgIn').onchange=async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f||!BRTARGET) return;
-    try{ const url=await fileToDataURL(f, BRTARGET==='bg'?1080:240); BRIMG[BRTARGET]=url; await IDB.set('brand:'+BRTARGET,url).catch(()=>{});
-      if(BRTARGET==='bg'){ BR.bg='img'; const s=$('#brBg'); if(s) s.value='img'; } applyBrand(); }
+    try{ const url=await fileToDataURL(f, BRTARGET==='bg'?1080:240); BRIMG[BRTARGET]=url; await IDB.set('brand:'+BRTARGET,url).catch(()=>{}); touchAsset('brand:'+BRTARGET);
+      if(BRTARGET==='bg'){ BR.bg='img'; const s=$('#brBg'); if(s) s.value='img'; noteLocalChange('settings'); } applyBrand(); }
     catch(err){ setStatus('No se pudo leer la imagen','err'); }
   };
 }

@@ -1,5 +1,7 @@
 // Generado a partir de legacy/app.js (sección "shell").
+import { noteLocalChange } from '../cloud/sync';
 import { $, stage } from './base';
+import { tombDoc, touchAsset } from './cloud-adapter';
 import { IDB, setStatus } from './cards';
 import { applyProject, loadProj, renderClips } from './clips';
 import { DEMO } from './demo';
@@ -59,6 +61,7 @@ export async function saveRecent(item){
   try{ item.ts=Date.now(); await IDB.set('recent:'+item.id,item);
     const old=(await IDB.entries()).filter(([k])=>k.startsWith('recent:')).sort((a,b)=>b[1].ts-a[1].ts).slice(8);
     for(const [k] of old) await IDB.del(k); }catch(e){}
+  noteLocalChange('docs');
 }
 export const ago=ts=>{ const m=Math.round((Date.now()-ts)/60000); return m<1?'ahora':m<60?`hace ${m} min`:m<1440?`hace ${Math.round(m/60)} h`:`hace ${Math.round(m/1440)} d`; };
 export async function renderRecents(){
@@ -83,7 +86,7 @@ export function switchTab(t){
 /* formato: siempre visible en la barra superior */
 export function setFmt(f){
   stage.className=f; document.querySelectorAll('#fmtseg button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  try{ localStorage.setItem('rb_fmt',f); }catch(e){} fit();
+  try{ localStorage.setItem('rb_fmt',f); }catch(e){} noteLocalChange('settings'); fit();
   if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else jumpTo(idx);
 }
 
@@ -108,7 +111,10 @@ export function openHelp(){
   body.querySelector('#hTour').onclick=()=>{ closeModal(); startTour(); };
   body.querySelector('#hReset').onclick=()=>{
     if(!confirm('¿Volver a las opciones de fábrica? Se recargará la página.')) return;
-    try{ ['rb_brand','rb_snd','rb_lay','rb_lay2','rb_cam','rb_fmt','rb_tour'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+    try{ ['rb_brand','rb_snd','rb_lay','rb_lay2','rb_cam','rb_fmt','rb_tour'].forEach(k=>localStorage.removeItem(k));
+      // marca el restablecimiento como el cambio más reciente, para que la nube no devuelva los ajustes viejos
+      localStorage.setItem('rb_settings_ts',String(Date.now())); }catch(e){}
+    touchAsset('brand:logo',true); touchAsset('brand:bg',true);
     IDB.del('brand:logo').catch(()=>{}).then(()=>IDB.del('brand:bg')).catch(()=>{}).finally(()=>location.reload());
   };
 }
@@ -151,7 +157,7 @@ export function init() {
     if(e.defaultPrevented) return;   // soltado sobre una carta: es una imagen para esa carta
     const f=e.dataTransfer?.files?.[0]; if(!f) return; e.preventDefault(); readDropped(f); });
   $('#recents').onclick=async e=>{
-    const del=e.target.closest('[data-rdel]'); if(del){ await IDB.del('recent:'+del.dataset.rdel).catch(()=>{}); renderRecents(); return; }
+    const del=e.target.closest('[data-rdel]'); if(del){ await IDB.del('recent:'+del.dataset.rdel).catch(()=>{}); tombDoc(del.dataset.rdel); renderRecents(); return; }
     const it=e.target.closest('[data-rid]'); if(!it) return;
     const r=await IDB.get('recent:'+it.dataset.rid).catch(()=>null); if(!r) return;
     if(r.kind==='replay') openReplay(JSON.parse(r.data),r.name,r.data); else openScript(r.data,r.name);
@@ -166,8 +172,8 @@ export function init() {
   $('#tSkip').onclick=endTour;
   $('#rview').onchange=e=>{ app.R.view=e.target.value; app.R.layoutKey=''; rJump(app.R.i); };
   try{ $('#rlay').value=localStorage.getItem('rb_lay2')||'lanes'; $('#rcamsel').value=localStorage.getItem('rb_cam')||'suave'; }catch(e){}
-  $('#rlay').onchange=e=>{ try{ localStorage.setItem('rb_lay2',e.target.value); }catch(err){} if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } };
-  $('#rcamsel').onchange=e=>{ try{ localStorage.setItem('rb_cam',e.target.value); }catch(err){} if(app.R) camTo(null,true); };
+  $('#rlay').onchange=e=>{ try{ localStorage.setItem('rb_lay2',e.target.value); }catch(err){} noteLocalChange('settings'); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } };
+  $('#rcamsel').onchange=e=>{ try{ localStorage.setItem('rb_cam',e.target.value); }catch(err){} noteLocalChange('settings'); if(app.R) camTo(null,true); };
   $('#rhands').onchange=$('#rlang').onchange=()=>{ if($('#rlang').value) buildFrameList(); rJump(app.R.i); };
   $('#scrub').oninput=e=>{ if(app.R){ app.playing=false; rJump(+e.target.value); } };
 }

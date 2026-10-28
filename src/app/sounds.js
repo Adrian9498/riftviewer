@@ -1,5 +1,7 @@
 // Generado a partir de legacy/app.js (sección "sounds").
+import { noteLocalChange } from '../cloud/sync';
 import { $ } from './base';
+import { touchAsset } from './cloud-adapter';
 import { IDB, setStatus } from './cards';
 import { openModal } from './utils';
 
@@ -108,11 +110,11 @@ export function openSounds(){
     [['Listo','primary']]);
   $('#sOn').value=SND.on?'1':'0'; $('#sStyle').value=SND.style||'epico';
   body.oninput=e=>{ const t=e.target;
-    if(t.id==='sOn') SND.on=t.value==='1'; if(t.id==='sStyle') SND.style=t.value; if(t.id==='sVol') SND.vol=+t.value; if(t.dataset.ev) SND.ev[t.dataset.ev]=t.checked; saveSnd(); };
+    if(t.id==='sOn') SND.on=t.value==='1'; if(t.id==='sStyle') SND.style=t.value; if(t.id==='sVol') SND.vol=+t.value; if(t.dataset.ev) SND.ev[t.dataset.ev]=t.checked; saveSnd(); noteLocalChange('settings'); };
   body.onclick=async e=>{ const b=e.target.closest('button'); if(!b) return;
     if(b.dataset.test) SFX.play(b.dataset.test,true);
     if(b.dataset.up){ SNDTARGET=b.dataset.up; $('#sndIn').click(); }
-    if(b.dataset.rm){ delete SFX.blobs[b.dataset.rm]; delete SFX.bufs[b.dataset.rm]; await IDB.del('snd:'+b.dataset.rm).catch(()=>{}); openSounds(); } };
+    if(b.dataset.rm){ delete SFX.blobs[b.dataset.rm]; delete SFX.bufs[b.dataset.rm]; await IDB.del('snd:'+b.dataset.rm).catch(()=>{}); touchAsset('snd:'+b.dataset.rm,true); openSounds(); } };
 }
 
 export function init() {
@@ -123,7 +125,7 @@ export function init() {
   $('#sndIn').onchange=async e=>{
     const f=e.target.files[0]; e.target.value=''; if(!f||!SNDTARGET) return;
     if(f.size>3*1048576){ alert('El audio es muy pesado (máximo 3 MB). Usa un clip corto.'); return; }
-    SFX.blobs[SNDTARGET]=f; await IDB.set('snd:'+SNDTARGET,f).catch(()=>{}); SFX.ensure(); await SFX.decode(SNDTARGET);
+    SFX.blobs[SNDTARGET]=f; await IDB.set('snd:'+SNDTARGET,f).catch(()=>{}); touchAsset('snd:'+SNDTARGET); SFX.ensure(); await SFX.decode(SNDTARGET);
     SFX.play(SNDTARGET,true); openSounds();
   };
 }

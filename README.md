@@ -31,6 +31,7 @@ src/styles/app.css      estilos
 
 src/data/               (TS estricto) nombres de cartas, catálogo de OpenRift
 src/script/             (TS estricto) lenguaje de guiones: parser
+src/cloud/              (TS estricto) Supabase: sesión, sincronización local-first, plan del usuario
 src/replay/             (TS estricto) decodificación de replays, traducción del registro, mazos,
                         encuadre de la cámara, detección de batallas y puntos
 
@@ -44,13 +45,18 @@ src/app/                la interfaz y el render (JavaScript, se irá tipando)
   chart.js summary.js               gráfica de puntos y resumen final
   brand.js sounds.js hover.js       marca, sonidos, vista ampliada
   shell.js ui.js                    inicio, recientes, pestañas, barra superior, atajos
+  account.js cloud-adapter.js       cuenta (entrar, crear, menú) y puente entre los datos locales y la nube
 
 tests/                  pruebas unitarias + prueba de humo de la app completa (jsdom)
 scripts/                utilidades (descarga del catálogo)
-
+supabase/migrations/    esquema de la base de datos (tablas, RLS, buckets)
+docs/                   guías (configurar Supabase)
 ```
 
 Reglas de los módulos de `src/app`: a nivel superior solo hay declaraciones (exportadas); todo lo que tiene efectos (eventos, preferencias, carga inicial) va en `init()`. Así no importa el orden en que se evalúan los módulos que se importan entre sí.
+
+## Cuentas y nube (opcional)
+Con un proyecto de Supabase configurado en `.env.local`, la app permite crear cuenta (correo, Google o Discord) y sincroniza marca, sonidos, clips, notas, recientes e imágenes entre PCs. Sin configurarlo, todo funciona en local. Pasos: [docs/supabase.md](docs/supabase.md).
 
 ## Datos y créditos
 Datos de cartas: riftcodex y [OpenRift](https://openrift.app). Imágenes y textos de cartas © Riot Games.

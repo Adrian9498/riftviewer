@@ -16,10 +16,11 @@ import { init as initSounds } from './app/sounds.js';
 import { init as initHover } from './app/hover.js';
 import { init as initFit } from './app/fit.js';
 import { init as initUi } from './app/ui.js';
+import { init as initAccount } from './app/account.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount]) init();
 }
 
 start();
