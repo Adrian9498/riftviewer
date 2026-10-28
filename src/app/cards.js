@@ -35,10 +35,26 @@ export async function loadCards(){
 }
 export function ready(){ setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
 export let BYCODE=null;
-export function cardByCode(code,name){
+export function cardByCode(code,name,imageUrl){
+  if(!code && (imageUrl || isToken(name))) return withCustom(tokenCard(name,imageUrl), imgKey(code,name), name);
   if(!BYCODE){ BYCODE=new Map(); for(const c of CARDS) if(c.code && (!BYCODE.has(c.code) || BYCODE.get(c.code).alt && !c.alt)) BYCODE.set(c.code,c); }
   const base=(code && BYCODE.get(code.toUpperCase())) || orByCode(code) || (name && findCardRaw(name)) || null;
   return withCustom(base, imgKey(code,name), name);
+}
+
+/* tokens: no traen código de carta. Los replays de RiftAtlas dan su propia imagen ("/tokens/SandSoldier.webp");
+   en los guiones se usa la de OpenRift o, si no la tiene, la de RiftAtlas por nombre. Nunca se buscan por parecido,
+   para que "Sprite" no termine siendo "Sprite Burst". */
+export const RIFTATLAS='https://play.riftatlas.com';
+export const isToken = name => !!name && OR.tokens.has(norm(name));
+// tokens que RiftAtlas sí publica en /tokens (revisado en oct 2026); Bomb y XP Tracker no tienen imagen en ningún lado
+const RA_TOKENS=new Set(['Bird','Brush','Gold','Mech','Recruit','Reflection','SandSoldier','ShadowClone','Sprite','Tentacle']);
+export function tokenCard(name,imageUrl){
+  const or=OR.tokens.get(norm(name||'')), file=(name||'').replace(/[^A-Za-z0-9]/g,'');
+  const img = imageUrl ? (/^https?:/.test(imageUrl) ? imageUrl : RIFTATLAS+(imageUrl.startsWith('/')?'':'/')+imageUrl)
+    : or?.img || (RA_TOKENS.has(file) ? `${RIFTATLAS}/tokens/${file}.webp` : '');
+  if(!img) return null;   // sin imagen: se muestra el nombre en la carta
+  return { name:or?.name||name||'', img, text:or?.text||'', type:or?.type||'Token', m:or?.might??null, might:or?.might??null, token:true };
 }
 export function setStatus(t,c){ const s=$('#status'); s.textContent=t; s.className=c||''; }
 
@@ -70,6 +86,7 @@ export function findCard(name){
 export function findCardRaw(name){
   const k = norm(name);
   if(cache.has(k)) return cache.get(k);
+  if(OR.tokens.has(k) && !CARDS.some(c=>c.n===k)){ const t=tokenCard(name); cache.set(k,t); return t; }
   const score = c => {
     let s = 0;
     if(c.n===k) s=100;

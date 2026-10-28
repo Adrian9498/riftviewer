@@ -49,3 +49,28 @@ describe('OpenRift', () => {
     expect(lookupByCode(idx, 'RAD-138')?.text).toBe('I have +1 ⚔.');
   });
 });
+
+describe('OpenRift: tokens', () => {
+  const cat: OpenRiftCatalog = {
+    cards: {
+      t1: { name: 'Sprite', types: ['unit'], superTypes: ['token'], might: 3 },
+      t2: { name: 'Bird', types: ['unit'], superTypes: ['token'], might: 1 },
+      t3: { name: 'Bird', types: ['unit'], superTypes: ['token'], might: 1 },
+      s: { name: 'Sprite Burst', types: ['spell'] },
+    },
+    printings: {
+      1: { shortCode: 'UNL-T02', cardId: 't3', language: 'EN', images: [{ imageId: 'bird' }] },
+      2: { shortCode: 'UNL-069', cardId: 's', language: 'EN', images: [{ imageId: 'burst' }] },
+    },
+  };
+  const idx = buildOpenRiftIndex(cat, norm);
+
+  it('registra los tokens aunque no tengan imagen', () => {
+    expect(idx.tokens.get('sprite')).toMatchObject({ name: 'Sprite', img: '', might: 3 });
+    expect(idx.tokens.has('sprite burst')).toBe(false);
+  });
+
+  it('si hay tokens repetidos, gana el que tiene imagen', () => {
+    expect(idx.tokens.get('bird')?.img).toContain('bird');
+  });
+});

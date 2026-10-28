@@ -88,7 +88,7 @@ function handVisible(pid) {
   return pol === 'all' || (pol === 'view' && pid === app.R.view);
 }
 function mini(c, cls, show) {
-  const d = show ? cardByCode(c.cardCode, c.name) : null;
+  const d = show ? cardByCode(c.cardCode, c.name, c.imageUrl) : null;
   return `<div class="mc ${cls}${show ? '' : ' mback'}"${d ? ` style="background-image:url('${d.img}')"` : ''} title="${show ? esc(c.name) : ''}">${show && !d ? esc(c.name) : ''}</div>`;
 }
 /** Panel del mulligan: mano inicial de cada jugador y, cuando confirma, qué devolvió y qué robó. */

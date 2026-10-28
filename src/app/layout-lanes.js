@@ -71,7 +71,7 @@ export function rCardEl(c,owner){
     e.style.setProperty('--pc',app.R.players.find(p=>p.id===owner)?.col||'#888');
     app.R.el.set(c.id,e); e._new=true;
   }
-  const data=cardByCode(c.cardCode,c.name);
+  const data=cardByCode(c.cardCode,c.name,c.imageUrl);
   e._data=data; e._card=c; e._owner=owner; e._cid=c.id;
   e.dataset.ikey=imgKey(c.cardCode,c.name); e.dataset.iname=c.name||'';
   return e;

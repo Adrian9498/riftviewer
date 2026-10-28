@@ -1,0 +1,211 @@
+/* =====================================================================
+   Estilos de la mesa (#stage[data-skin])
+   - fan: Fantasía, dorado tipo Runeterra, pensado para videos
+   - pro: Torneo, estilo transmisión, para revisar partidas de campeonato
+   Solo cambian colores, tipografías y adornos: la geometría la siguen
+   dando app.css y las distribuciones, para no romper los ajustes de tamaño.
+   ===================================================================== */
+
+/* ============================== FANTASÍA ============================== */
+#stage[data-skin=fan]{
+  --gold:#e6c67f; --g1:#c8aa6e; --g2:#785a28; --ivory:#f0e6d2; --teal:#0ac8b9;
+  --line:#785a28; --muted:#a09b8c; --fd:'Cinzel',Georgia,serif;
+  --pf:linear-gradient(180deg,#0f1c33f2,#050c18f7);
+  --goldgrad:linear-gradient(135deg,#fff1c2 0%,#c8aa6e 30%,#8a6a2e 55%,#e6c67f 80%,#fff1c2 100%);
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 42%,#1c2a44 0%,transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% 115%,#3d2c12 0%,transparent 60%),
+    radial-gradient(ellipse at 50% 50%,#0a1428 0%,#050b16 60%,#010409 100%);
+}
+/* polvo dorado que flota muy despacio detrás de la mesa */
+#stage[data-skin=fan] #inner::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(100% + 360px);pointer-events:none;opacity:.5;
+  background-image:radial-gradient(1.6px 1.6px at 12% 18%,#f0e6d2,transparent),radial-gradient(1.2px 1.2px at 64% 42%,#c8aa6e,transparent),
+    radial-gradient(1px 1px at 38% 76%,#f0e6d2,transparent),radial-gradient(1.8px 1.8px at 86% 88%,#e6c67f,transparent),radial-gradient(1px 1px at 52% 8%,#0ac8b9,transparent);
+  background-size:360px 360px;animation:fandust 70s linear infinite}
+@keyframes fandust{to{transform:translateY(-360px)}}
+/* marco dorado de toda la mesa (Kenney, Fantasy UI Borders) */
+/* pegado a la orilla y delgado: la mesa llega hasta el borde y el marco no debe cruzar cartas ni campos */
+#stage[data-skin=fan]::after{content:"";position:absolute;inset:2px;pointer-events:none;z-index:97;opacity:.8;background:var(--goldgrad);
+  -webkit-mask-box-image:url(../assets/fx/frame-stage.png) 32 / 21px stretch;mask-border:url(../assets/fx/frame-stage.png) 32 / 21px stretch}
+
+/* jugadores */
+#stage[data-skin=fan] .pname{font-family:var(--fd);font-weight:700;letter-spacing:1px;text-shadow:0 0 18px color-mix(in srgb,var(--pc,var(--p1)) 55%,transparent),0 2px 3px #000}
+#stage[data-skin=fan] .rstrip.lane .pname{font-size:24px}
+#stage[data-skin=fan] .rstrip.lane.active .pname::after,#stage[data-skin=fan] .rstrip.main.active .pname::after{content:" ◆";color:var(--gold)}
+#stage[data-skin=fan] .rstrip.side.active .pname::after{content:" ◆ SU TURNO";color:var(--gold)}
+#stage[data-skin=fan] .stat{background:var(--pf);border:1px solid var(--g2);border-radius:3px;box-shadow:inset 0 1px 0 #c8aa6e40,0 3px 10px #000a}
+#stage[data-skin=fan] .stat b{font-family:var(--fd);font-weight:700;color:var(--ivory)}
+#stage[data-skin=fan] .stat.pts{border-color:var(--g1);box-shadow:inset 0 1px 0 #f0e6d255,0 0 14px #c8aa6e33,0 3px 10px #000a}
+#stage[data-skin=fan] .stat.pts b{background:linear-gradient(180deg,#fff4cf,#e6c67f 50%,#8f6c2c);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+#stage[data-skin=fan] .stat span{color:var(--muted);letter-spacing:1.5px}
+#stage[data-skin=fan] .turnmark{font-family:var(--fd);background:linear-gradient(#f0d58e,#b08d4a);color:#1a1205;border-radius:2px}
+#stage[data-skin=fan] .laneb{border-top:1px solid #c8aa6e26}
+#stage[data-skin=fan] .laneb.active{animation:fanpulse 2.6s ease-in-out infinite}
+@keyframes fanpulse{50%{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--pc) 85%,transparent),inset 0 0 60px color-mix(in srgb,var(--pc) 25%,transparent)}}
+#stage[data-skin=fan] .lhead{font-family:var(--fd);font-weight:700;color:var(--g1);letter-spacing:6px;background:linear-gradient(#010a13d9,#0000);border-bottom:1px solid;border-image:linear-gradient(90deg,transparent,#c8aa6e,transparent) 1}
+
+/* zonas */
+#stage[data-skin=fan] .zone{border:1px solid #785a2866;border-radius:5px}
+#stage[data-skin=fan] .zone>label{font-family:var(--fd);font-weight:700;color:var(--g1);background:#050c18;letter-spacing:2px}
+#stage[data-skin=fan] .z-hand,#stage[data-skin=fan] .z-hand.ghost{border:0}
+#stage[data-skin=fan] .rstrip .z-hand.inl{border:1px solid #785a2866}
+#stage[data-skin=fan] .z-trash .count{background:#010a13;border-color:var(--g2);font-family:var(--fd)}
+#stage[data-skin=fan] .rhandz{border:0;border-top:2px solid var(--g1);background:linear-gradient(color-mix(in srgb,var(--pc) 12%,#0a1428),#010409);box-shadow:inset 0 3px 0 color-mix(in srgb,var(--pc) 60%,transparent)}
+#stage[data-skin=fan] .rhandz>label{font-family:var(--fd);font-size:13px;color:var(--ivory);background:none}
+
+/* cartas */
+#stage[data-skin=fan] .card .face{border-radius:6px;box-shadow:0 0 0 1px #c8aa6e99,0 6px 16px #000c}
+#stage[data-skin=fan] .card.own .face{outline:2px solid var(--pc);outline-offset:1px}
+#stage[data-skin=fan] .card .face.ph{background:linear-gradient(160deg,#16294a,#071022);border:1px solid var(--g2);font-family:var(--fd);color:var(--ivory)}
+#stage[data-skin=fan] .card.back .face,#stage[data-skin=fan] .mc.mback{border:2px solid var(--g1);
+  background:radial-gradient(circle,#0ac8b966 0 9%,transparent 10%),radial-gradient(circle,transparent 0 27%,#c8aa6e 28% 30%,transparent 31%),
+    repeating-conic-gradient(from 0deg,#0d1d38 0 15deg,#081428 15deg 30deg)}
+#stage[data-skin=fan] .card.back .face::after{border:2px solid #c8aa6e66;inset:22% 18%;border-radius:4px;transform:rotate(45deg) scale(.7)}
+#stage[data-skin=fan] .card .mt{font-family:var(--fd);font-weight:700;background:#010a13eb;border-color:var(--g1);color:var(--ivory)}
+#stage[data-skin=fan] .card .kw{background:#06303ae8;color:#a6f3ec;border:1px solid #0ac8b980;border-radius:3px}
+#stage[data-skin=fan] .card[data-xp]::before{font-family:var(--fd);background:linear-gradient(#a8823c,#6b4e1f);border-color:var(--ivory)}
+#stage[data-skin=fan] .float{font-family:var(--fd);font-weight:900}
+
+/* campos de batalla */
+#stage[data-skin=fan] :is(.rfield,.field){background:linear-gradient(#0a1428,#050b16);border:1px solid var(--g2);border-radius:6px;box-shadow:inset 0 0 0 1px #c8aa6e1f,0 12px 30px #000b}
+#stage[data-skin=fan] .rfield.lanes{background:linear-gradient(#0a1428b8,#050b16b8)}
+#stage[data-skin=fan] .rfield::after{content:"";position:absolute;inset:1px;pointer-events:none;z-index:6;background:var(--goldgrad);
+  -webkit-mask-box-image:url(../assets/fx/frame-field.png) 32 / 18px stretch;mask-border:url(../assets/fx/frame-field.png) 32 / 18px stretch}
+#stage[data-skin=fan] .rfield.ctrl::after{background:linear-gradient(135deg,#fff,var(--pc) 35%,color-mix(in srgb,var(--pc) 60%,#000) 65%,var(--pc))}
+#stage[data-skin=fan] .rfield.ctrl{border-color:var(--pc);box-shadow:inset 0 0 44px color-mix(in srgb,var(--pc) 38%,transparent),0 0 26px color-mix(in srgb,var(--pc) 35%,transparent)}
+#stage[data-skin=fan] .field.c1{border-color:var(--p1);box-shadow:inset 0 0 44px color-mix(in srgb,var(--p1) 38%,transparent),0 0 26px color-mix(in srgb,var(--p1) 35%,transparent)}
+#stage[data-skin=fan] .field.c2{border-color:var(--p2);box-shadow:inset 0 0 44px color-mix(in srgb,var(--p2) 38%,transparent),0 0 26px color-mix(in srgb,var(--p2) 35%,transparent)}
+#stage[data-skin=fan] .rfield .fbg{opacity:.45;filter:saturate(1.15) contrast(1.05)}
+#stage[data-skin=fan] .rfield .fhead{background:linear-gradient(90deg,#010a13f2,#091428cc 60%,#0000);border-bottom:1px solid;border-image:linear-gradient(90deg,#c8aa6e,transparent 80%) 1}
+#stage[data-skin=fan] :is(.rfield,.field) .flabel{font-family:var(--fd);font-weight:900;background:linear-gradient(180deg,#fff4cf,#c8aa6e 55%,#7a5a26);-webkit-background-clip:text;background-clip:text;color:transparent}
+#stage[data-skin=fan] :is(.rfield,.field) .bfname{font-family:var(--fd);font-weight:700;font-size:17px;color:var(--ivory)}
+#stage[data-skin=fan] .rfield .fown,#stage[data-skin=fan] .field .owner{font-family:var(--fd);font-weight:700;border-radius:2px;box-shadow:0 0 12px color-mix(in srgb,var(--pc,#fff) 50%,transparent)}
+#stage[data-skin=fan] .rfield:not(.lanes) .grp{background:color-mix(in srgb,var(--pc) 13%,#01040999);border:1px solid color-mix(in srgb,var(--pc) 35%,transparent);border-radius:5px}
+#stage[data-skin=fan] .rfield .grp[data-sum]::before{font-family:var(--fd);font-weight:700;border:1px solid var(--ivory);border-radius:3px}
+
+/* cadena, turno y textos */
+#stage[data-skin=fan] #rchain:not(:empty){background:var(--pf);border:0;border-radius:4px;box-shadow:0 12px 30px #000c}
+#stage[data-skin=fan] #rchain:not(:empty)::before{content:"◆ CADENA ◆";font-family:var(--fd);font-weight:700;font-size:12px;color:var(--g1);top:-22px;letter-spacing:3px}
+#stage[data-skin=fan] #turninfo{font-family:var(--fd);font-weight:700;color:var(--gold);letter-spacing:2px;text-shadow:0 0 12px #c8aa6e66,0 2px 3px #000;
+  background:linear-gradient(90deg,#010a13f2,#091428e6);border:1px solid var(--g2);border-left:3px solid var(--g1);border-radius:3px;padding:5px 14px;box-shadow:0 6px 18px #000c}
+#stage[data-skin=fan] #banner{font-family:var(--fd);font-weight:900;letter-spacing:8px;color:var(--ivory);text-shadow:0 0 26px #c8aa6eaa,0 3px 0 #5a4220;
+  background:linear-gradient(90deg,transparent,#010a13f2 18%,#091428f2 50%,#010a13f2 82%,transparent);
+  border-top:1px solid;border-bottom:1px solid;border-image:linear-gradient(90deg,transparent,#c8aa6e 25%,#f0e6d2 50%,#c8aa6e 75%,transparent) 1}
+#stage[data-skin=fan] #banner small{font-family:var(--fd);font-weight:700;color:var(--g1);letter-spacing:4px;text-shadow:none}
+#stage[data-skin=fan] #caption{background:linear-gradient(#0c1a30f5,#010a13f5);border:0;border-radius:3px;color:var(--ivory);padding:16px 40px;box-shadow:0 14px 34px #000c}
+#stage[data-skin=fan] #spot{border:1px solid var(--g2);box-shadow:0 0 0 1px #c8aa6e22 inset,0 20px 60px #000c}
+#stage[data-skin=fan] #spot .who{font-family:var(--fd);font-weight:700;color:var(--gold)}
+#stage[data-skin=fan] #spot img{box-shadow:0 0 0 1px #c8aa6e99,0 0 40px #c8aa6e33,0 10px 40px #000}
+#stage[data-skin=fan] #log div{background:#010a13cc;border-left:2px solid var(--g2)}
+#stage[data-skin=fan] #minimap{border-color:var(--g2);background:#010a13e0}
+
+/* mulligan, victoria y pantallas completas */
+#stage[data-skin=fan] #mullov{background:var(--pf);border:0;border-radius:4px;padding:30px 36px;box-shadow:0 24px 70px #000d}
+#stage[data-skin=fan] #mullov h3,#stage[data-skin=fan] .ov h3{font-family:var(--fd);font-weight:900;letter-spacing:6px;background:linear-gradient(180deg,#fff4cf,#e6c67f 50%,#8f6c2c);-webkit-background-clip:text;background-clip:text;color:transparent}
+#stage[data-skin=fan] .mname,#stage[data-skin=fan] .sp .nm,#stage[data-skin=fan] .deck .nm,#stage[data-skin=fan] .sum-head .win{font-family:var(--fd);font-weight:700}
+#stage[data-skin=fan] .mc{box-shadow:0 0 0 1px #c8aa6e88,0 4px 12px #0009}
+#stage[data-skin=fan] #victory{background:radial-gradient(ellipse at 50% 50%,#3d2c12cc 0%,#010409f2 65%)}
+#stage[data-skin=fan] #victory h2{font-family:var(--fd);font-weight:900;font-size:140px;letter-spacing:12px;
+  background:linear-gradient(100deg,#8f6c2c 0%,#e6c67f 35%,#fff8dc 50%,#e6c67f 65%,#8f6c2c 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 30px #c8aa6e66);animation:fanshine 3.5s ease-in-out infinite}
+@keyframes fanshine{0%{background-position:100% 0}100%{background-position:-150% 0}}
+#stage[data-skin=fan] #victory p{font-family:var(--fd);font-weight:700;color:var(--ivory);letter-spacing:3px}
+#stage[data-skin=fan] .ov{background:radial-gradient(ellipse at 50% 30%,#0f1c33,#010409 75%)}
+#stage[data-skin=fan] .sp{background:var(--pf);border-width:1px;border-radius:6px;box-shadow:inset 0 0 0 1px #c8aa6e22,0 0 24px color-mix(in srgb,var(--pc) 25%,transparent)}
+#stage[data-skin=fan] #quiz h3{-webkit-background-clip:initial;background:none;color:var(--ivory)}
+#stage[data-skin=fan] #quiz .count{font-family:var(--fd);font-weight:900}
+
+/* ============================== TORNEO ============================== */
+#stage[data-skin=pro]{
+  --gold:#ffc83d; --line:#2b313b; --muted:#8a93a3; --fd:'Barlow Condensed','Oswald',sans-serif;
+  --pp:#14181e;
+  background:
+    linear-gradient(#ffffff06 1px,transparent 1px) 0 0/48px 48px,
+    linear-gradient(90deg,#ffffff06 1px,transparent 1px) 0 0/48px 48px,
+    radial-gradient(ellipse at 50% 30%,#1a1e26,#0a0b0e 75%);
+}
+#stage[data-skin=pro] :is(.pname,.stat b,.stat span,.lhead,.zone>label,.flabel,.bfname,.fown,.owner,#turninfo,#banner,#victory,.ov h3,#mullov h3,.mname,.sp .nm,.deck .nm,.sum-head .win,.float,.turnmark,.rhandz>label,#spot .who){
+  font-family:var(--fd);text-transform:uppercase;font-variant-numeric:tabular-nums}
+
+/* jugadores */
+#stage[data-skin=pro] .pname{font-weight:700;color:#fff;letter-spacing:.5px;padding-left:10px;border-left:5px solid var(--pc,var(--p1))}
+#stage[data-skin=pro] .p2 .pname{border-left-color:var(--p2)}
+#stage[data-skin=pro] .rstrip .pname{color:#fff}
+#stage[data-skin=pro] .rstrip.lane.active .pname::after,#stage[data-skin=pro] .rstrip.main.active .pname::after{content:" ●";color:var(--gold)}
+#stage[data-skin=pro] .rstrip.side.active .pname::after{content:" ● EN TURNO";font-family:var(--fd);color:var(--gold)}
+#stage[data-skin=pro] .stat{background:var(--pp);border:0;border-top:3px solid var(--line);border-radius:0}
+#stage[data-skin=pro] .stat b{font-weight:700;color:#fff}
+#stage[data-skin=pro] .stat span{font-weight:600;color:var(--muted);letter-spacing:1.5px}
+#stage[data-skin=pro] .stat.pts{background:#1b2029;border-top-color:var(--pc,var(--gold))}
+#stage[data-skin=pro] .p1 .stat.pts{border-top-color:var(--p1)} #stage[data-skin=pro] .p2 .stat.pts{border-top-color:var(--p2)}
+#stage[data-skin=pro] .stat.pts b{color:#fff}
+#stage[data-skin=pro] .turnmark{font-weight:700;border-radius:0;letter-spacing:1px}
+#stage[data-skin=pro] .laneb,#stage[data-skin=pro] .v .laneb{background:color-mix(in srgb,var(--pc) 7%,transparent);border-top:1px solid #ffffff10}
+#stage[data-skin=pro] .laneb.active,#stage[data-skin=pro] .v .laneb.active{background:color-mix(in srgb,var(--pc) 15%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pc) 80%,transparent)}
+#stage[data-skin=pro] .lhead{font-weight:700;color:var(--muted);letter-spacing:6px;background:var(--pp);border-bottom:2px solid var(--line);border-radius:0}
+
+/* zonas */
+#stage[data-skin=pro] .zone{border:1px solid #ffffff14;border-radius:2px}
+#stage[data-skin=pro] .zone>label{font-weight:600;font-size:12px;color:var(--muted);background:#0c0e12;letter-spacing:1.5px}
+#stage[data-skin=pro] .z-hand,#stage[data-skin=pro] .z-hand.ghost{border:0}
+#stage[data-skin=pro] .rstrip .z-hand.inl{border:1px solid #ffffff14}
+#stage[data-skin=pro] .z-trash .count{background:#0c0e12;border-radius:2px;font-family:var(--fd);font-weight:700}
+#stage[data-skin=pro] .rhandz{border:0;border-top:3px solid var(--pc);background:#0f1217}
+#stage[data-skin=pro] .rhandz>label{font-weight:700;font-size:14px;letter-spacing:1px}
+
+/* cartas */
+#stage[data-skin=pro] .card .face{border-radius:4px;box-shadow:0 2px 6px #0009}
+#stage[data-skin=pro] .card.own .face{outline:2px solid var(--pc);outline-offset:0}
+#stage[data-skin=pro] .card .face.ph{background:#1b2029;border:1px solid var(--line);font-family:var(--fd);text-transform:uppercase}
+#stage[data-skin=pro] .card.back .face,#stage[data-skin=pro] .mc.mback{background:repeating-linear-gradient(135deg,#1c222b 0 6px,#171c24 6px 12px);border:2px solid #3a4250}
+#stage[data-skin=pro] .card.back .face::after{border:2px solid #ffc83d66;border-radius:2px;inset:38% 32%;transform:rotate(45deg)}
+#stage[data-skin=pro] .card .mt{font-family:var(--fd);font-weight:700;background:#0c0e12f0;border:0;border-radius:2px}
+#stage[data-skin=pro] .card .kw{background:#2b313bf0;color:#dfe5ee;border-radius:2px;font-family:var(--fd);text-transform:uppercase;letter-spacing:.5px}
+#stage[data-skin=pro] .card[data-xp]::before{font-family:var(--fd);font-weight:700;background:var(--gold);color:#0c0e12;border:0;border-radius:2px}
+#stage[data-skin=pro] .float{font-weight:800}
+
+/* campos de batalla */
+#stage[data-skin=pro] :is(.rfield,.field){background:#12161c;border:1px solid var(--line);border-radius:4px;box-shadow:none}
+#stage[data-skin=pro] .rfield.lanes{background:#12161cd0}
+#stage[data-skin=pro] .rfield.ctrl{border-color:var(--pc);box-shadow:inset 0 4px 0 var(--pc)}
+#stage[data-skin=pro] .field.c1{border-color:var(--p1);box-shadow:inset 0 4px 0 var(--p1)}
+#stage[data-skin=pro] .field.c2{border-color:var(--p2);box-shadow:inset 0 4px 0 var(--p2)}
+#stage[data-skin=pro] .rfield .fbg{opacity:.22;filter:grayscale(.3)}
+#stage[data-skin=pro] .rfield .fhead{background:#0c0e12e6;border-bottom:1px solid var(--line)}
+#stage[data-skin=pro] :is(.rfield,.field) .flabel{font-weight:800;font-size:22px;line-height:28px;padding:0 8px;background:#fff;color:#0c0e12;border-radius:2px}
+#stage[data-skin=pro] .field .flabel{font-size:34px;line-height:44px;color:#0c0e12}
+#stage[data-skin=pro] :is(.rfield,.field) .bfname{font-weight:700;font-size:20px;letter-spacing:.5px}
+#stage[data-skin=pro] .rfield .fown,#stage[data-skin=pro] .field .owner{font-weight:700;border-radius:2px}
+#stage[data-skin=pro] .rfield:not(.lanes) .grp{background:color-mix(in srgb,var(--pc) 10%,#0006);border-left:3px solid var(--pc);border-radius:2px}
+#stage[data-skin=pro] .rfield .grp[data-sum]::before{font-family:var(--fd);font-weight:700;font-size:16px;border-radius:2px}
+
+/* cadena, turno y textos */
+#stage[data-skin=pro] #rchain:not(:empty){background:#0c0e12f2;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:2px}
+#stage[data-skin=pro] #rchain:not(:empty)::before{font-family:var(--fd);font-weight:700;font-size:13px;color:var(--gold);letter-spacing:2px;top:-22px}
+#stage[data-skin=pro] #turninfo{font-weight:700;font-size:20px;color:#fff;background:#0c0e12f0;border-left:4px solid var(--gold);padding:4px 12px;letter-spacing:1px}
+#stage[data-skin=pro] #banner{left:16%;right:16%;font-weight:800;letter-spacing:4px;color:#fff;background:#0c0e12f7;border-top:4px solid var(--gold);clip-path:polygon(2% 0,100% 0,98% 100%,0 100%)}
+#stage[data-skin=pro] #banner small{font-family:var(--fd);font-weight:600;color:var(--muted)}
+#stage[data-skin=pro] #caption{background:#0c0e12f2;border:0;border-left:5px solid var(--gold);border-radius:2px;font-weight:600;font-size:24px;text-align:left}
+#stage[data-skin=pro] #spot{border:1px solid var(--line);border-radius:4px;background:#0c0e12f7}
+#stage[data-skin=pro] #spot .who{font-weight:700}
+#stage[data-skin=pro] #spot img{border-radius:6px}
+#stage[data-skin=pro] #log div{background:#0c0e12d9;border-left:2px solid var(--line);border-radius:2px}
+#stage[data-skin=pro] #minimap{border-color:var(--line);border-radius:2px}
+
+/* mulligan, victoria y pantallas completas */
+#stage[data-skin=pro] #mullov{background:#0c0e12f7;border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:4px}
+#stage[data-skin=pro] #mullov h3{font-weight:800;color:#fff}
+#stage[data-skin=pro] .mname{font-weight:700}
+#stage[data-skin=pro] .mc{border-radius:4px}
+#stage[data-skin=pro] #victory{background:#0a0b0ef2}
+#stage[data-skin=pro] #victory h2{font-weight:800;font-size:170px;letter-spacing:14px;color:#fff;padding:0 40px;border-bottom:6px solid var(--gold);line-height:1.05}
+#stage[data-skin=pro] #victory p{font-weight:700;color:var(--gold);letter-spacing:3px;margin-top:14px}
+#stage[data-skin=pro] .ov{background:#0a0b0efa}
+#stage[data-skin=pro] .ov h3{font-weight:800;color:#fff;border-bottom:4px solid var(--gold);padding-bottom:4px}
+#stage[data-skin=pro] #quiz h3{border:0}
+#stage[data-skin=pro] .sp{background:#12161c;border:1px solid var(--line);border-top:4px solid var(--pc);border-radius:4px}
+#stage[data-skin=pro] .sp .rowst div{border-radius:2px}
+#stage[data-skin=pro] .deck .nm{font-weight:700}
+#stage[data-skin=pro] #quiz .count{font-family:var(--fd);font-weight:800}
+#stage[data-skin=fan][data-lay=lanes] #turninfo{left:34px;top:30px}
+#stage.v[data-skin=fan][data-lay=lanes] #turninfo{top:auto}

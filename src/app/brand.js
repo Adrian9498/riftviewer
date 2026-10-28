@@ -12,16 +12,16 @@ import { esc, fileToDataURL, openModal, rerender } from './utils';
 /* ================= 6. Mi marca ================= */
 export const BGS={night:'radial-gradient(ellipse at 50% 50%,#1b2a44 0%,#0e1524 55%,#070a11 100%)',purple:'radial-gradient(ellipse at 50% 50%,#3a1f5c 0%,#1a0f2e 55%,#09060f 100%)',
   green:'radial-gradient(ellipse at 50% 50%,#173d33 0%,#0c2019 55%,#050c09 100%)',red:'radial-gradient(ellipse at 50% 50%,#4a1a22 0%,#240c11 55%,#0d0507 100%)',black:'#050608',chroma:'#00b140'};
-export let BR={name:'',pos:'br',cols:['#3fa9ff','#ff5a6e','#b57bff','#45d483'],bg:'night',scale:100,align:'center'};
+export let BR={name:'',pos:'br',cols:['#3fa9ff','#ff5a6e','#b57bff','#45d483'],bg:'skin',scale:100,align:'center'};
 export const BRIMG={logo:null,bg:null};
 // lo que solo aplica con Full Access: fondo propio, pantalla verde, logo, tamaño y alineación del tablero
 export const PREMIUM_BG=['img','chroma'];
 export function applyBrand(){
   const full=isPremium();
   // sin Full Access se guardan las preferencias, pero se muestran las del plan Gratis
-  const E=full?BR:{...BR,bg:PREMIUM_BG.includes(BR.bg)?'night':BR.bg,scale:100,align:'center'}, logo=full?BRIMG.logo:null;
+  const E=full?BR:{...BR,bg:PREMIUM_BG.includes(BR.bg)?'skin':BR.bg,scale:100,align:'center'}, logo=full?BRIMG.logo:null;
   app.PCOL=[...BR.cols]; BR.cols.forEach((c,k)=>document.documentElement.style.setProperty('--p'+(k+1),c));
-  $('#bg').style.background = E.bg==='img'&&BRIMG.bg ? `center/cover no-repeat url("${BRIMG.bg}")` : (BGS[E.bg]||BGS.night);
+  $('#bg').style.background = E.bg==='img'&&BRIMG.bg ? `center/cover no-repeat url("${BRIMG.bg}")` : E.bg==='skin' ? '' : (BGS[E.bg]||BGS.night);
   const b=$('#brand'); b.className=BR.pos; b.innerHTML=(logo?`<img src="${logo}">`:'')+(BR.name?`<span>${esc(BR.name)}</span>`:'');
   const s=E.scale/100, org={center:'center center',left:'left center',right:'right center',top:'center top',bottom:'center bottom',tl:'left top',tr:'right top',bl:'left bottom',br:'right bottom'};
   const inn=$('#inner'); inn.style.transformOrigin=org[E.align]||'center center'; inn.style.transform=s<1?`scale(${s})`:''; stage.dataset.is=s;
@@ -38,7 +38,7 @@ export function init() {
       <span>Logo</span><div><button class="btn mini lockable" data-up="logo">Elegir imagen</button> <button class="btn mini" data-rm="logo">Quitar</button></div>
       <span>Posición del logo</span><select id="brPos"><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
       <span>Colores de jugadores</span><div>${BR.cols.map((c,k)=>`<input type="color" data-col="${k}" value="${c}" title="Jugador ${k+1}">`).join(' ')}</div>
-      <span>Fondo</span><div><select id="brBg"><option value="night">Azul noche</option><option value="purple">Morado</option><option value="green">Verde bosque</option><option value="red">Rojo</option><option value="black">Negro</option><option value="chroma">Pantalla verde (chroma key)${lk}</option><option value="img">Imagen propia${lk}</option></select> <button class="btn mini lockable" data-up="bg">Subir imagen</button></div>
+      <span>Fondo</span><div><select id="brBg"><option value="skin">Del estilo de la mesa</option><option value="night">Azul noche</option><option value="purple">Morado</option><option value="green">Verde bosque</option><option value="red">Rojo</option><option value="black">Negro</option><option value="chroma">Pantalla verde (chroma key)${lk}</option><option value="img">Imagen propia${lk}</option></select> <button class="btn mini lockable" data-up="bg">Subir imagen</button></div>
       <span>Tamaño del tablero${lk}</span><select id="brScale">${[100,95,90,85,80,75,70,65].map(v=>`<option value="${v}">${v}%</option>`).join('')}</select>
       <span>Alinear tablero${lk}</span><select id="brAlign"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option><option value="top">Arriba</option><option value="bottom">Abajo</option><option value="tl">Arriba izquierda</option><option value="tr">Arriba derecha</option><option value="bl">Abajo izquierda</option><option value="br">Abajo derecha</option></select>
       <div class="full hint">Reduce el tablero y pégalo a un lado para dejar espacio libre a tu cámara. Con <b>Pantalla verde</b> puedes recortar el fondo en tu editor.</div>

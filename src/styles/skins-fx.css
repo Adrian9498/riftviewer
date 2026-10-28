@@ -1,0 +1,78 @@
+/* ===================== FANTASÍA: marcos y efectos (Kenney, CC0) =====================
+   Las piezas son blancas; se tiñen con un degradado usando máscaras, así un mismo
+   marco sirve en dorado o en el color del jugador. Los efectos reaccionan a las
+   clases que ya pone el reproductor (.flash, .clash, .show, .gone): no hace falta JS.
+   Licencia y origen de cada pieza: src/assets/fx/LICENSE.txt */
+#amb{display:none}
+#stage[data-skin=fan] #amb{display:block;position:absolute;inset:0;pointer-events:none;overflow:hidden}
+/* círculo rúnico gigante que gira muy despacio detrás de todo */
+#stage[data-skin=fan] #amb::before{content:"";position:absolute;left:50%;top:46%;width:1250px;aspect-ratio:1;margin:-625px 0 0 -625px;opacity:.09;background:var(--goldgrad);
+  -webkit-mask:url(../assets/fx/magic-02.png) center/contain no-repeat;mask:url(../assets/fx/magic-02.png) center/contain no-repeat;animation:fanspin 160s linear infinite}
+#stage.v[data-skin=fan] #amb::before{width:1000px;margin:-500px 0 0 -500px}
+/* neblina turquesa que va y viene */
+#stage[data-skin=fan] #amb::after{content:"";position:absolute;left:-10%;bottom:-25%;width:75%;aspect-ratio:1;opacity:.07;background:var(--teal);
+  -webkit-mask:url(../assets/fx/smoke-04.png) center/contain no-repeat;mask:url(../assets/fx/smoke-04.png) center/contain no-repeat;animation:fanfog 40s ease-in-out infinite alternate}
+/* destellos que titilan */
+#stage[data-skin=fan] #amb i{position:absolute;width:30px;aspect-ratio:1;opacity:0;background:#fff4cf;
+  -webkit-mask:url(../assets/fx/star-07.png) center/contain no-repeat;mask:url(../assets/fx/star-07.png) center/contain no-repeat;animation:fantwinkle 5s ease-in-out infinite}
+#stage[data-skin=fan] #amb i:nth-child(1){left:6%;top:12%;animation-delay:0s}
+#stage[data-skin=fan] #amb i:nth-child(2){left:23%;top:64%;width:22px;animation-delay:1.7s}
+#stage[data-skin=fan] #amb i:nth-child(3){left:41%;top:28%;width:38px;animation-delay:3.1s;animation-duration:6s}
+#stage[data-skin=fan] #amb i:nth-child(4){left:58%;top:82%;animation-delay:.8s}
+#stage[data-skin=fan] #amb i:nth-child(5){left:72%;top:18%;width:24px;animation-delay:2.4s;background:#a6f3ec}
+#stage[data-skin=fan] #amb i:nth-child(6){left:88%;top:52%;width:34px;animation-delay:4.2s;animation-duration:7s}
+#stage[data-skin=fan] #amb i:nth-child(7){left:15%;top:38%;width:20px;animation-delay:3.6s;background:#a6f3ec}
+#stage[data-skin=fan] #amb i:nth-child(8){left:66%;top:45%;width:26px;animation-delay:5.2s;animation-duration:6.5s}
+#stage[data-skin=fan] #amb i:nth-child(9){left:33%;top:90%;width:28px;animation-delay:1.1s}
+#stage[data-skin=fan] #amb i:nth-child(10){left:94%;top:8%;width:22px;animation-delay:2.9s}
+@keyframes fanspin{to{transform:rotate(360deg)}}
+@keyframes fanfog{to{transform:translate(55%,-20%) scale(1.3)}}
+@keyframes fantwinkle{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:.9;transform:scale(1) rotate(45deg)}}
+
+/* marcos de paneles */
+#stage[data-skin=fan] :is(#rchain:not(:empty),#caption,#mullov,#spot)::after{content:"";position:absolute;inset:-6px;pointer-events:none;background:var(--goldgrad);
+  -webkit-mask-box-image:url(../assets/fx/frame-panel.png) 32 / 26px stretch;mask-border:url(../assets/fx/frame-panel.png) 32 / 26px stretch}
+#stage[data-skin=fan] .stat{position:relative}
+#stage[data-skin=fan] .stat.pts::after{content:"";position:absolute;inset:-4px;pointer-events:none;background:var(--goldgrad);
+  -webkit-mask-box-image:url(../assets/fx/frame-small.png) 16 / 12px stretch;mask-border:url(../assets/fx/frame-small.png) 16 / 12px stretch}
+/* separadores ornamentales a los lados del anuncio */
+#stage[data-skin=fan] #banner::before,#stage[data-skin=fan] #banner::after{content:"";position:absolute;top:50%;width:300px;height:44px;margin-top:-22px;background:var(--goldgrad);
+  -webkit-mask:url(../assets/fx/divider.png) center/contain no-repeat;mask:url(../assets/fx/divider.png) center/contain no-repeat}
+#stage[data-skin=fan] #banner::before{left:7%}
+#stage[data-skin=fan] #banner::after{right:7%;transform:scaleX(-1)}
+#stage.v[data-skin=fan] #banner::before,#stage.v[data-skin=fan] #banner::after{width:150px;height:22px;margin-top:0;top:auto;bottom:8px}
+#stage.v[data-skin=fan] #banner::before{left:4%}
+#stage.v[data-skin=fan] #banner::after{right:4%}
+
+/* carta jugada: círculo rúnico y aura detrás de la carta */
+#stage[data-skin=fan] #spot::before{content:"";position:absolute;left:50%;top:45%;width:150%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;opacity:.55;background:var(--goldgrad);
+  -webkit-mask:url(../assets/fx/magic-02.png) center/contain no-repeat,url(../assets/fx/light-02.png) center/60% no-repeat;mask:url(../assets/fx/magic-02.png) center/contain no-repeat,url(../assets/fx/light-02.png) center/60% no-repeat}
+#stage[data-skin=fan] #spot.show::before{animation:fanspotin .7s ease-out both,fanspin2 24s linear .7s infinite}
+@keyframes fanspotin{from{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-90deg)}}
+@keyframes fanspin2{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+/* conquista: estallido de estrella y onda dorada sobre el campo */
+#stage[data-skin=fan] :is(.rfield,.field).flash::before{content:"";position:absolute;left:50%;top:50%;width:min(90%,520px);aspect-ratio:1;z-index:7;pointer-events:none;background:var(--goldgrad);
+  -webkit-mask:url(../assets/fx/magic-03.png) center/contain no-repeat,url(../assets/fx/circle-03.png) center/contain no-repeat;mask:url(../assets/fx/magic-03.png) center/contain no-repeat,url(../assets/fx/circle-03.png) center/contain no-repeat;
+  opacity:0;animation:fanburst 1.2s ease-out forwards}
+@keyframes fanburst{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-45deg)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(20deg)}}
+/* combate: tajos y chispas */
+#stage[data-skin=fan] :is(.rfield,.field).clash::before{content:"";position:absolute;left:50%;top:50%;width:min(70%,380px);aspect-ratio:1;z-index:7;pointer-events:none;background:linear-gradient(135deg,#fff,#a6f3ec 50%,#0ac8b9);
+  -webkit-mask:url(../assets/fx/slash-02.png) center/contain no-repeat,url(../assets/fx/spark-01.png) center/contain no-repeat;mask:url(../assets/fx/slash-02.png) center/contain no-repeat,url(../assets/fx/spark-01.png) center/contain no-repeat;
+  opacity:0;animation:fanslash .45s ease-out 3 forwards}
+@keyframes fanslash{0%{opacity:0;transform:translate(-50%,-50%) scale(.6) rotate(-30deg)}40%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15) rotate(10deg)}}
+/* carta que se va: nube de humo */
+#stage[data-skin=fan] .card:is(.gone,.dying)::after{content:"";position:absolute;inset:-35%;z-index:4;pointer-events:none;background:#d9c9a3;
+  opacity:0;-webkit-mask:url(../assets/fx/smoke-04.png) center/contain no-repeat;mask:url(../assets/fx/smoke-04.png) center/contain no-repeat;animation:fanpuff .5s ease-out forwards}
+@keyframes fanpuff{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(1.3)}}
+
+/* victoria: círculo rúnico, remolino y estrellas detrás del título */
+#stage[data-skin=fan] #victory::before{content:"";position:absolute;left:50%;top:50%;width:1000px;aspect-ratio:1;margin:-500px 0 0 -500px;z-index:-1;opacity:.5;background:var(--goldgrad);
+  -webkit-mask:url(../assets/fx/magic-02.png) center/contain no-repeat,url(../assets/fx/twirl-02.png) center/70% no-repeat;mask:url(../assets/fx/magic-02.png) center/contain no-repeat,url(../assets/fx/twirl-02.png) center/70% no-repeat;
+  animation:fanspin 40s linear infinite}
+#stage[data-skin=fan] #victory::after{content:"";position:absolute;left:50%;top:50%;width:1400px;height:700px;margin:-350px 0 0 -700px;z-index:-1;opacity:.6;background:radial-gradient(#fff4cf,#c8aa6e 60%);
+  -webkit-mask:url(../assets/fx/star-08.png) center/contain no-repeat,url(../assets/fx/light-02.png) center/40% no-repeat;mask:url(../assets/fx/star-08.png) center/contain no-repeat,url(../assets/fx/light-02.png) center/40% no-repeat;
+  animation:fanglow 2.4s ease-in-out infinite}
+@keyframes fanglow{50%{opacity:.95;transform:scale(1.08)}}
+#stage.v[data-skin=fan] #victory::before{width:860px;margin:-430px 0 0 -430px}
+#stage.v[data-skin=fan] #victory::after{width:1000px;height:500px;margin:-250px 0 0 -500px}

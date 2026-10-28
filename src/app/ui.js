@@ -57,6 +57,9 @@ export function init() {
   $('#q').addEventListener('blur',()=>setTimeout(()=>$('#results').style.display='none',150));
   
   try{ Object.assign(BR,JSON.parse(localStorage.getItem('rb_brand')||'{}')); }catch(e){}
+  // la primera vez con estilos, el fondo que venía por defecto pasa a ser el del estilo
+  try{ const s=localStorage.getItem('rb_skin'); if(!s && BR.bg==='night') BR.bg='skin';
+    stage.dataset.skin=s==='pro'?'pro':'fan'; document.querySelectorAll('#skinseg button').forEach(b=>b.classList.toggle('on',b.dataset.s===stage.dataset.skin)); }catch(e){}
   try{ const f=localStorage.getItem('rb_fmt'); if(f==='v'||f==='h'){ stage.className=f; document.querySelectorAll('#fmtseg button').forEach(b=>b.classList.toggle('on',b.dataset.f===f)); } }catch(e){}
   applyBrand(); fit(); reset(); loadCards();
   // el guion que quedó guardado en versiones anteriores pasa a "Recientes"
