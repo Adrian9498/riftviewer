@@ -6,7 +6,7 @@ import { CUSTOM, IDB } from './cards';
 import { PROJKEY, loadProj, renderClips } from './clips';
 import { renderNotes } from './notes';
 import { buildFrameList } from './replay';
-import { renderRecents, setFmt } from './shell';
+import { renderRecents, setFmt, setSkin } from './shell';
 import { SFX, SND, saveSnd } from './sounds';
 import { app } from './state';
 import { rerender } from './utils';
@@ -35,7 +35,7 @@ export const localAdapter = {
   getSettings() {
     return {
       ts: settingsTs(),
-      data: { brand: { ...BR }, sounds: { ...SND }, view: { layout: localStorage.getItem('rb_lay2'), camera: localStorage.getItem('rb_cam'), fmt: localStorage.getItem('rb_fmt') } },
+      data: { brand: { ...BR }, sounds: { ...SND }, view: { layout: localStorage.getItem('rb_lay2'), camera: localStorage.getItem('rb_cam'), fmt: localStorage.getItem('rb_fmt'), skin: localStorage.getItem('rb_skin') } },
     };
   },
   applySettings(data, ts) {
@@ -45,6 +45,7 @@ export const localAdapter = {
     if (v.layout) { localStorage.setItem('rb_lay2', v.layout); $('#rlay').value = v.layout; }
     if (v.camera) { localStorage.setItem('rb_cam', v.camera); $('#rcamsel').value = v.camera; }
     if (v.fmt && v.fmt !== $('#stage').className) setFmt(v.fmt);
+    if (v.skin && v.skin !== $('#stage').dataset.skin) setSkin(v.skin);
     localStorage.setItem('rb_settings_ts', String(ts));
   },
 

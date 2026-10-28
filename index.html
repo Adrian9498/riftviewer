@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Visualizador de Partidas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Cinzel:wght@600;700;900&family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="app">
@@ -15,6 +15,7 @@
     <span class="logo">VISUALIZADOR</span>
     <div id="docname"></div>
     <div class="seg" id="fmtseg" title="Relación de aspecto"><button data-f="h" class="on">16:9</button><button data-f="v">9:16</button></div>
+    <div class="seg" id="skinseg" title="Estilo de la mesa"><button data-s="fan" class="on">✦ Fantasía</button><button data-s="pro">▮ Torneo</button></div>
     <label class="tbl">Velocidad <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></label>
     <button class="btn" id="bRec" title="Ocultar menús para grabar (tecla H)">⛶ Grabación</button>
     <button class="btn" id="bSnd" title="Sonidos">🔊</button>
@@ -53,7 +54,7 @@
     <div id="tclips" class="tab" data-t="clips"></div>
     <div id="tnotas" class="tab" data-t="notas"></div>
     <footer id="pfoot"><div id="status">Cargando cartas…</div><div id="progress"></div>
-      <div class="credit">Datos de cartas: riftcodex · <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>. Imágenes y textos © Riot Games.</div></footer>
+      <div class="credit">Datos de cartas: riftcodex · <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>. Imágenes y textos © Riot Games. Marcos y efectos: <a href="https://kenney.nl" target="_blank" rel="noopener">Kenney</a> (CC0).</div></footer>
     <template id="cmdHelp"><pre class="cmdpre">
 CONFIGURACIÓN (antes del primer "turno")
   jugador j1 "Nombre"        jugador j2 "Nombre"
@@ -87,9 +88,10 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
   </aside>
 
   <main id="viewport">
-    <div id="stage" class="h">
+    <div id="stage" class="h" data-skin="fan">
       <div id="bg"></div>
       <div id="inner">
+      <div id="amb"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <section class="player p2" id="P2">
         <div class="hud"><div class="pname" id="n2">Jugador 2</div>
           <div class="stats"><div class="stat pts"><b id="s2">0</b><span>Puntos</span></div><div class="stat"><b id="r2">0</b><span>Runas</span></div><div class="stat"><b id="h2">0</b><span>Mano</span></div></div>

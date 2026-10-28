@@ -1,6 +1,8 @@
 // Punto de entrada. Los módulos de src/app solo declaran; aquí se inicializan
 // en orden (eventos, preferencias guardadas, carga de cartas…).
 import './styles/app.css';
+import './styles/skins.css';
+import './styles/skins-fx.css';
 import { init as initCards } from './app/cards.js';
 import { init as initReplay } from './app/replay.js';
 import { init as initShell } from './app/shell.js';

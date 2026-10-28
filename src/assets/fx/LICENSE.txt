@@ -1,0 +1,7 @@
+Marcos y partículas de Kenney (www.kenney.nl), con licencia CC0 1.0 (dominio público):
+http://creativecommons.org/publicdomain/zero/1.0/
+
+- frame-*.png, divider.png: "Fantasy UI Borders" 1.0 (panel-border-000/010/027 Double, 007 Default; divider-fade-004 Double)
+- magic-*, star-*, circle-03, light-02, smoke-04, slash-02, twirl-02, spark-01: "Particle Pack" (PNG Transparent), reducidas a 256 px
+
+Se pueden usar en proyectos personales, educativos y comerciales. El crédito a Kenney es opcional.
