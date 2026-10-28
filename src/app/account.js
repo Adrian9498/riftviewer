@@ -1,6 +1,7 @@
 // Cuenta: iniciar sesión / crear cuenta (correo, Google, Discord), menú de la cuenta y estado de la nube.
 import { currentUser, displayName, enabledProviders, initAuth, onUserChange, sendPasswordReset, setNewPassword, signIn, signInWith, signOut, signUp } from '../cloud/auth';
 import { cloudEnabled } from '../cloud/client';
+import { connectPatreon, disconnectPatreon, patreonLink, takePatreonReturn } from '../cloud/patreon';
 import { configureSync, fetchTier, onSyncStatus, syncNow, syncStatus } from '../cloud/sync';
 import { $ } from './base';
 import { localAdapter } from './cloud-adapter';
@@ -8,8 +9,9 @@ import { ago, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 
 let tier = 'free', lastError = '';
+// nombres visibles de los planes; los demás se muestran con su clave (los define el secreto PATREON_TIERS)
 const TIERS = { free: 'Gratis' };
-const tierLabel = t => TIERS[t] || t;
+const tierLabel = t => TIERS[t] || (t ? t[0].toUpperCase() + t.slice(1) : 'Gratis');
 
 // el botón está en la barra superior y también en la pantalla de inicio (que tapa la barra)
 const BUTTONS = ['#bAccount', '#hAccount'];
@@ -93,6 +95,7 @@ export function openAccount() {
     <span>Nombre</span><b>${esc(displayName(u))}</b>
     <span>Correo</span><span>${esc(u.email || '—')}</span>
     <span>Plan</span><span id="acTier">${esc(tierLabel(tier))}</span>
+    <span>Patreon</span><div id="acPatreon"><small style="color:var(--muted)">Revisando…</small></div>
     <span>Nube</span><span id="acSync">${esc(syncText(syncStatus()))}</span>
     <div class="full row" style="padding:6px 0 0"><button class="btn" id="acSyncNow">⟳ Sincronizar ahora</button><button class="btn" id="acOut">Cerrar sesión</button></div>
     <div class="full hint">Se sincronizan tu marca, sonidos, vista, clips, notas, los 8 recientes y tus imágenes y audios propios. Si cambias lo mismo en dos PCs, gana el cambio más reciente. Al cerrar sesión, lo que ya está en este navegador se queda aquí.</div>`,
@@ -100,6 +103,23 @@ export function openAccount() {
   body.querySelector('#acSyncNow').onclick = () => syncNow();
   body.querySelector('#acOut').onclick = async () => { await signOut(); closeModal(); toast('Sesión cerrada'); };
   fetchTier().then(t => { tier = t; const el = $('#acTier'); if (el) el.textContent = tierLabel(t); });
+  paintPatreon();
+}
+
+async function paintPatreon() {
+  const box = $('#acPatreon'); if (!box) return;
+  let link = null;
+  try { link = await patreonLink(); } catch (e) { /* sin conexión: se muestra como no conectado */ }
+  box.innerHTML = link
+    ? `<span class="pt-on">● Conectado${link.patron_status === 'active_patron' ? '' : ' (sin apoyo activo)'}</span> <button class="btn mini" id="ptOff">Desconectar</button>`
+    : `<button class="btn mini pt" id="ptOn">Conectar con Patreon</button> <small style="color:var(--muted)">para desbloquear tu plan si apoyas en Patreon</small>`;
+  const on = $('#ptOn'), off = $('#ptOff');
+  if (on) on.onclick = async () => { on.disabled = true; on.textContent = 'Abriendo Patreon…'; try { await connectPatreon(); } catch (e) { toast(e.message, 'err'); on.disabled = false; on.textContent = 'Conectar con Patreon'; } };
+  if (off) off.onclick = async () => {
+    if (!confirm('¿Desconectar tu cuenta de Patreon? Tu plan volverá a Gratis.')) return;
+    try { await disconnectPatreon(); tier = 'free'; const el = $('#acTier'); if (el) el.textContent = tierLabel(tier); toast('Patreon desconectado'); paintPatreon(); }
+    catch (e) { toast(e.message, 'err'); }
+  };
 }
 
 export function init() {
@@ -118,5 +138,11 @@ export function init() {
     if (u && ['INITIAL', 'INITIAL_SESSION', 'SIGNED_IN'].includes(ev)) { syncNow(); fetchTier().then(t => { tier = t; }); }
   });
   addEventListener('focus', () => { if (currentUser()) syncNow(); });   // al volver a la pestaña, traer cambios de otra PC
-  initAuth();
+  initAuth().then(() => {
+    // regreso desde Patreon: avisar el resultado y mostrar el plan actualizado
+    const r = takePatreonReturn();
+    if (!r) return;
+    toast(r.message, r.status === 'error' ? 'err' : r.status === 'ok' ? 'ok' : undefined);
+    if (r.status === 'ok') fetchTier().then(t => { tier = t; openAccount(); });
+  });
 }

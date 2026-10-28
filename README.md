@@ -50,13 +50,14 @@ src/app/                la interfaz y el render (JavaScript, se irá tipando)
 tests/                  pruebas unitarias + prueba de humo de la app completa (jsdom)
 scripts/                utilidades (descarga del catálogo)
 supabase/migrations/    esquema de la base de datos (tablas, RLS, buckets)
+supabase/functions/     Edge Functions de Patreon (conectar, regreso de OAuth, webhook)
 docs/                   guías (configurar Supabase)
 ```
 
 Reglas de los módulos de `src/app`: a nivel superior solo hay declaraciones (exportadas); todo lo que tiene efectos (eventos, preferencias, carga inicial) va en `init()`. Así no importa el orden en que se evalúan los módulos que se importan entre sí.
 
 ## Cuentas y nube (opcional)
-Con un proyecto de Supabase configurado en `.env.local`, la app permite crear cuenta (correo, Google o Discord) y sincroniza marca, sonidos, clips, notas, recientes e imágenes entre PCs. Sin configurarlo, todo funciona en local. Pasos: [docs/supabase.md](docs/supabase.md).
+Con un proyecto de Supabase configurado en `.env.local`, la app permite crear cuenta (correo, Google o Discord) y sincroniza marca, sonidos, clips, notas, recientes e imágenes entre PCs. Sin configurarlo, todo funciona en local. Pasos: [docs/supabase.md](docs/supabase.md). Para que quien apoya en Patreon desbloquee su plan: [docs/patreon.md](docs/patreon.md).
 
 ## Datos y créditos
 Datos de cartas: riftcodex y [OpenRift](https://openrift.app). Imágenes y textos de cartas © Riot Games.

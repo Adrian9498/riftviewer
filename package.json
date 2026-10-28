@@ -8,10 +8,11 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p supabase/functions/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "catalogo": "node scripts/actualizar-openrift.mjs"
+    "catalogo": "node scripts/actualizar-openrift.mjs",
+    "typecheck:functions": "tsc -p supabase/functions/tsconfig.json"
   },
   "engines": {
     "node": ">=22"

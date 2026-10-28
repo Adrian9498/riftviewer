@@ -518,3 +518,5 @@ body.rec #ctrl{opacity:0} body.rec #ctrl:hover{opacity:1}
 .mbody a{color:var(--p1)}
 .oauth[hidden],.sep[hidden],.btn.oa[hidden]{display:none}
 #hAccount{position:absolute;top:18px;left:24px}
+.btn.pt{background:#ff424d;border-color:#ff424d;color:#fff;font-weight:600}
+.pt-on{color:var(--ok);font-weight:600}
