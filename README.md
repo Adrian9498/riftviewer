@@ -47,7 +47,7 @@ src/app/                la interfaz y el render (JavaScript, se irá tipando)
 
 tests/                  pruebas unitarias + prueba de humo de la app completa (jsdom)
 scripts/                utilidades (descarga del catálogo)
-visualizador.html       versión anterior en un solo archivo (referencia; se borra al confirmar que todo funciona igual)
+
 ```
 
 Reglas de los módulos de `src/app`: a nivel superior solo hay declaraciones (exportadas); todo lo que tiene efectos (eventos, preferencias, carga inicial) va en `init()`. Así no importa el orden en que se evalúan los módulos que se importan entre sí.
