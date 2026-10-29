@@ -79,7 +79,9 @@ export function paintLegendXp(st, prev, anim) {
 
 /* ---------- flechas de objetivo ---------- */
 const svgLayer = () => $('#tarrows');
-export function clearTargetArrows() { const l = svgLayer(); if (l) l.innerHTML = ''; }
+export function clearTargetArrows() { const l = svgLayer(); if (l) { l.innerHTML = ''; delete l.dataset.key; l.classList.remove('out'); } }
+/** identifica el conjunto de flechas de un estado ('' si no hay) */
+export const arrowsKeyOf = st => arrowsKey(targetArrows(st));
 /** Elementos a los que apuntan flechas nuevas (para que la cámara los encuadre), o null si no cambiaron. */
 export function newArrowTargets(st, prev) {
   const now = targetArrows(st);
@@ -87,8 +89,10 @@ export function newArrowTargets(st, prev) {
   const els = now.map(a => app.R.el.get(a.targetCardId)).filter(Boolean);
   return els.length ? els : null;
 }
-export function drawTargetArrows(st) {
+/** dibuja las flechas; con still=true solo las reacomoda, sin volver a animar el trazo */
+export function drawTargetArrows(st, still = false) {
   const layer = svgLayer(); if (!layer) return;
+  layer.classList.toggle('still', still); layer.dataset.key = arrowsKeyOf(st);
   const stage = $('#stage');
   layer.setAttribute('viewBox', `0 0 ${stage.offsetWidth} ${stage.offsetHeight}`);
   let svg = '';

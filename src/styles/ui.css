@@ -415,3 +415,8 @@ body.thumbing #thumb,.thumb.show{display:block}
 .thopts label{display:inline-flex;align-items:center;gap:6px}
 .mfoot .btn.ghost{margin-right:auto}
 .chtxt{width:100%;resize:vertical;background:#070e1a;border:1px solid var(--line2);border-radius:8px;color:var(--text);padding:10px;font-family:Consolas,monospace;font-size:13px;line-height:1.5}
+/* flechas de objetivo que siguen de una jugada a otra: se reacomodan sin volver a trazarse */
+#tarrows.still path{animation:none;stroke-dashoffset:0}
+#tarrows.still path{transition:d .3s}
+#tarrows{transition:opacity .4s}
+#tarrows.out{opacity:0}
