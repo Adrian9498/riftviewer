@@ -113,6 +113,14 @@ export async function rRender(i,anim){
     const owner=ce.byPlayerId||card.ownerPlayerId;
     const e=rCardEl({...card,id},owner); place.push([e,$('#rchain'),'chain']); zoneOf.set(id,'chain');
   }
+  // equipaciones: un equipo con attachedToCardId va dentro de su unidad, detrás de ella y un poco desplazado;
+  // así se mueve y gira con la unidad y no ocupa lugar en la zona
+  const elOf=new Map(place.map(([e])=>[e._cid,e])); place.forEach(([e])=>e._eq=0);
+  for(const pl of place){
+    const host=pl[0]._card?.attachedToCardId && elOf.get(pl[0]._card.attachedToCardId);
+    pl[0].classList.toggle('equip',!!host);
+    if(host && host!==pl[0]){ pl[1]=host; pl[0].style.setProperty('--k',++host._eq); }
+  }
   // quitar cartas que ya no se ven
   const keep=new Set(place.map(x=>x[0]));
   app.R.el.forEach((e,id)=>{ if(!keep.has(e)){
@@ -155,6 +163,7 @@ export async function rRender(i,anim){
     const cs=sc*camNow();   // las cartas dentro de la cámara están escaladas además por el zoom
     app.R.el.forEach((e,id)=>{
       const b=before.get(id), ex=e.classList.contains('exhausted');
+      if(e.classList.contains('equip')){ if(!b) e.animate([{opacity:0},{opacity:1}],{duration:400/app.speed}); return; }   // su lugar lo da la unidad
       if(!b){ e.animate([{opacity:0,transform:'scale(1.3)'},{opacity:1,transform:fmtXform(ex)}],{duration:400/app.speed}); return; }
       const [ox,oy]=center(b.r), [nx,ny]=center(e.getBoundingClientRect()), k=e.closest('#rcam')?cs:sc;
       const dx=(ox-nx)/k, dy=(oy-ny)/k;

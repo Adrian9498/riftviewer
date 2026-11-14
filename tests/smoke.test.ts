@@ -45,7 +45,8 @@ const replay = encodeReplay({
     frame(1, { aBase: [u1], log: 'Ana played Unidad Uno from hand to base.' }),
     frame(2, { aField: [u1], log: 'Ana moved Unidad Uno to Campo Uno.' }),
     frame(3, { aField: [u1], bField: [u2], active: 'pb', xp: 1, arrows: { pb: [{ sourceAnchor: 'chain', sourceCardId: 'chain-pb-x', targetAnchor: 'board', targetCardId: 'a1' }] } }),
-    frame(4, { aField: [{ ...u1, exhausted: true }], aScore: 1, log: 'Ana conquered Campo Uno and scored 1.' }),
+    // al final, Unidad Uno lleva una equipación (gear con attachedToCardId, justo después de ella en la zona)
+    frame(4, { aField: [{ ...u1, exhausted: true }, { ...card('a9', 'Espada', 'OGN-300', 'gear'), attachedToCardId: 'a1' }], aScore: 1, log: 'Ana conquered Campo Uno and scored 1.' }),
   ],
 });
 
@@ -110,6 +111,10 @@ describe('app completa', () => {
       expect(document.querySelector('#frames .tturn[data-sec="mull"]')).not.toBeNull();
       expect(document.querySelectorAll('#frames .tl').length).toBe(state.R.frames.length);
       expect(document.querySelector(`#frames .tl.cur[data-i="${state.R.i}"]`)).not.toBeNull();
+      // la equipación va dentro de su unidad (detrás de ella) y no ocupa lugar en el campo
+      const eq = document.querySelector('#rboard .card.equip') as any;
+      expect(eq?._cid).toBe('a9');
+      expect(eq.parentElement._cid).toBe('a1');
       // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
       expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
       expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
