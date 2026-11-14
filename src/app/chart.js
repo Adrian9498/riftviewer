@@ -1,5 +1,6 @@
 // Generado a partir de legacy/app.js (sección "chart").
 import { parseDeck } from '../replay/deck';
+import { deckRawOf } from './replay';
 import { $, stage } from './base';
 import { app } from './state';
 import { esc, hold } from './utils';
@@ -17,7 +18,7 @@ export function analyze(){
     if((m=(l.text||'').match(/conquered (.+?)(?: and scored|\.$)/))){ st[p].conq++; app.R.conquests.push({t:l.turnNumber,pid:p,name:m[1]}); } }
   app.R.stats=st;
   const lf=F[F.length-1]; app.R.duration=lf.elapsedMs||0;
-  app.R.decks={}; lf.state.players.forEach(p=>app.R.decks[p.id]=parseDeck(p.deck?.raw||p.decklistRaw||p.submittedDeck?.raw||p.registeredDeck?.raw||''));
+  app.R.decks={}; lf.state.players.forEach(p=>app.R.decks[p.id]=parseDeck(deckRawOf(p)));
 }
 export function chartSVG(w,h){
   const S=app.R.series; if(!S.length) return '<p>Sin datos de puntos</p>';

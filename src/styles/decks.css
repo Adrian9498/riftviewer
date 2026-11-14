@@ -109,3 +109,45 @@
 .hdeck small{color:#aab5cc}
 .hdeck>span:nth-child(2){flex:1}
 .hdeck>.i{color:#cbb8ff;width:22px;height:22px}
+
+/* botones de mazo en el panel del replay */
+.pdecks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* mano de prueba */
+.simbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.simhand{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:10px}
+.simc.pick{transform:translateY(-6px);box-shadow:0 0 0 3px var(--err),0 10px 24px #000b}
+.simc.pick::after{content:'Al fondo';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:3px 8px;border-radius:6px;background:#000c;color:#fff;font-size:12px;font-weight:700}
+
+/* imagen del mazo (1920×1080, se muestra a pantalla completa solo al capturarla) */
+#dsheetw{position:fixed;inset:0;z-index:1300;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden}
+#dsheetw[hidden]{display:none}
+#dsheet{flex:none;position:relative;width:1920px;height:1080px;transform:scale(var(--k,.5));display:grid;grid-template-columns:520px 1fr;gap:40px;padding:60px 60px 70px;
+  background:radial-gradient(ellipse 60% 70% at 18% 40%,#1c2a44 0%,transparent 70%),radial-gradient(ellipse at 80% 120%,#3a2a12 0%,transparent 60%),#050a14;color:#fff;font-family:Inter,sans-serif}
+#dsheet::after{content:'';position:absolute;inset:8px;pointer-events:none;background:var(--ui-goldgrad);
+  -webkit-mask-box-image:url(../assets/fx/frame-stage.png) 32 / 30px stretch;mask-border:url(../assets/fx/frame-stage.png) 32 / 30px stretch}
+.ds-left{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ds-leg{width:100%;aspect-ratio:744/1039;max-height:560px;object-fit:cover;object-position:center 15%;border-radius:18px;box-shadow:0 0 0 2px #c8aa6e,0 20px 50px #000c}
+.ds-name{font-family:Cinzel,serif;font-weight:900;font-size:48px;line-height:1.05;background:linear-gradient(180deg,#fff4cf,#e6c67f 50%,#9a7633);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ds-sub{display:flex;align-items:center;gap:10px;font-size:24px;color:#cbd3e3}
+.ds-sub .sym{width:30px;height:30px}
+.ds-champ{display:flex;align-items:center;gap:14px;padding:10px;border-radius:12px;background:#ffffff0d;border:1px solid #c8aa6e55}
+.ds-champ img{width:64px;border-radius:6px}
+.ds-champ span{font-size:22px;font-weight:700}
+.ds-champ small{display:block;font-size:15px;font-weight:600;color:#e6c67f;letter-spacing:2px;text-transform:uppercase}
+.ds-meta{font-size:20px;color:#aab5cc}
+.ds-brand{display:flex;align-items:center;gap:12px;margin-top:auto;font-family:Cinzel,serif;font-weight:700;font-size:26px}
+.ds-brand img{height:56px;border-radius:8px}
+.ds-right{display:flex;flex-direction:column;gap:26px;min-width:0}
+.ds-grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:12px;align-content:start;height:700px}
+.ds-c{position:relative}
+.ds-c img{width:100%;aspect-ratio:744/1039;object-fit:cover;border-radius:8px;box-shadow:0 6px 16px #000b}
+.ds-c b{position:absolute;right:-6px;bottom:-6px;min-width:42px;height:42px;padding:0 8px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:var(--ui-gold);color:#1d1406;font-family:Cinzel,serif;font-weight:900;font-size:24px;box-shadow:0 3px 10px #000c}
+.ds-foot{display:flex;align-items:center;gap:30px;margin-top:auto}
+.ds-bfs{display:flex;gap:12px}
+.ds-bfs img{height:150px;border-radius:8px;box-shadow:0 6px 16px #000b}
+.ds-runes{display:flex;flex-wrap:wrap;gap:18px}
+.ds-runes span{display:flex;align-items:center;gap:6px;font-family:Cinzel,serif;font-size:30px}
+.ds-runes .sym{width:46px;height:46px}
+.ds-mark{position:absolute;right:56px;bottom:26px;font-size:18px;color:#aab5cc}
+.ds-mark b{font-family:Cinzel,serif;color:#e6c67f}

@@ -30,7 +30,7 @@ function frame(n: number, opts: { aBase?: object[]; aField?: object[]; bField?: 
       phase: opts.phase || 'in_game', targetArrowsByPlayer: opts.arrows || {}, turnNumber: 1 + (n >> 1), activeTurnPlayerId: opts.active || 'pa', chainEntries: [],
       log: opts.log ? [{ id: 'l' + n, text: opts.log, at: n, authorPlayerId: 'pa', turnNumber: 1 }] : [],
       players: [
-        { id: 'pa', name: 'Ana', seat: 0, selectedBattlefield: 'Campo Uno', selectedBattlefieldCardCode: 'OGN-001', board: board(card('aL', 'Leyenda A', 'UNL-234', 'legend'), opts.aBase || [], opts.aField || [], opts.aScore || 0) },
+        { id: 'pa', name: 'Ana', seat: 0, decklistRaw: 'Legend:\n1 Leyenda A [UNL-234]\n\nMainDeck:\n3 Stupefy [OGN-095]', selectedBattlefield: 'Campo Uno', selectedBattlefieldCardCode: 'OGN-001', board: board(card('aL', 'Leyenda A', 'UNL-234', 'legend'), opts.aBase || [], opts.aField || [], opts.aScore || 0) },
         { id: 'pb', name: 'Beto', seat: 1, selectedBattlefield: 'Campo Dos', selectedBattlefieldCardCode: 'OGN-002', board: board(card('bL', 'Leyenda B', 'UNL-197', 'legend'), [], opts.bField || [], 0) },
       ],
     },
@@ -51,6 +51,7 @@ const replay = encodeReplay({
 });
 
 let errors: unknown[] = [];
+const $ = (q: string) => document.querySelector(q) as HTMLElement;
 let shell: any, engine: any, render: any, state: any, demo: any;
 
 beforeAll(async () => {
@@ -128,6 +129,14 @@ describe('app completa', () => {
       expect(unit.querySelector(':scope > .tag')?.textContent).toBe('Aturdida');
       expect(extras.modAt(unit._cid, state.R.i)?.might).toBe(2);
       expect(extras.modAt(unit._cid, state.R.i - 1)).toBeNull();
+      // la lista de Ana se abre en el constructor (sin guardarla) y se vuelve a la partida
+      ($('#pinfo [data-deckof="pa"]') as HTMLButtonElement).click();
+      expect(($('#deckb') as HTMLElement).hidden).toBe(false);
+      expect(($('#dbName') as HTMLInputElement).value).toMatch(/^Ana · /);
+      expect(($('#dbSaveShared') as HTMLElement).hidden).toBe(false);
+      ($('#dbBack') as HTMLButtonElement).click();
+      expect(($('#deckb') as HTMLElement).hidden).toBe(true);
+      expect(document.querySelector('#home')!.classList.contains('show')).toBe(false);
       // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
       Object.assign(navigator, { mediaDevices: { getDisplayMedia: () => Promise.reject(new Error('sin pantalla')) } });
       (window as any).MediaRecorder = class {};

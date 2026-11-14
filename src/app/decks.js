@@ -8,10 +8,15 @@ import { norm } from '../data/text';
 import { decodeDeck, encodeDeck, fromText, toText } from '../deck/format';
 import { emptyDeck, mainWithChampion, slotFor, total } from '../deck/model';
 import { BATTLEFIELDS, MAIN_MIN, MAX_COPIES, RUNES, inIdentity, validateDeck } from '../deck/rules';
-import { atLeastOne, deckStats, mainSize, seenByTurn } from '../deck/stats';
+import { OPENING_HAND, atLeastOne, deckStats, mainSize, seenByTurn } from '../deck/stats';
 import { $, ic } from './base';
 import { CARDS, cardByCode, deckCard, deckCatalog } from './cards';
-import { toast } from './shell';
+import { deckRawOf } from './replay';
+import { BR, BRIMG } from './brand';
+import { captureToPng } from './capture';
+import { isPremium } from '../cloud/plan';
+import { DOC, toast } from './shell';
+import { app } from './state';
 import { closeModal, esc, openModal } from './utils';
 
 const KEY = id => 'rb_proj_deck:' + id;
@@ -155,6 +160,35 @@ function renderStats() {
       <table class="dbprob"><tr><th></th><th>Copias</th><th>Mano inicial</th><th>Turno 3</th></tr>
       ${rows.map(x => `<tr><td>${esc(x.c.name)}</td><td>${x.n}</td><td>${pct(atLeastOne(size, x.n, seenByTurn(1)))}</td><td>${pct(atLeastOne(size, x.n, seenByTurn(3)))}</td></tr>`).join('')}</table></div>`;
 }
+/* ---------- mano de prueba ----------
+   Se baraja el mazo principal (el campeón empieza en su zona), se roban 4 y se puede hacer mulligan:
+   devolver hasta 2 cartas al fondo y robar otras tantas. Luego, una carta por turno. */
+const MULL_MAX = 2;
+const SIM = { lib: [], hand: [], pick: new Set(), turn: 1, mull: false, key: '' };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function simNew() {
+  const lib = []; for (const [c, n] of Object.entries(D.main)) for (let k = 0; k < n; k++) lib.push(c);
+  SIM.lib = shuffle(lib); SIM.hand = SIM.lib.splice(0, OPENING_HAND); SIM.pick.clear(); SIM.turn = 1; SIM.mull = false; SIM.key = D.id + JSON.stringify(D.main);
+}
+function simMulligan() {
+  const back = SIM.hand.filter((_, k) => SIM.pick.has(k));
+  SIM.hand = SIM.hand.filter((_, k) => !SIM.pick.has(k)).concat(SIM.lib.splice(0, back.length));
+  SIM.lib.push(...back); SIM.pick.clear(); SIM.mull = true;
+}
+function simDraw() { if (SIM.lib.length) { SIM.hand.push(SIM.lib.shift()); SIM.turn++; SIM.mull = true; } }
+function renderTest() {
+  if (!Object.keys(D.main).length) { $('#dbPanel').innerHTML = '<div class="dbsec"><div class="dbhint">Agrega cartas al mazo principal para probar manos.</div></div>'; return; }
+  if (SIM.key !== D.id + JSON.stringify(D.main)) simNew();
+  const champ = D.champion && get(D.champion), picking = !SIM.mull;
+  $('#dbPanel').innerHTML = `<div class="dbsec">
+    <h4>${SIM.turn === 1 ? 'Mano inicial' : 'Turno ' + SIM.turn} <small>${SIM.lib.length} cartas en el mazo</small></h4>
+    <div class="simbar"><button class="btn mini" data-sim="new">${ic('replay')} Nueva mano</button>
+      ${picking ? `<button class="btn mini${SIM.pick.size ? ' primary' : ''}" data-sim="mull" ${SIM.pick.size ? '' : 'disabled'}>Mulligan (${SIM.pick.size}/${MULL_MAX})</button>` : ''}
+      <button class="btn mini" data-sim="draw" ${SIM.lib.length ? '' : 'disabled'}>${ic('cards')} Robar</button></div>
+    <div class="dbhint">${picking ? `Toca hasta ${MULL_MAX} cartas para devolverlas al fondo del mazo y robar otras tantas.` : 'Roba una carta por turno para ver cómo sigue tu partida.'}${champ ? ` Tu campeón, <b>${esc(champ.name)}</b>, empieza en su zona.` : ''}</div>
+    <div class="simhand">${SIM.hand.map((c, k) => { const full = cardByCode(c); return `<div class="dbc simc${SIM.pick.has(k) ? ' pick' : ''}" data-code="${esc(c)}" data-hi="${k}" title="${esc(get(c)?.name || c)}"><img src="${esc(full?.img || '')}" alt=""></div>`; }).join('')}</div>
+  </div>`;
+}
 function renderCheck(issues) {
   $('#dbPanel').innerHTML = issues.length
     ? `<div class="dbsec">${issues.map(i => `<div class="dbiss ${i.level}">${ic(i.level === 'error' ? 'x' : 'help')}<span>${esc(i.msg)}${i.codes?.length ? `<small>${i.codes.map(c => esc(get(c)?.name || c)).join(', ')}</small>` : ''}</span></div>`).join('')}</div>`
@@ -173,7 +207,7 @@ function renderAll() {
   $('#dbSaveShared').hidden = !SHARED;
   $('#dbIssues').textContent = errors || ''; $('#dbIssues').classList.toggle('ok', !errors);
   document.querySelectorAll('.dbtabs button').forEach(b => b.classList.toggle('on', b.dataset.dt === TAB));
-  if (TAB === 'list') renderList(issues); else if (TAB === 'stats') renderStats(); else renderCheck(issues);
+  if (TAB === 'list') renderList(issues); else if (TAB === 'stats') renderStats(); else if (TAB === 'test') renderTest(); else renderCheck(issues);
   renderCatalog(); renderDeckList();
 }
 
@@ -218,6 +252,41 @@ function openShare() {
   body.querySelector('input').onclick = e => e.target.select();
 }
 
+/* ---------- imagen del mazo para redes (1920×1080) ---------- */
+function sheetHTML() {
+  const legend = D.legend && get(D.legend), legImg = D.legend && cardByCode(D.legend)?.img, champ = D.champion && cardByCode(D.champion);
+  const rows = Object.entries(D.main).sort((a, b) => (get(a[0])?.e ?? 99) - (get(b[0])?.e ?? 99) || (get(a[0])?.name || '').localeCompare(get(b[0])?.name || ''));
+  // columnas: las menos posibles para que todas las cartas quepan en el área (1300×700)
+  let cols = 6; for (; cols < 14; cols++) { const w = (1300 - (cols - 1) * 12) / cols, r = Math.ceil(rows.length / cols); if (r * w * 1.396 + (r - 1) * 12 <= 700) break; }
+  const brand = (isPremium() && BRIMG.logo ? `<img src="${BRIMG.logo}">` : '') + (BR.name ? `<span>${esc(BR.name)}</span>` : '');
+  return `<div class="ds-left">
+      ${legImg ? `<img class="ds-leg" src="${esc(legImg)}" alt="">` : '<div class="ds-leg"></div>'}
+      <div class="ds-name">${esc(D.name)}</div>
+      <div class="ds-sub">${esc(legend?.name || '')} <span>${legend ? domIcons(legend.dom) : ''}</span></div>
+      ${champ ? `<div class="ds-champ"><img src="${esc(champ.img)}" alt=""><span><small>Campeón</small>${esc(champ.name)}</span></div>` : ''}
+      <div class="ds-meta">${total(mainWithChampion(D))} cartas · ${total(D.runes)} runas</div>
+      ${brand ? `<div class="ds-brand">${brand}</div>` : ''}
+    </div>
+    <div class="ds-right">
+      <div class="ds-grid" style="--cols:${cols}">${rows.map(([c, n]) => `<div class="ds-c"><img src="${esc(cardByCode(c)?.img || '')}" alt=""><b>${n}</b></div>`).join('')}</div>
+      <div class="ds-foot">
+        <div class="ds-bfs">${D.battlefields.map(b => `<img src="${esc(cardByCode(b)?.img || '')}" alt="">`).join('')}</div>
+        <div class="ds-runes">${Object.entries(D.runes).map(([c, n]) => `<span>${domIcons(get(c)?.dom || [])}<b>×${n}</b></span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="ds-mark">Hecho con <b>Riftviewer</b></div>`;
+}
+function exportImage() {
+  if (!Object.keys(D.main).length) { toast('Agrega cartas al mazo primero.', 'err'); return; }
+  const wrap = $('#dsheetw'), sheet = $('#dsheet');
+  captureToPng({
+    w: 1920, h: 1080, file: `mazo-${(D.name || 'riftviewer').replace(/[^w-]+/g, '_').slice(0, 40)}.png`,
+    title: 'Todo listo para la imagen', msg: 'Al pulsar el botón, la pantalla se pondrá completa un momento y se guardará la imagen de tu mazo.',
+    show: () => { sheet.innerHTML = sheetHTML(); wrap.hidden = false; sheet.style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080)); return sheet; },
+    hide: () => { wrap.hidden = true; sheet.innerHTML = ''; },
+  });
+}
+
 /* ---------- vista ampliada al pasar el ratón ---------- */
 let hpT = null;
 function preview(code, x, y) {
@@ -236,6 +305,15 @@ export function showDecks(d) {
   else if (!D) { const last = allDecks()[0]; if (last) openDeck(last); else newDeck(); }
   else renderAll();
 }
+/** abre en el constructor el mazo con el que jugó alguien en el replay abierto (sin guardarlo todavía) */
+export function openReplayDeck(pid) {
+  const last = app.R?.frames[app.R.frames.length - 1]?.state, p = last?.players.find(x => x.id === pid), raw = deckRawOf(p);
+  if (!raw) { toast('Este replay no trae la lista de ese jugador.', 'err'); return; }
+  const { deck, missing } = fromText(raw, newId(), resolve);
+  deck.name = `${p.name} · ${(deck.legend && get(deck.legend)?.name.split(',')[0]) || 'mazo'}`;
+  showDecks(deck);
+  if (missing.length) toast(`No se reconocieron: ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}`, 'err');
+}
 export function hideDecks() { $('#deckb').hidden = true; document.body.classList.remove('indecks'); $('#hoverprev').classList.remove('show'); }
 
 export function init() {
@@ -251,11 +329,14 @@ export function init() {
 
   $('#bDecks').onclick = () => showDecks();
   $('#hDecks').onclick = () => showDecks();
-  $('#dbBack').onclick = () => { hideDecks(); $('#home').classList.add('show'); };
+  // volver: a la partida abierta si hay una; si no, al inicio
+  $('#dbBack').onclick = () => { hideDecks(); if (!DOC.kind) $('#home').classList.add('show'); };
+  $('#pinfo').addEventListener('click', e => { const b = e.target.closest('[data-deckof]'); if (b) openReplayDeck(b.dataset.deckof); });
   $('#dbNew').onclick = newDeck;
   $('#dbImport').onclick = openImport;
   $('#dbExport').onclick = openExport;
   $('#dbShare').onclick = openShare;
+  $('#dbImage').onclick = exportImage;
   $('#dbSaveShared').onclick = () => { SHARED = false; D.id = newId(); save(); renderAll(); toast('Guardado en tus mazos', 'ok'); };
   $('#dbDel').onclick = () => {
     if (!confirm(`¿Borrar el mazo "${D.name}"? Esto no se puede deshacer.`)) return;
@@ -283,6 +364,10 @@ export function init() {
   });
   $('#dbGrid').addEventListener('contextmenu', e => { const c = e.target.closest('[data-code]'); if (c) { e.preventDefault(); remove(c.dataset.code); } });
   $('#dbPanel').addEventListener('click', e => {
+    const sim = e.target.closest('[data-sim]');
+    if (sim) { ({ new: simNew, mull: simMulligan, draw: simDraw })[sim.dataset.sim](); renderTest(); return; }
+    const hi = e.target.closest('[data-hi]');
+    if (hi) { if (SIM.mull) return; const k = +hi.dataset.hi; SIM.pick.has(k) ? SIM.pick.delete(k) : SIM.pick.size < MULL_MAX && SIM.pick.add(k); renderTest(); return; }
     const a = e.target.closest('[data-add]'); if (a) { add(a.dataset.add, a.dataset.sec === 'side' ? 'side' : 'main'); return; }
     const r = e.target.closest('[data-rm]'); if (r) { remove(r.dataset.rm, r.dataset.sec); return; }
     const f = e.target.closest('[data-filter]'); if (f) { F.type = f.dataset.filter; $('#dbType').value = F.type; LIMIT = 120; renderCatalog(); $('#dbGrid').scrollTop = 0; }

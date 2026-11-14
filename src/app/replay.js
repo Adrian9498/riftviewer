@@ -3,7 +3,7 @@ import { decodeReplay } from '../replay/decode';
 import { computeMulligans } from '../replay/mulligan';
 import { translateLog } from '../replay/translate';
 import { KIND_ICON, actionKind } from '../replay/timeline';
-import { $, stage } from './base';
+import { $, ic, stage } from './base';
 import { analyze } from './chart';
 import { PROJ, loadProj, toggleMark } from './clips';
 import { R_addField, buildLanes } from './layout-lanes';
@@ -21,6 +21,8 @@ export const BFZ=['battlefieldA','battlefieldB','battlefieldC','battlefieldToken
 export const arr = x => !x ? [] : Array.isArray(x) ? x.filter(c=>c&&c.id) : (x.id ? [x] : []);
 
 
+/** lista del mazo de un jugador tal como la guarda RiftAtlas */
+export const deckRawOf = p => p ? (p.deck?.raw||p.decklistRaw||p.submittedDeck?.raw||p.registeredDeck?.raw||'') : '';
 export const tr = t => translateLog(t, $('#rlang').value);
 
 export function loadReplay(json){
@@ -46,7 +48,10 @@ export function loadReplay(json){
   document.body.classList.add('replay');
   $('#rview').innerHTML=players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   $('#rview').value=app.R.view;
-  $('#pinfo').innerHTML=`${players.map(p=>`<b style="color:${p.col}">${esc(p.name)}</b>`).join(' vs ')}<br>${last.turnNumber||'?'} turnos · ${frames.length} jugadas`;
+  // con la lista de cada jugador se puede abrir su mazo en el constructor
+  const withDeck=players.filter(p=>deckRawOf(last.players.find(x=>x.id===p.id)));
+  $('#pinfo').innerHTML=`${players.map(p=>`<b style="color:${p.col}">${esc(p.name)}</b>`).join(' vs ')}<br>${last.turnNumber||'?'} turnos · ${frames.length} jugadas`
+    +(withDeck.length?`<div class="pdecks">${withDeck.map(p=>`<button class="btn mini" data-deckof="${esc(p.id)}" title="Abrir su lista en el constructor de mazos">${ic('cards')} Mazo de ${esc(p.name)}</button>`).join('')}</div>`:'');
   buildFrameList();
   app.playing=false; app.token++;
   $('#scrub').max=frames.length-1;

@@ -281,6 +281,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     <button class="btn" id="dbNew"><svg class="i"><use href="#i-plus"/></svg> Nuevo</button>
     <button class="btn" id="dbImport"><svg class="i"><use href="#i-upload"/></svg> Importar</button>
     <button class="btn" id="dbExport"><svg class="i"><use href="#i-save"/></svg> Exportar</button>
+    <button class="btn" id="dbImage" title="Imagen del mazo para redes (1920×1080)"><svg class="i"><use href="#i-brand"/></svg> Imagen</button>
     <button class="btn" id="dbShare"><svg class="i"><use href="#i-arrow"/></svg> Compartir</button>
     <button class="btn ico" id="dbDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
   </header>
@@ -306,7 +307,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       <div class="dbtip">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</div>
     </section>
     <aside class="dbdeck">
-      <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
+      <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="test">Mano de prueba</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
       <div id="dbPanel"></div>
     </aside>
   </div>
@@ -314,6 +315,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
 <div id="dropov"><div>Suelta el archivo para abrirlo</div></div>
 <div id="toasts"></div>
 <div id="cardmenu" hidden></div>
+<div id="dsheetw" hidden><div id="dsheet"></div></div>
 <div id="tour"><div class="tbox"></div><div class="tbub"><small class="tstep"></small><h3></h3><p></p><div class="tacts"><button class="btn" id="tSkip">Saltar</button><button class="btn primary" id="tNext">Siguiente</button></div></div></div>
 
 <div id="modal"><div class="mbox"><h2></h2><div class="mbody"></div><div class="mfoot"></div></div></div>

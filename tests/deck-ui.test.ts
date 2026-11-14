@@ -73,6 +73,22 @@ describe('constructor de mazos', () => {
     expect(d.runes).toEqual({ 'OGN-005': 1 });
   });
 
+  it('mano de prueba: roba del mazo principal y permite mulligan de hasta 2', () => {
+    ($('.dbtabs [data-dt="test"]') as HTMLButtonElement).click();
+    const hand = () => document.querySelectorAll('#dbPanel .simc');
+    expect(hand().length).toBe(3);                       // el mazo solo tiene 3 Stupefy (el campeón no se roba)
+    (hand()[0] as HTMLElement).click();
+    expect(hand()[0].classList.contains('pick')).toBe(true);
+    ($('[data-sim="mull"]') as HTMLButtonElement).click();
+    // con solo 3 cartas no hay qué robar: la devuelta va al fondo y se puede robar después
+    expect(hand().length).toBe(2);
+    expect(document.querySelector('[data-sim="mull"]')).toBeNull();   // el mulligan solo se hace una vez
+    ($('[data-sim="draw"]') as HTMLButtonElement).click();
+    expect(hand().length).toBe(3);
+    expect(($('[data-sim="draw"]') as HTMLButtonElement).disabled).toBe(true);   // ya no quedan cartas
+    ($('.dbtabs [data-dt="list"]') as HTMLButtonElement).click();
+  });
+
   it('guarda el mazo como proyecto para que se sincronice', async () => {
     await new Promise(r => setTimeout(r, 350));
     const keys = Object.keys(localStorage).filter(k => k.startsWith('rb_proj_deck:'));
