@@ -20,7 +20,6 @@ const items = [
 ];
 
 let errors: unknown[] = [];
-let decks: any;
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const tile = (name: string) => [...document.querySelectorAll('#dbGrid .dbc')].find(t => t.getAttribute('title') === name) as HTMLElement;
 
@@ -33,7 +32,6 @@ beforeAll(async () => {
     String(url).includes('riftcodex') ? { ok: true, json: async () => ({ items, pages: 1 }) } : { ok: false, json: async () => null }));
   addEventListener('error', e => errors.push(e.error));
   await import('../src/main');
-  decks = await import('../src/app/decks.js');
   await new Promise(r => setTimeout(r, 20));
 });
 
