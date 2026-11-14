@@ -4,6 +4,7 @@ import './styles/app.css';
 import './styles/ui.css';
 import './styles/skins.css';
 import './styles/skins-fx.css';
+import './styles/decks.css';
 import { init as initCards } from './app/cards.js';
 import { init as initReplay } from './app/replay.js';
 import { init as initShell } from './app/shell.js';
@@ -24,10 +25,11 @@ import { init as initPremium } from './app/premium.js';
 import { init as initInspector } from './app/inspector.js';
 import { init as initAnnot } from './app/annot.js';
 import { init as initCardMenu } from './app/card-menu.js';
+import { init as initDecks } from './app/decks.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks]) init();
 }
 
 start();

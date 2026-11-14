@@ -60,6 +60,7 @@
 <div id="app">
   <header id="topbar">
     <button class="btn ico" id="bHome" title="Pantalla de inicio"><svg class="i"><use href="#i-home"/></svg></button>
+    <button class="btn ico" id="bDecks" title="Constructor de mazos"><svg class="i"><use href="#i-cards"/></svg></button>
     <button class="btn ico" id="bPanel" title="Mostrar u ocultar el panel lateral (P)"><svg class="i"><use href="#i-panel"/></svg></button>
     <span class="logo"><span class="lmark"></span>Riftviewer</span>
     <div id="docname"></div>
@@ -263,8 +264,51 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
         <div class="acts"><button class="btn primary" id="hNew"><svg class="i"><use href="#i-pen"/></svg> Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
       </div>
     </div>
+    <button class="hdeck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span><b>Construir un mazo</b><small>Busca cartas, valida las reglas, revisa la curva y comparte tu lista.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
     <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
     <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
+  </div>
+</div>
+<!-- Constructor de mazos -->
+<div id="deckb" hidden>
+  <header class="dbtop">
+    <button class="btn ico" id="dbBack" title="Volver al inicio"><svg class="i"><use href="#i-home"/></svg></button>
+    <span class="logo"><span class="lmark"></span>Mazos</span>
+    <select id="dbList" title="Tus mazos"></select>
+    <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
+    <span class="dbflex"></span>
+    <button class="btn primary" id="dbSaveShared" hidden><svg class="i"><use href="#i-save"/></svg> Guardar en mis mazos</button>
+    <button class="btn" id="dbNew"><svg class="i"><use href="#i-plus"/></svg> Nuevo</button>
+    <button class="btn" id="dbImport"><svg class="i"><use href="#i-upload"/></svg> Importar</button>
+    <button class="btn" id="dbExport"><svg class="i"><use href="#i-save"/></svg> Exportar</button>
+    <button class="btn" id="dbShare"><svg class="i"><use href="#i-arrow"/></svg> Compartir</button>
+    <button class="btn ico" id="dbDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="dbwork">
+    <section class="dbcat">
+      <div class="dbfilters">
+        <input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…">
+        <div class="dbchips" id="dbDom"></div>
+        <div class="dbrow">
+          <select id="dbType"><option value="">Todos los tipos</option><option value="champ">Campeones de mi leyenda</option><option value="Unit">Unidades</option><option value="Spell">Hechizos</option><option value="Gear">Equipo</option><option value="Legend">Leyendas</option><option value="Battlefield">Campos de batalla</option><option value="Rune">Runas</option></select>
+          <select id="dbCost"><option value="">Cualquier costo</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option value="7">7+</option></select>
+          <select id="dbSet"></select>
+          <select id="dbRar"></select>
+          <select id="dbSort"><option value="cost">Ordenar por costo</option><option value="name">Ordenar por nombre</option><option value="might">Ordenar por poder</option></select>
+        </div>
+        <div class="dbrow">
+          <label title="Oculta las cartas fuera de los dominios de tu leyenda"><input type="checkbox" id="dbFit" checked> Solo de mis dominios</label>
+          <span class="dbto">Agregar al: <span class="seg"><button data-to="main" class="on">Mazo</button><button data-to="side">Banquillo</button></span></span>
+          <small id="dbCount"></small>
+        </div>
+      </div>
+      <div class="dbgrid" id="dbGrid"></div>
+      <div class="dbtip">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</div>
+    </section>
+    <aside class="dbdeck">
+      <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
+      <div id="dbPanel"></div>
+    </aside>
   </div>
 </div>
 <div id="dropov"><div>Suelta el archivo para abrirlo</div></div>

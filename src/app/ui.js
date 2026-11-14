@@ -29,7 +29,7 @@ export function init() {
   $('#script').addEventListener('input',autosaveScript);
   document.addEventListener('keydown',e=>{
     if(['TEXTAREA','INPUT','SELECT'].includes(document.activeElement.tagName)) return;
-    if($('#home').classList.contains('show') || $('#modal').classList.contains('show') || $('#tour').classList.contains('show')) return;
+    if($('#home').classList.contains('show') || document.body.classList.contains('indecks') || $('#modal').classList.contains('show') || $('#tour').classList.contains('show')) return;
     if(e.key==='?'){ openHelp(); return; }
     if(e.key.toLowerCase()==='p' && !e.ctrlKey && !e.metaKey){ togglePanel(); return; }
     if(e.key==='Escape' && REC.on){ REC.stop(); return; }
