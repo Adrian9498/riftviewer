@@ -449,3 +449,22 @@ body.thumbing #thumb,.thumb.show{display:block}
 .navit[disabled]{opacity:.45;cursor:default}
 .navsep{height:1px;margin:6px 4px;background:var(--line)}
 @media (max-width:640px){ .navbtn .navname{display:none} .navsec{font-size:14px} }
+
+/* ---------- beta cerrada: pantalla de acceso ---------- */
+#gate{position:fixed;inset:0;z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse 70% 60% at 50% 30%,#1b2a48 0%,transparent 70%),radial-gradient(ellipse at 50% 120%,#3a2a12,transparent 60%),#070b14}
+#gate[hidden]{display:none}
+body.gated{overflow:hidden}
+.gbox{width:min(440px,100%);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:40px 30px;border-radius:22px;
+  background:linear-gradient(180deg,#121c30,#0b1220);border:1px solid #c8aa6e55;box-shadow:0 30px 80px #000c}
+.gmark{width:56px;height:56px;background:var(--ui-goldgrad);-webkit-mask:url(../assets/fx/magic-03.png) center/contain no-repeat;mask:url(../assets/fx/magic-03.png) center/contain no-repeat}
+.gbox h1{margin:0;font-family:Cinzel,serif;font-weight:900;font-size:30px;letter-spacing:2px;background:var(--ui-goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gbadge{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1px solid #c8aa6e55;background:#c8aa6e14;color:#e6c67f;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+.gdot{width:7px;height:7px;border-radius:50%;background:#45d483}
+.gsub{margin:6px 0 0;color:#c5cee0;font-size:15px;line-height:1.5}
+.ghint{margin:0;color:var(--muted);font-size:13px}
+.gerr{margin:0;padding:8px 12px;border-radius:10px;background:#ff6b6b18;border:1px solid #ff6b6b55;color:#ffb3b3;font-size:13px}
+.gbtns{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:8px}
+.gbtns .btn{justify-content:center;padding:11px 16px}
+.glink{color:var(--muted);font-size:13px;margin-top:4px}
+.glink:hover{color:#e6c67f}

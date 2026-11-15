@@ -3,6 +3,7 @@ import { currentUser, displayName, enabledProviders, initAuth, onUserChange, sen
 import { cloudEnabled } from '../cloud/client';
 import { connectPatreon, disconnectPatreon, patreonLink, takePatreonReturn } from '../cloud/patreon';
 import { currentPlan, isPremium, refreshPlan } from '../cloud/plan';
+import { patreonOn } from '../cloud/beta';
 import { configureSync, onSyncStatus, syncNow, syncStatus } from '../cloud/sync';
 import { openUpsell } from './premium';
 import { $, ic } from './base';
@@ -96,16 +97,15 @@ export function openAccount() {
   const body = openModal('Tu cuenta', `
     <span>Nombre</span><b>${esc(displayName(u))}</b>
     <span>Correo</span><span>${esc(u.email || '—')}</span>
-    <span>Plan</span><span id="acTier"></span>
-    <span>Patreon</span><div id="acPatreon"><small style="color:var(--muted)">Revisando…</small></div>
+    ${patreonOn() ? `<span>Plan</span><span id="acTier"></span>
+    <span>Patreon</span><div id="acPatreon"><small style="color:var(--muted)">Revisando…</small></div>` : '<span>Plan</span><span><b class="pt-on">Beta</b> <small style="color:var(--muted)">· todo incluido</small></span>'}
     <span>Nube</span><span id="acSync">${esc(syncText(syncStatus()))}</span>
     <div class="full row" style="padding:6px 0 0"><button class="btn" id="acSyncNow">⟳ Sincronizar ahora</button><button class="btn" id="acOut">Cerrar sesión</button></div>
     <div class="full hint">Se sincronizan tu marca, sonidos, vista, clips, notas, los 8 recientes y tus imágenes y audios propios. Si cambias lo mismo en dos PCs, gana el cambio más reciente. Al cerrar sesión, lo que ya está en este navegador se queda aquí.</div>`,
     [['Cerrar', 'primary']]);
   body.querySelector('#acSyncNow').onclick = () => syncNow();
   body.querySelector('#acOut').onclick = async () => { await signOut(); closeModal(); toast('Sesión cerrada'); };
-  paintTier(); refreshPlan().then(paintTier);
-  paintPatreon();
+  if (patreonOn()) { paintTier(); refreshPlan().then(paintTier); paintPatreon(); }
 }
 
 // plan actual: nombre y vigencia; si es Gratis, enlace para ver qué incluye Full Access

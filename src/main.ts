@@ -30,10 +30,11 @@ import { init as initDecks } from './app/decks.js';
 import { init as initCollection } from './app/collection.js';
 import { init as initScanner } from './app/scanner.js';
 import { init as initNav } from './app/nav.js';
+import { init as initGate } from './app/gate.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initNav]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initGate, initNav]) init();
 }
 
 start();

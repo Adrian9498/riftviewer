@@ -1,7 +1,7 @@
 // Generado a partir de legacy/app.js (sección "cards").
 import { buildOpenRiftIndex, emptyIndex, lookupByCode, openRiftExtraCards } from '../data/openrift';
 import { norm } from '../data/text';
-import { $, API } from './base';
+import { $, API, pub } from './base';
 import { rJump } from './replay-render';
 import { run } from './script-engine';
 import { app } from './state';
@@ -137,7 +137,7 @@ export function findCardRaw(name){
 }
 
 export function init() {
-  fetch('openrift-catalog.json').then(r=>r.ok?r.json():null).then(cat=>{
+  fetch(pub('openrift-catalog.json')).then(r=>r.ok?r.json():null).then(cat=>{
     if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready(); else document.dispatchEvent(new Event('rb:cards'));
   }).catch(()=>{});
 }

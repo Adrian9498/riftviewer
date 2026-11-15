@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riftviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Cinzel:wght@600;700;900&family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- iconos de la interfaz (dibujados para este proyecto); se usan con <svg class="i"><use href="#i-…"/></svg> o ic('…') -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-rec" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></symbol>
+  <symbol id="i-brand" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.9-.7-1.3-.7-2.1 0-.9.8-1.4 1.7-1.4H17a4 4 0 0 0 4-4c0-4.9-4-8.9-9-8.9z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10" cy="7" r="1.2" fill="currentColor"/><circle cx="14.6" cy="7" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3.2"/></symbol>
+  <symbol id="i-first" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-8 6 8 6"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="M7 15l4-5 3 3 5-7"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h14"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z" fill="currentColor"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M4 18l-1-10 5 4 4-7 4 7 5-4-1 10z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="13" height="10" rx="2"/><path d="M16 11l5-3v8l-5-3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M4 12h14M14 7l5 5-5 5"/><path d="M4 7v10"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></symbol>
+  <symbol id="i-binder" viewBox="0 0 24 24"><rect x="4" y="3.5" width="7" height="8" rx="1.5"/><rect x="13" y="3.5" width="7" height="8" rx="1.5"/><rect x="4" y="13.5" width="7" height="7" rx="1.5"/><rect x="13" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M7 12h10"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 24 24"><rect x="7" y="4" width="11" height="15" rx="2"/><path d="M4.5 7.5v11a2 2 0 0 0 2 2h8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" fill="currentColor"/></symbol>
+  <!-- símbolos del texto de reglas (:rb_might:, :rb_exhaust:, runas…), dibujados para este proyecto -->
+  <symbol id="s-might" viewBox="0 0 24 24"><path d="M20 4l-1 4-9 9-3-3 9-9z"/><path d="M5 12l7 7M7.5 16.5L4 20"/></symbol>
+  <symbol id="s-exhaust" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></symbol>
+  <symbol id="s-power" viewBox="0 0 24 24"><path d="M12 3l7 9-7 9-7-9z"/></symbol>
+  <symbol id="s-energy" viewBox="0 0 24 24"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></symbol>
+  <symbol id="s-rune" viewBox="0 0 24 24"><path d="M12 2.5l8 4.6v9.8l-8 4.6-8-4.6V7.1z"/><path d="M12 12v9.5M4 7.1l8 4.9 8-4.9" stroke-width="1.3"/></symbol>
+</defs></svg>
+<div id="app">
+  <header id="topbar">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <button class="btn ico" id="bPanel" title="Mostrar u ocultar el panel lateral (P)"><svg class="i"><use href="#i-panel"/></svg></button>
+    <div id="docname"></div>
+    <div class="tgroup">
+      <button class="btn" id="bSettings" title="Estilo, cámara, sonido, tu marca y más"><svg class="i"><use href="#i-sliders"/></svg> Ajustes</button>
+      <button class="btn ico" id="bRec" title="Modo grabación: oculta los menús (H)"><svg class="i"><use href="#i-rec"/></svg></button>
+      <button class="btn primary recb" id="bExport" title="Exportar video"><svg class="i"><use href="#i-export"/></svg> Exportar</button>
+    </div>
+    <button class="btn ico" id="bHelp" title="Ayuda y atajos (?)"><svg class="i"><use href="#i-help"/></svg></button>
+    <button class="btn acct" id="bAccount" hidden><svg class="i"><use href="#i-user"/></svg> Entrar</button>
+  </header>
+  <div id="work">
+  <aside id="editor">
+    <div id="pinfo"></div>
+    <div class="tabs"><button data-t="jug" class="on"><span class="ronly">Jugadas</span><span class="sonly">Guion</span></button><button data-t="clips"><svg class="i"><use href="#i-star"/></svg> Clips</button><button data-t="notas"><svg class="i"><use href="#i-note"/></svg> Notas</button></div>
+    <div id="frames" class="tab on" data-t="jug"></div>
+    <div id="tscript" class="tab on" data-t="jug">
+      <div class="sbar">
+        <button class="btn primary" id="bLoad" title="Ctrl+Enter"><svg class="i"><use href="#i-play"/></svg> Aplicar cambios</button>
+        <button class="btn" id="bSave"><svg class="i"><use href="#i-save"/></svg> Guardar .txt</button>
+        <button class="btn" id="bCmds"><svg class="i"><use href="#i-book"/></svg> Comandos</button>
+      </div>
+      <div class="row"><div id="search"><input type="text" id="q" placeholder="Buscar carta para insertar su nombre…"><div id="results"></div></div></div>
+      <textarea id="script" spellcheck="false" placeholder="Escribe aquí tu guion. Pulsa Comandos para ver qué puedes escribir."></textarea>
+      <div id="errors"></div>
+    </div>
+    <div id="tclips" class="tab" data-t="clips"></div>
+    <div id="tnotas" class="tab" data-t="notas"></div>
+    <footer id="pfoot"><div id="status">Cargando cartas…</div><div id="progress"></div>
+      <div class="credit">Datos de cartas: riftcodex · <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>. Imágenes y textos © Riot Games. Marcos y efectos: <a href="https://kenney.nl" target="_blank" rel="noopener">Kenney</a> (CC0).</div></footer>
+    <template id="cmdHelp"><pre class="cmdpre">
+CONFIGURACIÓN (antes del primer "turno")
+  jugador j1 "Nombre"        jugador j2 "Nombre"
+  leyenda j1 "Carta"         campeon j1 "Carta"
+  campo A "Battlefield"      (A, B o C)
+  mano j1 4                  (cartas boca abajo)
+  meta 8                     (puntos para ganar)
+
+JUGADAS
+  turno j1                   fase "Texto"
+  roba j1 [n]                roba j1 "Carta" (visible)
+  runas j1 3  /  +2  / -1
+  juega j1 "Carta"           (hechizo → descarte)
+  juega j1 "Carta" a base    juega j1 "Carta" a A
+  mueve j1 "Carta" a B       mueve j1 "Carta" a base
+  agota "Carta"              prepara "Carta"
+  prepara j1 todo
+  daño "Carta" 3             cura "Carta"
+  poder "Carta" +2           (marcador de bonus)
+  combate A                  conquista j1 A
+  controla j1 A              libera A
+  muere "Carta"              regresa "Carta"  (a la mano)
+  puntos j1 +1               foco "Carta"
+  texto "Comentario"         pausa 2
+  gana j1
+
+Copias: "Poro#2" se refiere a la 2ª copia.
+Comentarios: líneas que empiezan con #.
+Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
+</pre></template>
+  </aside>
+
+  <main id="viewport">
+    <div id="stage" class="h" data-skin="fan">
+      <div id="bg"></div>
+      <div id="inner">
+      <div id="amb"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <section class="player p2" id="P2">
+        <div class="hud"><div class="pname" id="n2">Jugador 2</div>
+          <div class="stats"><div class="stat pts"><b id="s2">0</b><span>Puntos</span></div><div class="stat"><b id="r2">0</b><span>Runas</span></div><div class="stat"><b id="h2">0</b><span>Mano</span></div></div>
+          <div class="turnmark">SU TURNO</div></div>
+        <div class="zone z-legend" data-z="legend"><label>Leyenda</label></div>
+        <div class="zone z-champ" data-z="champ"><label>Campeón</label></div>
+        <div class="zone z-base" data-z="base"><label>Base</label></div>
+        <div class="zone z-trash" data-z="trash"><label>Descarte</label><span class="count">0</span></div>
+        <div class="zone z-hand" data-z="hand"></div>
+      </section>
+      <section id="fields"></section>
+      <section class="player p1" id="P1">
+        <div class="hud"><div class="pname" id="n1">Jugador 1</div>
+          <div class="stats"><div class="stat pts"><b id="s1">0</b><span>Puntos</span></div><div class="stat"><b id="r1">0</b><span>Runas</span></div><div class="stat"><b id="h1">0</b><span>Mano</span></div></div>
+          <div class="turnmark">SU TURNO</div></div>
+        <div class="zone z-legend" data-z="legend"><label>Leyenda</label></div>
+        <div class="zone z-champ" data-z="champ"><label>Campeón</label></div>
+        <div class="zone z-base" data-z="base"><label>Base</label></div>
+        <div class="zone z-trash" data-z="trash"><label>Descarte</label><span class="count">0</span></div>
+        <div class="zone z-hand" data-z="hand"></div>
+      </section>
+      <svg id="tarrows"></svg><div id="mullov"></div>
+      <section id="rboard"><div id="rclip"><div id="rcam"><div id="rfields"></div></div></div><div id="rchain"></div><div id="minimap"></div></section>
+      <div id="turninfo"></div>
+      <div id="log"></div>
+      <div id="spot"><div class="who"></div><img alt=""><div class="txt"></div></div>
+      <div id="caption"></div>
+      <div id="banner"></div>
+      <div id="fx"></div>
+      <div id="victory"><h2>VICTORIA</h2><p></p></div>
+      </div>
+      <div id="brand"></div>
+      <div id="wm">Hecho con <b>Riftviewer</b></div>
+      <div id="thumb" class="thumb"></div>
+      <div id="chartov" class="ov"><h3>EVOLUCIÓN DE PUNTOS</h3><div class="chartbox"></div></div>
+      <div id="sumov" class="ov"></div>
+      <div id="quiz" class="ov"><h3>¿QUÉ HARÍAS TÚ?</h3><p class="q"></p><div class="count"></div></div>
+    </div>
+    <!-- barra de anotación: clips y notas para la jugada actual -->
+    <div id="annot">
+      <button class="btn" data-an="clip"><svg class="i"><use href="#i-star"/></svg> Clip</button>
+      <span class="asep"></span>
+      <button class="btn" data-an="texto" title="Texto en pantalla"><svg class="i"><use href="#i-note"/></svg> Texto</button>
+      <button class="btn" data-an="flecha" title="Flecha entre dos cartas o campos"><svg class="i"><use href="#i-arrow"/></svg> Flecha</button>
+      <button class="btn" data-an="circulo" title="Resaltar cartas"><svg class="i"><use href="#i-target"/></svg> Resaltar</button>
+      <button class="btn" data-an="pausa" title="Pausa para explicar"><svg class="i"><use href="#i-pause"/></svg> Pausa</button>
+      <button class="btn ico" data-an="more" title="Más: gráfica de puntos y adivina la jugada"><svg class="i"><use href="#i-more"/></svg></button>
+      <div id="anmore" hidden><button class="btn ronly" data-an="grafica"><svg class="i"><use href="#i-chart"/></svg> Gráfica de puntos</button><button class="btn" data-an="adivina"><svg class="i"><use href="#i-help"/></svg> Adivina la jugada</button></div>
+      <div id="anpop" hidden></div>
+    </div>
+    <div id="ctrl">
+      <button class="btn ico" id="bStart" title="Al inicio (Inicio)"><svg class="i"><use href="#i-first"/></svg></button>
+      <button class="btn ico" id="bPrev" title="Paso anterior (←)"><svg class="i"><use href="#i-prev"/></svg></button>
+      <button class="btn primary" id="bPlay" title="Reproducir o pausar (Espacio)"><svg class="i"><use href="#i-play"/></svg> Reproducir</button>
+      <button class="btn ico" id="bNext" title="Paso siguiente (→)"><svg class="i"><use href="#i-next"/></svg></button>
+      <div class="scrubw"><div id="smarks"></div><input type="range" id="scrub" min="0" max="0" value="0"></div>
+      <span class="pos" id="pos">0 / 0</span>
+      <button class="btn ico ronly" id="bChart" title="Gráfica de puntos"><svg class="i"><use href="#i-chart"/></svg></button>
+      <button class="btn ico ronly" id="bSum" title="Resumen de la partida"><svg class="i"><use href="#i-list"/></svg></button>
+    </div>
+  </main>
+  <!-- Inspector de ajustes: todo lo que cambia cómo se ve y suena la mesa, en un solo lugar -->
+  <aside id="inspector">
+    <div class="ihead"><b>Ajustes</b><button class="btn ico" id="bInspX" title="Cerrar ajustes"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="ibody">
+      <details class="isec" data-s="look" open><summary><svg class="i"><use href="#i-sparkle"/></svg>Apariencia<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Estilo</span><div class="seg" id="skinseg"><button data-s="fan" class="on"><svg class="i"><use href="#i-sparkle"/></svg> Fantasía</button><button data-s="pro"><svg class="i"><use href="#i-trophy"/></svg> Torneo</button></div>
+          <span>Formato</span><div class="seg" id="fmtseg"><button data-f="h" class="on">16:9</button><button data-f="v">9:16</button></div>
+          <div class="full igrid" id="insLook"></div>
+        </div>
+      </details>
+      <details class="isec" data-s="cam"><summary><svg class="i"><use href="#i-camera"/></svg>Cámara y mesa<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <div class="irow ronly"><span>Distribución</span><select id="rlay"><option value="lanes">Carriles (todos iguales)</option><option value="lat">Amplia (rivales a los lados)</option><option value="classic">Clásica (arriba y abajo)</option></select></div>
+          <div class="irow ronly"><span>Cámara</span><select id="rcamsel"><option value="suave">Sigue la acción (suave)</option><option value="intensa">Sigue la acción (intensa)</option><option value="off">Fija, sin zoom</option></select></div>
+          <div class="full igrid" id="insBoard"></div>
+        </div>
+      </details>
+      <details class="isec ronly" data-s="see"><summary><svg class="i"><use href="#i-eye"/></svg>Qué se ve<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Perspectiva</span><select id="rview"></select>
+          <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
+          <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
+          <span>Idioma del registro</span><select id="rlang"><option value="es">Español</option><option value="en">Original (inglés)</option></select>
+          <div class="full hint">La perspectiva es el jugador cuya mano va abajo. Con "Solo la perspectiva", las cartas del rival se ven boca abajo.</div>
+        </div>
+      </details>
+      <details class="isec" data-s="play"><summary><svg class="i"><use href="#i-play"/></svg>Reproducción<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid">
+          <span>Velocidad</span><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select>
+          <div class="irow ronly"><span>Empezar en</span><select id="rskip"><option value="mull">El mulligan</option><option value="1">La primera jugada</option><option value="0">El principio (iniciativa y campos)</option></select></div>
+          <div class="irow ronly"><span>Flechas</span><select id="rarrow"><option value="0">Sin pausa</option><option value="800">Pausa corta</option><option value="1200" selected>Pausa normal</option><option value="2200">Pausa larga</option></select></div>
+          <div class="irow ronly"><span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select></div>
+        </div>
+      </details>
+      <details class="isec" data-s="snd"><summary><svg class="i"><use href="#i-sound"/></svg>Sonido<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid" id="insSnd"></div>
+      </details>
+      <details class="isec" data-s="brand"><summary><svg class="i"><use href="#i-brand"/></svg>Mi marca<svg class="i chev"><use href="#i-chevron"/></svg></summary>
+        <div class="igrid" id="insBrand"></div>
+      </details>
+    </div>
+  </aside>
+  </div>
+</div>
+
+<!-- Pantalla de inicio -->
+<div id="home" class="show">
+  <div class="hbg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="hwrap">
+    <div class="htop">
+      <button class="btn acct" id="hAccount" hidden><svg class="i"><use href="#i-user"/></svg> Entrar</button>
+      <button class="btn" id="hClose" hidden>Volver a la partida <svg class="i"><use href="#i-arrow"/></svg></button>
+    </div>
+    <header class="hhero">
+      <div class="hemblem"></div>
+      <h1>Riftviewer</h1>
+      <div class="hdiv"></div>
+      <p class="sub">Convierte tus partidas de Riftbound en videos listos para publicar</p>
+    </header>
+    <div id="hcont" hidden></div>
+    <div class="hcards">
+      <div class="hcard">
+        <div class="hic"><svg class="i"><use href="#i-replay"/></svg></div>
+        <h2>Ver un replay</h2>
+        <p>Abre el archivo <b>.json</b> que descargas de <b>RiftAtlas</b>. La partida se reproduce sola, con todas las cartas y jugadas.</p>
+        <label class="drop-hint"><svg class="i"><use href="#i-upload"/></svg><b>Arrastra tu replay aquí</b><small>o haz clic para elegir el archivo</small><input type="file" id="replayIn" accept=".json" hidden></label>
+      </div>
+      <div class="hcard scr">
+        <div class="hic"><svg class="i"><use href="#i-pen"/></svg></div>
+        <h2>Crear con guion</h2>
+        <p>Escribe la partida jugada a jugada (jugar cartas, mover, combatir, conquistar…) y la mesa se anima sola. Ideal para partidas en físico.</p>
+        <div class="acts"><button class="btn primary" id="hNew"><svg class="i"><use href="#i-pen"/></svg> Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
+      </div>
+    </div>
+    <button class="hdeck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span><b>Construir un mazo</b><small>Busca cartas, valida las reglas, revisa la curva y comparte tu lista.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
+    <button class="hdeck hcoll" id="hColl"><span class="hic"><svg class="i"><use href="#i-binder"/></svg></span><span><b>Mi colección</b><small>Escanea tus cartas con la cámara y mira cuánto te falta de cada set.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
+    <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
+    <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
+  </div>
+</div>
+<!-- Constructor de mazos -->
+<div id="deckb" hidden>
+  <header class="dbtop">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <span class="navsec">Mazos</span>
+    <select id="dbList" title="Tus mazos"></select>
+    <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
+    <span class="dbflex"></span>
+    <button class="btn primary" id="dbSaveShared" hidden><svg class="i"><use href="#i-save"/></svg> Guardar en mis mazos</button>
+    <button class="btn" id="dbNew"><svg class="i"><use href="#i-plus"/></svg> Nuevo</button>
+    <button class="btn" id="dbImport"><svg class="i"><use href="#i-upload"/></svg> Importar</button>
+    <button class="btn" id="dbExport"><svg class="i"><use href="#i-save"/></svg> Exportar</button>
+    <button class="btn" id="dbImage" title="Imagen del mazo para redes (1920×1080)"><svg class="i"><use href="#i-brand"/></svg> Imagen</button>
+    <button class="btn" id="dbShare"><svg class="i"><use href="#i-arrow"/></svg> Compartir</button>
+    <button class="btn ico" id="dbDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="dbwork">
+    <section class="dbcat">
+      <div class="dbfilters">
+        <input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…">
+        <div class="dbchips" id="dbDom"></div>
+        <div class="dbrow">
+          <select id="dbType"><option value="">Todos los tipos</option><option value="champ">Campeones de mi leyenda</option><option value="Unit">Unidades</option><option value="Spell">Hechizos</option><option value="Gear">Equipo</option><option value="Legend">Leyendas</option><option value="Battlefield">Campos de batalla</option><option value="Rune">Runas</option></select>
+          <select id="dbCost"><option value="">Cualquier costo</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option value="7">7+</option></select>
+          <select id="dbSet"></select>
+          <select id="dbRar"></select>
+          <select id="dbSort"><option value="cost">Ordenar por costo</option><option value="name">Ordenar por nombre</option><option value="might">Ordenar por poder</option></select>
+        </div>
+        <div class="dbrow">
+          <label title="Oculta las cartas fuera de los dominios de tu leyenda"><input type="checkbox" id="dbFit" checked> Solo de mis dominios</label>
+          <label id="dbOwnW" title="Solo las cartas que tienes en tu colección (cualquier versión)" hidden><input type="checkbox" id="dbOwn"> Solo las que tengo</label>
+          <span class="dbto">Agregar al: <span class="seg"><button data-to="main" class="on">Mazo</button><button data-to="side">Banquillo</button></span></span>
+          <small id="dbCount"></small>
+        </div>
+      </div>
+      <div class="dbgrid" id="dbGrid"></div>
+      <div class="dbtip">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</div>
+    </section>
+    <aside class="dbdeck">
+      <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="test">Mano de prueba</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
+      <div id="dbPanel"></div>
+    </aside>
+  </div>
+</div>
+<!-- Colección -->
+<div id="collb" hidden>
+  <header class="dbtop">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <span class="navsec">Colección</span>
+    <span class="cotot" id="coTot"></span>
+    <span class="dbflex"></span>
+    <button class="btn" id="coExport" title="Copiar o descargar tu colección como lista"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>
+    <button class="btn primary" id="coScan"><svg class="i"><use href="#i-scan"/></svg> <span>Escanear cartas</span></button>
+  </header>
+  <div class="cowork">
+    <aside class="cosets" id="coSets"></aside>
+    <section class="cocat">
+      <div class="cohead" id="coHead"></div>
+      <div class="dbfilters">
+        <div class="dbrow">
+          <input type="search" id="coQ" placeholder="Buscar por nombre o número…">
+          <span class="seg" id="coOwn"><button data-own="" class="on">Todas</button><button data-own="have">Tengo</button><button data-own="miss">Me faltan</button></span>
+          <select id="coVar"><option value="all">Todas las versiones</option><option value="base">Solo set base</option><option value="alt">Solo versiones especiales</option></select>
+          <select id="coRar"><option value="">Todas las rarezas</option><option>Common</option><option>Uncommon</option><option>Rare</option><option>Epic</option><option>Showcase</option></select>
+          <select id="coSort"><option value="num">Por número</option><option value="price">Más valiosas</option></select>
+          <small id="coCount"></small>
+        </div>
+      </div>
+      <div class="dbgrid cogrid" id="coGrid"></div>
+      <div class="dbtip">Clic: abrir la carta · <b>+</b> / <b>−</b>: sumar o quitar una copia normal · Clic derecho: quitar una</div>
+    </section>
+  </div>
+</div>
+<div id="coscan" hidden>
+  <video id="csVideo" playsinline muted autoplay></video>
+  <div class="csguide" id="csGuide"><i></i><i></i><i></i><i></i><span class="csline"></span><span class="csstrip"></span></div>
+  <header class="cstop">
+    <button class="btn ico" id="csClose" title="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    <div class="csmsg" id="csMsg">Abriendo la cámara…</div>
+    <button class="btn ico" id="csTorch" title="Linterna" hidden><svg class="i"><use href="#i-bulb"/></svg></button>
+    <button class="btn ico" id="csFlip" title="Cambiar de cámara" hidden><svg class="i"><use href="#i-flip"/></svg></button>
+  </header>
+  <div class="csbottom">
+    <div class="csres" id="csRes"></div>
+    <div class="csopts">
+      <span class="seg" id="csFin"><button data-fin="normal" class="on">Normal</button><button data-fin="foil">Foil</button></span>
+      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto"> Agregar al instante</label>
+      <span class="csfocus" id="csFocusW" hidden title="Si la cámara enfoca otra cosa, mueve el enfoque a mano">Enfoque <input type="range" id="csFocus"> <button class="btn mini" id="csFocusAuto">Auto</button></span>
+      <span class="cssess" id="csSess"></span>
+    </div>
+    <div class="cscam"><span>Toca la imagen para enfocar ahí.</span> <span id="csCam"></span></div>
+    <div class="csman"><input type="search" id="csQ" placeholder="¿No la lee? Escribe el número (RAD 001) o el nombre"><div id="csHits"></div></div>
+  </div>
+</div>
+<div id="dropov"><div>Suelta el archivo para abrirlo</div></div>
+<!-- beta cerrada: tapa la app hasta entrar con una cuenta invitada (src/app/gate.js) -->
+<div id="gate" hidden><div class="gbox"></div></div>
+<div id="toasts"></div>
+<div id="cardmenu" hidden></div>
+<div id="dsheetw" hidden><div id="dsheet"></div></div>
+<div id="tour"><div class="tbox"></div><div class="tbub"><small class="tstep"></small><h3></h3><p></p><div class="tacts"><button class="btn" id="tSkip">Saltar</button><button class="btn primary" id="tNext">Siguiente</button></div></div></div>
+
+<div id="modal"><div class="mbox"><h2></h2><div class="mbody"></div><div class="mfoot"></div></div></div>
+<div id="startrec"><div><h2>Todo listo para grabar</h2><p>Al pulsar el botón, la pantalla se pondrá completa y empezará la reproducción.<br>Pulsa <b>Esc</b> para detener la grabación antes de tiempo.</p><button class="btn primary" id="bGo">⏺ Comenzar grabación</button></div></div>
+<input type="file" id="imgIn" accept="image/*" hidden>
+<input type="file" id="projIn" accept=".json" hidden>
+<input type="file" id="brandImgIn" accept="image/*" hidden>
+<input type="file" id="sndIn" accept="audio/*" hidden>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

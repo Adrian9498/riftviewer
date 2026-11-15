@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 // el OCR real no corre en jsdom: se prueba el escáner con la búsqueda manual
 vi.mock('tesseract.js', () => ({ createWorker: async () => { throw new Error('sin OCR en pruebas'); } }));
 
-const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+const html = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
 const pr = (code: string, cardId: string, finish = 'normal', artVariant = 'normal') =>
   ({ shortCode: code, setId: 's-rad', rarity: 'common', artVariant, finish, images: [{ imageId: 'img-' + code }], publicCode: `${code}/167-EN`, language: 'EN', cardId });
 const catalog = {
