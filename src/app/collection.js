@@ -3,6 +3,7 @@
 // Las impresiones salen del catálogo de OpenRift (public/openrift-catalog.json).
 import { noteLocalChange } from '../cloud/sync';
 import { FINISH_ES, buildPrintings, bump, collectionText, countOf, emptyCollection, pct, setProgress, variantsOf } from '../collection/model';
+import { deckNeeds, needsSummary } from '../collection/needs';
 import { norm } from '../data/text';
 import { collectionValue, historyPoints, latestPrices, money, priceHistory, priceOf, pricesNow, tcgplayerUrl } from '../cloud/prices';
 import { $, ic } from './base';
@@ -25,6 +26,7 @@ export function catalog() {
   return CAT;
 }
 function load() {
+  bumpRev();
   try {
     const d = JSON.parse(ls(KEY) || 'null');
     COL = d && !d.deleted && d.items ? { id: 'mine', items: d.items, updatedAt: d.updatedAt || d.ts || 0 } : emptyCollection();
@@ -38,7 +40,8 @@ function save() {
 }
 /** suma (o quita) copias de un acabado y refresca la pantalla; también lo usa el escáner */
 export function addCopies(code, finish, d) {
-  const n = bump(collection(), code, finish, d); save();
+  const n = bump(collection(), code, finish, d); save(); bumpRev();
+  document.dispatchEvent(new Event('rb:collection'));
   if (!$('#collb').hidden) { refreshTile(code); renderSets(); renderHead(); renderTotal(); }
   return n;
 }
@@ -49,35 +52,45 @@ function quickRemove(p) {
   addCopies(p.code, f, -1);
 }
 
-/* ---------- costo de un mazo ---------- */
-// por nombre: riftcodex escribe las leyendas "Ekko - Boy Who Shattered Time" y OpenRift solo "Boy Who Shattered Time"
+/* ---------- tu colección en los mazos ----------
+   Para jugar sirve cualquier versión, así que se cuenta por nombre de carta.
+   riftcodex escribe las leyendas "Ekko - Boy Who Shattered Time" y el constructor "Ekko, Boy…" para las de OpenRift;
+   en OpenRift la carta se llama solo "Boy Who Shattered Time". Por eso primero se busca el código en el catálogo. */
 const nameKey = n => norm(String(n || '').split(' - ').pop());
-let NAMES = null;
+const keyOf = c => nameKey(catalog()?.byCode.get(String(c.code || '').toUpperCase())?.name || c.name);
+let NAMES = null, OWNED = null, REV = 0;
+const bumpRev = () => { REV++; OWNED = null; };
+/** Copias tuyas por nombre de carta (todas las versiones y acabados juntos). */
+function ownedMap() {
+  const cat = catalog(); if (!cat) return new Map();
+  if (OWNED && OWNED.cat === cat && OWNED.rev === REV) return OWNED.map;
+  const map = new Map();
+  for (const [code, row] of Object.entries(collection().items)) {
+    const p = cat.byCode.get(code); if (!p) continue;
+    const k = nameKey(p.name); map.set(k, (map.get(k) || 0) + Object.values(row).reduce((a, b) => a + b, 0));
+  }
+  OWNED = { cat, rev: REV, map };
+  return map;
+}
+export const hasCollection = () => Object.keys(collection().items).length > 0;
+/** Cuántas copias tienes de una carta del constructor (cualquier versión). */
+export const ownedOf = card => card ? ownedMap().get(keyOf(card)) || 0 : 0;
+/** Precio de la versión más barata con ese nombre (normal o foil). */
+function cheapest(c, k) {
+  const prices = pricesNow(), cat = catalog(); if (!prices || !cat) return null;
+  if (!NAMES || NAMES.cat !== cat) { NAMES = { cat, by: new Map() }; for (const p of cat.prints) { const nk = nameKey(p.name); if (!NAMES.by.has(nk)) NAMES.by.set(nk, []); NAMES.by.get(nk).push(p.code); } }
+  const ps = [c.code, ...(NAMES.by.get(k) || [])].flatMap(code => [priceOf(prices, code, 'normal'), priceOf(prices, code, 'foil')]).filter(x => x != null);
+  return ps.length ? Math.min(...ps) : null;
+}
+/** Cada carta del mazo con las que tienes, las que faltan y su precio. cards: [{ code, name, n }] */
+export const deckNeedsFor = cards => deckNeeds(cards, ownedMap(), keyOf, cheapest);
 /**
  * Costo aproximado de un mazo en TCGplayer: cada carta a la impresión más barata con su nombre.
  * Con tu colección, también cuántas te faltan y cuánto cuestan. null si aún no hay precios o catálogo.
- * cards: [{ code, name, n }]
  */
 export function deckCost(cards) {
-  const prices = pricesNow(), cat = catalog(); if (!prices || !cat) return null;
-  if (!NAMES || NAMES.cat !== cat) { NAMES = { cat, by: new Map() }; for (const p of cat.prints) { const k = nameKey(p.name); if (!NAMES.by.has(k)) NAMES.by.set(k, []); NAMES.by.get(k).push(p.code); } }
-  const owned = new Map();
-  for (const [code, row] of Object.entries(collection().items)) {
-    const p = cat.byCode.get(code); if (!p) continue;
-    const k = nameKey(p.name); owned.set(k, (owned.get(k) || 0) + Object.values(row).reduce((a, b) => a + b, 0));
-  }
-  let cost = 0, missCost = 0, missN = 0, unpriced = 0;
-  for (const { code, name, n } of cards) {
-    const k = nameKey(name), codes = [code, ...(NAMES.by.get(k) || [])];
-    const ps = codes.flatMap(c => [priceOf(prices, c, 'normal'), priceOf(prices, c, 'foil')]).filter(x => x != null);
-    const cheap = ps.length ? Math.min(...ps) : null;
-    const have = Math.min(n, owned.get(k) || 0); owned.set(k, (owned.get(k) || 0) - have);
-    missN += n - have;
-    if (cheap == null) { unpriced += n; continue; }
-    cost += cheap * n; missCost += cheap * (n - have);
-  }
-  const r2 = x => Math.round(x * 100) / 100;
-  return { cost: r2(cost), missCost: r2(missCost), missN, unpriced, hasCollection: Object.keys(collection().items).length > 0 };
+  if (!pricesNow() || !catalog()) return null;
+  return { ...needsSummary(deckNeedsFor(cards)), hasCollection: hasCollection() };
 }
 
 /* ---------- pantalla ---------- */
@@ -297,5 +310,5 @@ export function init() {
   });
   // el catálogo de OpenRift llega después de arrancar; y la colección puede cambiar desde otra PC
   document.addEventListener('rb:cards', () => { CAT = null; if (!$('#collb').hidden) renderAll(); });
-  document.addEventListener('rb:projects', () => { if (dirty) return; load(); if (!$('#collb').hidden) renderAll(); });
+  document.addEventListener('rb:projects', () => { if (dirty) return; load(); document.dispatchEvent(new Event('rb:collection')); if (!$('#collb').hidden) renderAll(); });
 }
