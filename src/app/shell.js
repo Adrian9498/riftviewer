@@ -158,6 +158,7 @@ export function openHelp(){
 
 /* recorrido de bienvenida: 3 pasos, solo la primera vez que se abre una partida */
 export const TOUR=[
+  {sel:'#topbar [data-nav]',t:'Navegación',d:'Desde aquí vas a cualquier sección: <b>Inicio</b>, esta <b>Partida</b>, tus <b>Mazos</b> y tu <b>Colección</b>. El botón <b>atrás</b> del navegador también funciona.'},
   {sel:'#bSettings',t:'Ajustes',d:'Aquí está todo lo que cambia cómo se ve y suena la mesa: <b>estilo</b> (Fantasía o Torneo), <b>formato</b> 16:9 o 9:16, cámara, qué se ve, velocidad, sonidos y <b>tu marca</b>.'},
   {sel:'#bExport',t:'Exportar',d:'Saca el video con plantillas para YouTube, Shorts o clips.'},
   {sel:'#editor .tabs',t:'Panel lateral',d:'<b>Jugadas</b> o <b>Guion</b> para moverte por la partida, <b>Clips</b> para marcar momentos y <b>Notas</b> para flechas, textos y "adivina la jugada".'},
@@ -187,7 +188,6 @@ export function init() {
   $('#hNew').onclick=()=>{ const d=new Date(); openScript(NEW_SCRIPT,`Guion ${d.toLocaleDateString('es',{day:'numeric',month:'short'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`); };
   $('#hDemo').onclick=()=>openScript(DEMO,'Ejemplo');
   $('#hClose').onclick=hideHome;
-  $('#bHome').onclick=showHome;
   // las imágenes de las leyendas llegan cuando terminan de cargar las cartas
   document.addEventListener('rb:cards',()=>{ if($('#home').classList.contains('show')) renderRecents(); });
   addEventListener('dragenter',e=>{ if(e.dataTransfer?.types?.includes('Files')){ dragN++; $('#dropov').classList.add('show'); } });

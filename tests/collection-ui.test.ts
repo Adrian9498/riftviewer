@@ -115,7 +115,8 @@ describe('mi colección', () => {
     await new Promise(r => setTimeout(r, 450));
     const saved = JSON.parse(localStorage.getItem('rb_proj_coll:mine')!);
     expect(saved.items).toEqual({ 'RAD-001': { normal: 1 }, 'RAD-004A': { foil: 1 } });
-    ($('#coBack') as HTMLButtonElement).click();
+    ($('#collb [data-nav]') as HTMLButtonElement).click();
+    ($('#navmenu [data-go="inicio"]') as HTMLButtonElement).click();
     expect($('#collb').hidden).toBe(true);
     expect(errors).toEqual([]);
   });

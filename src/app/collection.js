@@ -313,9 +313,7 @@ function scan() {
 
 export function init() {
   SET = ls('rb_coll_set') || '';
-  $('#bColl').onclick = showCollection;
   $('#hColl').onclick = showCollection;
-  $('#coBack').onclick = () => { hideCollection(); if (!DOC.kind) $('#home').classList.add('show'); };
   $('#coScan').onclick = scan;
   $('#coTot').onclick = e => { if (e.target.closest('[data-value]')) openValue(); };
   $('#coExport').onclick = openExport;

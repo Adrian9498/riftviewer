@@ -377,10 +377,7 @@ export function init() {
   // tu colección cambió (escáner, otra PC): se actualizan las marcas de lo que tienes
   document.addEventListener('rb:collection', () => { $('#dbOwnW').hidden = !hasCollection(); if (!$('#deckb').hidden && D) renderAll(); });
 
-  $('#bDecks').onclick = () => showDecks();
   $('#hDecks').onclick = () => showDecks();
-  // volver: a la partida abierta si hay una; si no, al inicio
-  $('#dbBack').onclick = () => { hideDecks(); if (!DOC.kind) $('#home').classList.add('show'); };
   $('#pinfo').addEventListener('click', e => { const b = e.target.closest('[data-deckof]'); if (b) openReplayDeck(b.dataset.deckof); });
   $('#dbNew').onclick = newDeck;
   $('#dbImport').onclick = openImport;
