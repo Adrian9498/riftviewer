@@ -1,0 +1,6 @@
+# Riftviewer: la página informativa se indexa; la app (beta cerrada) no.
+User-agent: *
+Allow: /
+Disallow: /app/
+
+Sitemap: https://riftviewer.com/sitemap.xml
