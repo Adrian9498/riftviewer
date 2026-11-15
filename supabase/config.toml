@@ -426,3 +426,6 @@ verify_jwt = false
 
 [functions.patreon-webhook]
 verify_jwt = false
+
+[functions.prices-sync]
+verify_jwt = false
