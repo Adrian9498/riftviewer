@@ -18,7 +18,8 @@ import { isPremium } from '../cloud/plan';
 import { DOC, toast } from './shell';
 import { app } from './state';
 import { closeModal, esc, openModal } from './utils';
-import { deckCost } from './collection';
+import { deckCost, deckNeedsFor, hasCollection, ownedOf } from './collection';
+import { missingList, tcgplayerList } from '../collection/needs';
 import { latestPrices, money } from '../cloud/prices';
 
 const KEY = id => 'rb_proj_deck:' + id;
@@ -31,7 +32,7 @@ const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2
 let D = null;                 // mazo abierto
 let SHARED = false;           // abierto desde un enlace: no se guarda hasta pulsar "Guardar en mis mazos"
 let TAB = 'list', TO = 'main', LIMIT = 120;
-const F = { q: '', dom: new Set(), type: '', cost: '', set: '', rar: '', fit: true, sort: 'cost' };
+const F = { q: '', dom: new Set(), type: '', cost: '', set: '', rar: '', fit: true, own: false, sort: 'cost' };
 
 /* ---------- guardado ---------- */
 function allDecks() {
@@ -99,6 +100,7 @@ function filtered() {
     if (F.set && c.set !== F.set) return false;
     if (F.rar && c.rar !== F.rar) return false;
     if (F.fit && legend && c.type !== 'Legend' && !inIdentity({ dom: c.dom }, legend.dom)) return false;
+    if (F.own && !ownedOf(c)) return false;
     return true;
   });
   const by = { cost: (a, b) => (a.e ?? 99) - (b.e ?? 99) || a.name.localeCompare(b.name), name: (a, b) => a.name.localeCompare(b.name), might: (a, b) => (b.m ?? -1) - (a.m ?? -1) || a.name.localeCompare(b.name) };
@@ -108,10 +110,11 @@ function renderCatalog() {
   const list = filtered(), legend = D.legend && get(D.legend);
   $('#dbCount').textContent = `${list.length} carta${list.length === 1 ? '' : 's'}`;
   if (!CARDS.length) { $('#dbGrid').innerHTML = '<div class="dbempty">Cargando cartas…</div>'; return; }
+  const coll = hasCollection();
   $('#dbGrid').innerHTML = list.slice(0, LIMIT).map(c => {
-    const n = inDeck(c.code), off = legend && c.type !== 'Legend' && !inIdentity({ dom: c.dom }, legend.dom);
+    const n = inDeck(c.code), off = legend && c.type !== 'Legend' && !inIdentity({ dom: c.dom }, legend.dom), own = coll ? ownedOf(c) : 0;
     return `<div class="dbc${n ? ' in' : ''}${off ? ' off' : ''}" data-code="${esc(c.code)}" title="${esc(c.name)}">
-      <img src="${esc(c.img)}" loading="lazy" alt="">${n ? `<span class="dbn">${n}</span>` : ''}
+      <img src="${esc(c.img)}" loading="lazy" alt="">${n ? `<span class="dbn">${n}</span>` : ''}${own ? `<span class="dbown" title="Tienes ${own} en tu colección">${ic('binder')}${own}</span>` : ''}
       <div class="dbcb"><button class="btn mini ico" data-rm="${esc(c.code)}" title="Quitar una">−</button><button class="btn mini ico" data-add="${esc(c.code)}" title="Agregar una">+</button></div></div>`;
   }).join('') + (list.length > LIMIT ? `<div class="dbmore"><button class="btn" data-more>Mostrar más (${list.length - LIMIT})</button></div>` : '')
     + (!list.length ? '<div class="dbempty">Ninguna carta coincide con los filtros.</div>' : '');
@@ -119,26 +122,36 @@ function renderCatalog() {
 
 /* ---------- panel del mazo ---------- */
 const domIcons = doms => doms.map(d => symbolHTML('rb_rune_' + d.toLowerCase()) || '').join('');
+let NEEDS = null;   // por código: lo que tienes de cada carta del mazo (se arma en renderList)
+function ownTag(code) {
+  const x = NEEDS?.get(code); if (!x) return '';
+  return x.miss ? `<span class="dbhave no" title="Tienes ${x.have} de ${x.n}">te faltan ${x.miss}</span>` : `<span class="dbhave ok" title="La tienes en tu colección">${ic('check')}</span>`;
+}
 function row(code, n, sec, bad) {
   const c = get(code), full = cardByCode(code);
   return `<div class="dbr${bad.has(code) ? ' bad' : ''}" data-code="${esc(code)}" style="--img:url('${esc(full?.img || '')}')">
     <span class="cost">${c?.e ?? (c?.type === 'Rune' ? '' : '–')}</span><span class="nm">${esc(c?.name || code)}</span>${domIcons(c?.dom || [])}
-    ${n != null ? `<span class="q">×${n}</span>` : ''}
+    ${n != null ? `<span class="q">×${n}</span>` : ''}${ownTag(code)}
     <button class="btn mini ico" data-rm="${esc(code)}" data-sec="${sec}" title="Quitar">−</button>${n != null ? `<button class="btn mini ico" data-add="${esc(code)}" data-sec="${sec}" title="Agregar">+</button>` : ''}</div>`;
 }
 const countTag = (n, goal, exact) => `<span class="dbcnt ${exact ? (n === goal ? 'ok' : 'no') : (n >= goal ? 'ok' : 'no')}">${n}/${goal}</span>`;
 /** "Cuesta ~$X · te faltan N ($Y)" con precios de TCGplayer y tu colección. */
-function costLine() {
-  const cards = [[D.legend, 1], [D.champion, 1], ...Object.entries(mainWithChampion(D)).filter(([c]) => c !== D.champion), ...Object.entries(D.runes), ...D.battlefields.map(b => [b, 1])]
+/** Las cartas del mazo (sin el banquillo), una entrada por código: { code, name, n }. */
+function deckCards() {
+  // el campeón elegido ya va dentro de mainWithChampion
+  return [[D.legend, 1], ...Object.entries(mainWithChampion(D)), ...Object.entries(D.runes), ...D.battlefields.map(b => [b, 1])]
     .filter(([c, n]) => c && n).map(([code, n]) => ({ code, name: get(code)?.name || code, n }));
+}
+function costLine() {
+  const cards = deckCards();
   if (!cards.length) return '';
-  // el campeón ya va en mainWithChampion: se cuenta una sola vez
-  const c = deckCost(cards.filter((x, i, a) => !(x.code === D.champion && a.findIndex(y => y.code === D.champion) !== i)));
+  const c = deckCost(cards);
   if (!c) return '';
-  const miss = c.hasCollection ? (c.missN ? ` · te faltan ${c.missN} (${money(c.missCost)})` : ' · <b class="ok">tienes todas</b>') : '';
+  const miss = c.hasCollection ? (c.missN ? ` · te faltan ${c.missN} (${money(c.missCost)}) <button class="btn mini" data-missing>Ver qué me falta</button>` : ' · <b class="ok">tienes todas</b>') : '';
   return `<div class="dbcost" title="Precio de mercado en TCGplayer (EE. UU.), cada carta a su versión más barata${c.unpriced ? `. ${c.unpriced} sin precio` : ''}">Cuesta ~<b>${money(c.cost)}</b>${miss}</div>`;
 }
 function renderList(issues) {
+  NEEDS = hasCollection() ? new Map(deckNeedsFor(deckCards()).map(x => [x.code, x])) : null;
   const legend = D.legend && get(D.legend), legImg = D.legend && cardByCode(D.legend)?.img;
   const bad = new Set(issues.filter(i => i.level === 'error').flatMap(i => i.codes || []));
   const nMain = total(mainWithChampion(D)), nRunes = total(D.runes);
@@ -246,6 +259,23 @@ function openImport() {
     }]]);
   setTimeout(() => body.querySelector('textarea')?.focus(), 50);
 }
+/** Las cartas del mazo que no tienes, con precio, para copiarlas a la compra masiva de TCGplayer. */
+function openMissing() {
+  const miss = missingList(deckNeedsFor(deckCards()));
+  if (!miss.length) { toast('Tienes todas las cartas de este mazo.', 'ok'); return; }
+  const n = miss.reduce((a, x) => a + x.miss, 0), priced = miss.filter(x => x.price != null), cost = priced.reduce((a, x) => a + x.price * x.miss, 0);
+  const txt = tcgplayerList(miss);
+  const body = openModal(`Te faltan ${n} carta${n === 1 ? '' : 's'}`, `
+    <div class="full hint">Cuentan tus copias de cualquier versión. Precio de mercado en TCGplayer (EE. UU.), cada carta a su versión más barata.</div>
+    <table class="full dbmiss"><tr><th>Carta</th><th>Tienes</th><th>Faltan</th><th>Precio</th><th>Total</th></tr>
+      ${miss.map(x => `<tr><td>${esc(x.name)}</td><td>${x.have}/${x.n}</td><td><b>${x.miss}</b></td><td>${x.price != null ? money(x.price) : '—'}</td><td>${x.price != null ? money(x.price * x.miss) : '—'}</td></tr>`).join('')}
+      <tr class="tot"><td colspan="4">Total${priced.length < miss.length ? ` (${miss.length - priced.length} sin precio)` : ''}</td><td>${money(Math.round(cost * 100) / 100)}</td></tr></table>
+    <div class="full hint">Para comprarlas: copia la lista y pégala en la <b>compra masiva</b> (Mass Entry) de TCGplayer.</div>
+    <textarea class="full chtxt" readonly rows="6">${esc(txt)}</textarea>`,
+    [['Abrir TCGplayer', 'ghost', () => { window.open('https://www.tcgplayer.com/massentry', '_blank', 'noopener'); return false; }],
+     ['Cerrar'], ['Copiar lista', 'primary', () => { copy(txt, 'Lista copiada: pégala en TCGplayer'); return false; }]]);
+  body.querySelector('textarea').onclick = e => e.target.select();
+}
 function copy(text, msg) { navigator.clipboard?.writeText(text).then(() => toast(msg, 'ok')).catch(() => {}); }
 function openExport() {
   const txt = toText(D, get);
@@ -290,14 +320,16 @@ function sheetHTML() {
     </div>
     <div class="ds-mark">Hecho con <b>Riftviewer</b></div>`;
 }
+const fitSheet = () => $('#dsheet').style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080));
 function exportImage() {
   if (!Object.keys(D.main).length) { toast('Agrega cartas al mazo primero.', 'err'); return; }
   const wrap = $('#dsheetw'), sheet = $('#dsheet');
   captureToPng({
-    w: 1920, h: 1080, file: `mazo-${(D.name || 'riftviewer').replace(/[^w-]+/g, '_').slice(0, 40)}.png`,
+    w: 1920, h: 1080, file: `mazo-${(D.name || 'riftviewer').replace(/[^\w-]+/g, '_').slice(0, 40)}.png`,
     title: 'Todo listo para la imagen', msg: 'Al pulsar el botón, la pantalla se pondrá completa un momento y se guardará la imagen de tu mazo.',
-    show: () => { sheet.innerHTML = sheetHTML(); wrap.hidden = false; sheet.style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080)); return sheet; },
-    hide: () => { wrap.hidden = true; sheet.innerHTML = ''; },
+    // la escala se recalcula al cambiar el tamaño: la pantalla completa termina de abrirse después de mostrar la hoja
+    show: () => { sheet.innerHTML = sheetHTML(); wrap.hidden = false; fitSheet(); addEventListener('resize', fitSheet); return sheet; },
+    hide: () => { removeEventListener('resize', fitSheet); wrap.hidden = true; sheet.innerHTML = ''; },
   });
 }
 
@@ -314,6 +346,7 @@ function preview(code, x, y) {
 
 /* ---------- abrir y cerrar la sección ---------- */
 export function showDecks(d) {
+  $('#dbOwnW').hidden = !hasCollection();
   latestPrices().then(p => { if (p && !$('#deckb').hidden && D) renderAll(); }).catch(() => {});
   $('#home').classList.remove('show'); $('#deckb').hidden = false; document.body.classList.add('indecks');
   if (d) openDeck(d, true);
@@ -341,6 +374,8 @@ export function init() {
   };
   fillSelects();
   document.addEventListener('rb:cards', () => { fillSelects(); if (!$('#deckb').hidden) renderAll(); });
+  // tu colección cambió (escáner, otra PC): se actualizan las marcas de lo que tienes
+  document.addEventListener('rb:collection', () => { $('#dbOwnW').hidden = !hasCollection(); if (!$('#deckb').hidden && D) renderAll(); });
 
   $('#bDecks').onclick = () => showDecks();
   $('#hDecks').onclick = () => showDecks();
@@ -365,7 +400,7 @@ export function init() {
   fbar.addEventListener('input', e => {
     const t = e.target; LIMIT = 120;
     if (t.id === 'dbQ') F.q = t.value; if (t.id === 'dbType') F.type = t.value; if (t.id === 'dbCost') F.cost = t.value;
-    if (t.id === 'dbSet') F.set = t.value; if (t.id === 'dbRar') F.rar = t.value; if (t.id === 'dbFit') F.fit = t.checked; if (t.id === 'dbSort') F.sort = t.value;
+    if (t.id === 'dbSet') F.set = t.value; if (t.id === 'dbRar') F.rar = t.value; if (t.id === 'dbFit') F.fit = t.checked; if (t.id === 'dbOwn') F.own = t.checked; if (t.id === 'dbSort') F.sort = t.value;
     renderCatalog();
   });
   fbar.addEventListener('click', e => {
@@ -379,6 +414,7 @@ export function init() {
   });
   $('#dbGrid').addEventListener('contextmenu', e => { const c = e.target.closest('[data-code]'); if (c) { e.preventDefault(); remove(c.dataset.code); } });
   $('#dbPanel').addEventListener('click', e => {
+    if (e.target.closest('[data-missing]')) { openMissing(); return; }
     const sim = e.target.closest('[data-sim]');
     if (sim) { ({ new: simNew, mull: simMulligan, draw: simDraw })[sim.dataset.sim](); renderTest(); return; }
     const hi = e.target.closest('[data-hi]');

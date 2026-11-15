@@ -24,12 +24,19 @@ export async function captureToPng({ show, hide, w, h, file, title, msg }) {
   await new Promise(res => { sr.classList.add('show'); $('#bGo').onclick = async () => { sr.classList.remove('show'); try { await document.documentElement.requestFullscreen(); } catch (e) {} res(); }; });
   try {
     const el = show(); await sleep(700);
-    try { if (window.CropTarget && track.cropTo) await track.cropTo(await CropTarget.fromElement(el)); } catch (e) {}
+    let cropped = false;
+    try { if (window.CropTarget && track.cropTo) { await track.cropTo(await CropTarget.fromElement(el)); cropped = true; } } catch (e) {}
     await sleep(500);
     const v = document.createElement('video'); v.muted = true; v.srcObject = stream; await v.play();
     await new Promise(r => v.readyState >= 2 ? r() : v.onloadeddata = r); await sleep(250);
     const c = document.createElement('canvas'); c.width = w; c.height = h;
-    c.getContext('2d').drawImage(v, 0, 0, w, h);
+    if (cropped) c.getContext('2d').drawImage(v, 0, 0, w, h);
+    else {
+      // sin recorte del navegador llega la pestaña entera: se recorta a mano el rectángulo del elemento
+      // (si no, la pestaña completa se estira a w×h y la imagen sale corrida y deformada)
+      const r = el.getBoundingClientRect(), kx = v.videoWidth / innerWidth, ky = v.videoHeight / innerHeight;
+      c.getContext('2d').drawImage(v, r.left * kx, r.top * ky, r.width * kx, r.height * ky, 0, 0, w, h);
+    }
     const blob = await new Promise(r => c.toBlob(r, 'image/png'));
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file; a.click();
     toast('Imagen guardada: ' + file, 'ok');

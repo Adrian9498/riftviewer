@@ -101,6 +101,16 @@ describe('mi colección', () => {
     expect((document.querySelector('#coGrid .coc') as HTMLElement).dataset.code).toBe('RAD-004A');
   });
 
+  it('"vale $X" abre el valor de tu colección con lo que más vale', async () => {
+    ($('#coTot [data-value]') as HTMLButtonElement).click();
+    expect($('#modal').classList.contains('show')).toBe(true);
+    const rows = [...document.querySelectorAll('#modal .covrow')].map(r => (r as HTMLElement).dataset.vcard);
+    expect(rows).toEqual(['RAD-004A', 'RAD-001']);                        // $3 foil antes que $0.25 normal
+    await new Promise(r => setTimeout(r, 10));
+    expect($('#modal .covalue').textContent).toMatch(/No se pudo cargar|Cargando/);   // en pruebas no hay nube
+    ($('#modal .mfoot .btn') as HTMLButtonElement).click();
+  });
+
   it('se guarda como proyecto para sincronizarse', async () => {
     await new Promise(r => setTimeout(r, 450));
     const saved = JSON.parse(localStorage.getItem('rb_proj_coll:mine')!);

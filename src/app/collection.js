@@ -3,8 +3,9 @@
 // Las impresiones salen del catálogo de OpenRift (public/openrift-catalog.json).
 import { noteLocalChange } from '../cloud/sync';
 import { FINISH_ES, buildPrintings, bump, collectionText, countOf, emptyCollection, pct, setProgress, variantsOf } from '../collection/model';
+import { deckNeeds, needsSummary } from '../collection/needs';
 import { norm } from '../data/text';
-import { collectionValue, historyPoints, latestPrices, money, priceHistory, priceOf, pricesNow, tcgplayerUrl } from '../cloud/prices';
+import { collectionValue, collectionValueHistory, historyPoints, latestPrices, money, priceHistory, priceOf, pricesNow, tcgplayerUrl, valuePoints } from '../cloud/prices';
 import { $, ic } from './base';
 import { orCatalog } from './cards';
 import { openScanner, releaseScanner, warmScanner } from './scanner';
@@ -25,6 +26,7 @@ export function catalog() {
   return CAT;
 }
 function load() {
+  bumpRev();
   try {
     const d = JSON.parse(ls(KEY) || 'null');
     COL = d && !d.deleted && d.items ? { id: 'mine', items: d.items, updatedAt: d.updatedAt || d.ts || 0 } : emptyCollection();
@@ -38,7 +40,8 @@ function save() {
 }
 /** suma (o quita) copias de un acabado y refresca la pantalla; también lo usa el escáner */
 export function addCopies(code, finish, d) {
-  const n = bump(collection(), code, finish, d); save();
+  const n = bump(collection(), code, finish, d); save(); bumpRev();
+  document.dispatchEvent(new Event('rb:collection'));
   if (!$('#collb').hidden) { refreshTile(code); renderSets(); renderHead(); renderTotal(); }
   return n;
 }
@@ -49,42 +52,52 @@ function quickRemove(p) {
   addCopies(p.code, f, -1);
 }
 
-/* ---------- costo de un mazo ---------- */
-// por nombre: riftcodex escribe las leyendas "Ekko - Boy Who Shattered Time" y OpenRift solo "Boy Who Shattered Time"
+/* ---------- tu colección en los mazos ----------
+   Para jugar sirve cualquier versión, así que se cuenta por nombre de carta.
+   riftcodex escribe las leyendas "Ekko - Boy Who Shattered Time" y el constructor "Ekko, Boy…" para las de OpenRift;
+   en OpenRift la carta se llama solo "Boy Who Shattered Time". Por eso primero se busca el código en el catálogo. */
 const nameKey = n => norm(String(n || '').split(' - ').pop());
-let NAMES = null;
+const keyOf = c => nameKey(catalog()?.byCode.get(String(c.code || '').toUpperCase())?.name || c.name);
+let NAMES = null, OWNED = null, REV = 0;
+const bumpRev = () => { REV++; OWNED = null; };
+/** Copias tuyas por nombre de carta (todas las versiones y acabados juntos). */
+function ownedMap() {
+  const cat = catalog(); if (!cat) return new Map();
+  if (OWNED && OWNED.cat === cat && OWNED.rev === REV) return OWNED.map;
+  const map = new Map();
+  for (const [code, row] of Object.entries(collection().items)) {
+    const p = cat.byCode.get(code); if (!p) continue;
+    const k = nameKey(p.name); map.set(k, (map.get(k) || 0) + Object.values(row).reduce((a, b) => a + b, 0));
+  }
+  OWNED = { cat, rev: REV, map };
+  return map;
+}
+export const hasCollection = () => Object.keys(collection().items).length > 0;
+/** Cuántas copias tienes de una carta del constructor (cualquier versión). */
+export const ownedOf = card => card ? ownedMap().get(keyOf(card)) || 0 : 0;
+/** Precio de la versión más barata con ese nombre (normal o foil). */
+function cheapest(c, k) {
+  const prices = pricesNow(), cat = catalog(); if (!prices || !cat) return null;
+  if (!NAMES || NAMES.cat !== cat) { NAMES = { cat, by: new Map() }; for (const p of cat.prints) { const nk = nameKey(p.name); if (!NAMES.by.has(nk)) NAMES.by.set(nk, []); NAMES.by.get(nk).push(p.code); } }
+  const ps = [c.code, ...(NAMES.by.get(k) || [])].flatMap(code => [priceOf(prices, code, 'normal'), priceOf(prices, code, 'foil')]).filter(x => x != null);
+  return ps.length ? Math.min(...ps) : null;
+}
+/** Cada carta del mazo con las que tienes, las que faltan y su precio. cards: [{ code, name, n }] */
+export const deckNeedsFor = cards => deckNeeds(cards, ownedMap(), keyOf, cheapest);
 /**
  * Costo aproximado de un mazo en TCGplayer: cada carta a la impresión más barata con su nombre.
  * Con tu colección, también cuántas te faltan y cuánto cuestan. null si aún no hay precios o catálogo.
- * cards: [{ code, name, n }]
  */
 export function deckCost(cards) {
-  const prices = pricesNow(), cat = catalog(); if (!prices || !cat) return null;
-  if (!NAMES || NAMES.cat !== cat) { NAMES = { cat, by: new Map() }; for (const p of cat.prints) { const k = nameKey(p.name); if (!NAMES.by.has(k)) NAMES.by.set(k, []); NAMES.by.get(k).push(p.code); } }
-  const owned = new Map();
-  for (const [code, row] of Object.entries(collection().items)) {
-    const p = cat.byCode.get(code); if (!p) continue;
-    const k = nameKey(p.name); owned.set(k, (owned.get(k) || 0) + Object.values(row).reduce((a, b) => a + b, 0));
-  }
-  let cost = 0, missCost = 0, missN = 0, unpriced = 0;
-  for (const { code, name, n } of cards) {
-    const k = nameKey(name), codes = [code, ...(NAMES.by.get(k) || [])];
-    const ps = codes.flatMap(c => [priceOf(prices, c, 'normal'), priceOf(prices, c, 'foil')]).filter(x => x != null);
-    const cheap = ps.length ? Math.min(...ps) : null;
-    const have = Math.min(n, owned.get(k) || 0); owned.set(k, (owned.get(k) || 0) - have);
-    missN += n - have;
-    if (cheap == null) { unpriced += n; continue; }
-    cost += cheap * n; missCost += cheap * (n - have);
-  }
-  const r2 = x => Math.round(x * 100) / 100;
-  return { cost: r2(cost), missCost: r2(missCost), missN, unpriced, hasCollection: Object.keys(collection().items).length > 0 };
+  if (!pricesNow() || !catalog()) return null;
+  return { ...needsSummary(deckNeedsFor(cards)), hasCollection: hasCollection() };
 }
 
 /* ---------- pantalla ---------- */
 function renderTotal() {
   const items = Object.values(collection().items), copies = items.reduce((a, r) => a + Object.values(r).reduce((x, y) => x + y, 0), 0);
   const val = pricesNow() ? collectionValue(pricesNow(), collection().items).value : 0;
-  $('#coTot').textContent = copies ? `${copies} carta${copies === 1 ? '' : 's'} · ${items.length} distinta${items.length === 1 ? '' : 's'}${val ? ' · vale ' + money(val) : ''}` : '';
+  $('#coTot').innerHTML = copies ? `${copies} carta${copies === 1 ? '' : 's'} · ${items.length} distinta${items.length === 1 ? '' : 's'}${val ? ` · <button class="coval" data-value title="Ver el valor de tu colección en el tiempo">vale ${money(val)} ${ic('chart')}</button>` : ''}` : '';
 }
 function renderSets() {
   const cat = catalog(); if (!cat) return;
@@ -191,44 +204,85 @@ function openCard(code) {
 /* ---------- historial de precio ----------
    Una sola serie (el acabado elegido): línea de 2 px, área tenue, eje sin rejilla, y al pasar el ratón
    una guía vertical con el precio y la fecha de ese día. */
+/**
+ * Gráfica de línea con el valor del último día, el cambio desde el primero y un tooltip al pasar el ratón.
+ * pts: [{ day: 'YYYY-MM-DD', v }] (dos o más). before: lo que va arriba (botones). aria: descripción para lectores de pantalla.
+ */
+function lineChart(box, pts, aria, before = '') {
+  const W = 520, H = 150, L = 46, R = 10, T = 12, B = 22;
+  const vs = pts.map(x => x.v), lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo) * 0.12 || hi * 0.1 || 1;
+  const y0 = Math.max(0, lo - pad), y1 = hi + pad;
+  const t0 = +new Date(pts[0].day), t1 = +new Date(pts[pts.length - 1].day);
+  const X = d => L + (W - L - R) * ((+new Date(d) - t0) / (t1 - t0 || 1)), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  const line = pts.map((q, i) => `${i ? 'L' : 'M'}${X(q.day).toFixed(1)},${Y(q.v).toFixed(1)}`).join('');
+  const area = `${line}L${X(pts[pts.length - 1].day).toFixed(1)},${H - B}L${L},${H - B}Z`;
+  const fd = d => new Date(d + 'T12:00').toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  const first = pts[0].v, last = pts[pts.length - 1].v, ch = first ? (last - first) / first * 100 : 0, diff = last - first;
+  box.innerHTML = `${before}<div class="cohtop"><b>${money(last)}</b><span class="${ch > 0.5 ? 'up' : ch < -0.5 ? 'down' : ''}">${ch > 0 ? '▲' : ch < 0 ? '▼' : ''} ${Math.abs(ch).toFixed(1)}%${Math.abs(diff) >= 0.01 ? ` (${diff > 0 ? '+' : '−'}${money(Math.abs(diff))})` : ''} desde ${fd(pts[0].day)}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" class="cohsvg" role="img" aria-label="${esc(aria)}: de ${money(first)} a ${money(last)}">
+      <line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" class="cohax"/>
+      <text x="${L - 6}" y="${Y(hi) + 4}" text-anchor="end">${money(hi)}</text><text x="${L - 6}" y="${Y(lo) + 4}" text-anchor="end">${money(lo)}</text>
+      <text x="${L}" y="${H - 6}">${fd(pts[0].day)}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${fd(pts[pts.length - 1].day)}</text>
+      <path d="${area}" class="coharea"/><path d="${line}" class="cohline"/>
+      <g class="cohhov" visibility="hidden"><line class="cohx" y1="${T}" y2="${H - B}"/><circle r="4.5" class="cohdot"/></g>
+      <rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" class="cohhit"/>
+    </svg><div class="cohtip" hidden></div>`;
+  const svg = box.querySelector('svg'), hov = svg.querySelector('.cohhov'), tip = box.querySelector('.cohtip');
+  svg.querySelector('.cohhit').addEventListener('pointermove', e => {
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width;
+    const q = pts.reduce((a, b) => Math.abs(X(b.day) - x) < Math.abs(X(a.day) - x) ? b : a);
+    hov.setAttribute('visibility', 'visible');
+    hov.querySelector('line').setAttribute('x1', X(q.day)); hov.querySelector('line').setAttribute('x2', X(q.day));
+    hov.querySelector('circle').setAttribute('cx', X(q.day)); hov.querySelector('circle').setAttribute('cy', Y(q.v));
+    tip.hidden = false; tip.innerHTML = `<b>${money(q.v)}</b> ${fd(q.day)}`;
+    tip.style.left = Math.min(r.width - 90, Math.max(0, X(q.day) * r.width / W - 45)) + 'px';
+  });
+  svg.querySelector('.cohhit').addEventListener('pointerleave', () => { hov.setAttribute('visibility', 'hidden'); tip.hidden = true; });
+}
 function drawHistory(box, rows, p, finish, onFinish) {
   const both = ['normal', 'foil'].filter(f => p.finishes.includes(f) && historyPoints(rows, f).length);
   const pts = historyPoints(rows, finish);
   const seg = both.length > 1 ? `<span class="seg cohseg">${both.map(f => `<button data-hf="${f}" class="${f === finish ? 'on' : ''}">${FINISH_ES[f]}</button>`).join('')}</span>` : '';
-  if (pts.length < 2) {
-    box.innerHTML = `${seg}<div class="cohc">${pts.length ? `Precio hoy: <b>${money(pts[0].v)}</b>. El historial se va armando cada día.` : 'Sin precio en TCGplayer para esta versión.'}</div>`;
-  } else {
-    const W = 520, H = 150, L = 46, R = 10, T = 12, B = 22;
-    const vs = pts.map(x => x.v), lo = Math.min(...vs), hi = Math.max(...vs), pad = (hi - lo) * 0.12 || hi * 0.1 || 1;
-    const y0 = Math.max(0, lo - pad), y1 = hi + pad;
-    const t0 = +new Date(pts[0].day), t1 = +new Date(pts[pts.length - 1].day);
-    const X = d => L + (W - L - R) * ((+new Date(d) - t0) / (t1 - t0 || 1)), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
-    const line = pts.map((q, i) => `${i ? 'L' : 'M'}${X(q.day).toFixed(1)},${Y(q.v).toFixed(1)}`).join('');
-    const area = `${line}L${X(pts[pts.length - 1].day).toFixed(1)},${H - B}L${L},${H - B}Z`;
-    const fd = d => new Date(d + 'T12:00').toLocaleDateString('es', { day: 'numeric', month: 'short' });
-    const first = pts[0].v, last = pts[pts.length - 1].v, ch = first ? (last - first) / first * 100 : 0;
-    box.innerHTML = `${seg}<div class="cohtop"><b>${money(last)}</b><span class="${ch > 0.5 ? 'up' : ch < -0.5 ? 'down' : ''}">${ch > 0 ? '▲' : ch < 0 ? '▼' : ''} ${Math.abs(ch).toFixed(1)}% desde ${fd(pts[0].day)}</span></div>
-      <svg viewBox="0 0 ${W} ${H}" class="cohsvg" role="img" aria-label="Precio de ${esc(p.name)}: de ${money(first)} a ${money(last)}">
-        <line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" class="cohax"/>
-        <text x="${L - 6}" y="${Y(hi) + 4}" text-anchor="end">${money(hi)}</text><text x="${L - 6}" y="${Y(lo) + 4}" text-anchor="end">${money(lo)}</text>
-        <text x="${L}" y="${H - 6}">${fd(pts[0].day)}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${fd(pts[pts.length - 1].day)}</text>
-        <path d="${area}" class="coharea"/><path d="${line}" class="cohline"/>
-        <g class="cohhov" visibility="hidden"><line class="cohx" y1="${T}" y2="${H - B}"/><circle r="4.5" class="cohdot"/></g>
-        <rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" class="cohhit"/>
-      </svg><div class="cohtip" hidden></div>`;
-    const svg = box.querySelector('svg'), hov = svg.querySelector('.cohhov'), tip = box.querySelector('.cohtip');
-    svg.querySelector('.cohhit').addEventListener('pointermove', e => {
-      const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width;
-      const q = pts.reduce((a, b) => Math.abs(X(b.day) - x) < Math.abs(X(a.day) - x) ? b : a);
-      hov.setAttribute('visibility', 'visible');
-      hov.querySelector('line').setAttribute('x1', X(q.day)); hov.querySelector('line').setAttribute('x2', X(q.day));
-      hov.querySelector('circle').setAttribute('cx', X(q.day)); hov.querySelector('circle').setAttribute('cy', Y(q.v));
-      tip.hidden = false; tip.innerHTML = `<b>${money(q.v)}</b> ${fd(q.day)}`;
-      tip.style.left = Math.min(r.width - 90, Math.max(0, X(q.day) * r.width / W - 45)) + 'px';
-    });
-    svg.querySelector('.cohhit').addEventListener('pointerleave', () => { hov.setAttribute('visibility', 'hidden'); tip.hidden = true; });
-  }
+  if (pts.length < 2) box.innerHTML = `${seg}<div class="cohc">${pts.length ? `Precio hoy: <b>${money(pts[0].v)}</b>. El historial se va armando cada día.` : 'Sin precio en TCGplayer para esta versión.'}</div>`;
+  else lineChart(box, pts, `Precio de ${p.name}`, seg);
   box.querySelectorAll('[data-hf]').forEach(b => b.onclick = () => onFinish?.(b.dataset.hf));
+}
+
+/* ---------- valor de tu colección en el tiempo ---------- */
+const RANGES = [['7', '7 días'], ['30', '30 días'], ['90', '3 meses'], ['all', 'Todo']];
+let VRANGE = '30';
+function openValue() {
+  const items = collection().items;
+  if (!Object.keys(items).length) { toast('Agrega cartas a tu colección para ver cuánto vale.'); return; }
+  const body = openModal('Valor de tu colección', `
+    <div class="full hint">Lo que tienes hoy, a los precios de mercado de TCGplayer de cada día. Normal a precio normal; foil y metal a precio foil.</div>
+    <div class="full cohist covalue"><div class="cohc">Cargando…</div></div>
+    <div class="full covtop"></div>`, [['Cerrar']]);
+  const box = body.querySelector('.covalue');
+  topCards(body.querySelector('.covtop'));
+  collectionValueHistory(items, 1095).then(rows => {
+    if (!box.isConnected) return;
+    if (!rows) { box.innerHTML = '<div class="cohc">No se pudo cargar el historial. Revisa tu conexión (o falta actualizar la base de datos: <code>npx supabase db push</code>).</div>'; return; }
+    const draw = () => {
+      const from = VRANGE === 'all' ? '' : new Date(Date.now() - (+VRANGE) * 864e5).toISOString().slice(0, 10);
+      const pts = valuePoints(rows, from);
+      const seg = `<span class="seg cohseg">${RANGES.map(([k, l]) => `<button data-vr="${k}" class="${k === VRANGE ? 'on' : ''}">${l}</button>`).join('')}</span>`;
+      if (pts.length < 2) box.innerHTML = `${seg}<div class="cohc">${pts.length ? `Hoy vale <b>${money(pts[pts.length - 1].v)}</b>. El historial se va armando cada día.` : 'Todavía no hay precios para tus cartas.'}</div>`;
+      else lineChart(box, pts, 'Valor de tu colección', seg);
+      box.querySelectorAll('[data-vr]').forEach(b => b.onclick = () => { VRANGE = b.dataset.vr; draw(); });
+    };
+    draw();
+  });
+}
+/** Las cartas que más valor aportan a tu colección (copias × precio de hoy). */
+function topCards(el) {
+  const prices = pricesNow(), cat = catalog(); if (!prices || !cat) { el.innerHTML = ''; return; }
+  const rows = Object.entries(collection().items).flatMap(([code, row]) => Object.entries(row).map(([fin, n]) => {
+    const pr = priceOf(prices, code, fin); return pr == null ? null : { p: cat.byCode.get(code), code, fin, n, pr, v: pr * n };
+  })).filter(Boolean).sort((a, b) => b.v - a.v).slice(0, 5);
+  el.innerHTML = rows.length ? `<div class="dbsub">Lo que más vale de tu colección</div>${rows.map(r => `<button class="covrow" data-vcard="${esc(r.code)}">
+      <img src="${esc(r.p?.img || '')}" alt=""><span><b>${esc(r.p?.name || r.code)}</b><small>${r.code}${r.fin === 'normal' ? '' : ' · ' + (FINISH_ES[r.fin] || r.fin)} · ${r.n} × ${money(r.pr)}</small></span><em>${money(r.v)}</em></button>`).join('')}` : '';
+  el.querySelectorAll('[data-vcard]').forEach(b => b.onclick = () => openCard(b.dataset.vcard));
 }
 
 /* ---------- exportar ---------- */
@@ -263,6 +317,7 @@ export function init() {
   $('#hColl').onclick = showCollection;
   $('#coBack').onclick = () => { hideCollection(); if (!DOC.kind) $('#home').classList.add('show'); };
   $('#coScan').onclick = scan;
+  $('#coTot').onclick = e => { if (e.target.closest('[data-value]')) openValue(); };
   $('#coExport').onclick = openExport;
   $('#coSets').onclick = e => {
     const b = e.target.closest('[data-set]'); if (!b) return;
@@ -297,5 +352,5 @@ export function init() {
   });
   // el catálogo de OpenRift llega después de arrancar; y la colección puede cambiar desde otra PC
   document.addEventListener('rb:cards', () => { CAT = null; if (!$('#collb').hidden) renderAll(); });
-  document.addEventListener('rb:projects', () => { if (dirty) return; load(); if (!$('#collb').hidden) renderAll(); });
+  document.addEventListener('rb:projects', () => { if (dirty) return; load(); document.dispatchEvent(new Event('rb:collection')); if (!$('#collb').hidden) renderAll(); });
 }
