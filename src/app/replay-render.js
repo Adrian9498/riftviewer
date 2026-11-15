@@ -1,7 +1,7 @@
 // Generado a partir de legacy/app.js (sección "replay-render").
 import { computeCamera, padTarget as padRect, union } from '../replay/camera';
 import { newBattles, scoreDeltas } from '../replay/events';
-import { clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
+import { arrowsKeyOf, clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
 import { $, ic, stage } from './base';
 import { cardTextHTML } from '../data/symbols';
 import { posLabel } from './transport';
@@ -14,6 +14,8 @@ import { SFX } from './sounds';
 import { app } from './state';
 import { summarySequence } from './summary';
 import { esc } from './utils';
+// cuánto espera la reproducción para que se vea una flecha de objetivo nueva (Ajustes → Reproducción → Flechas)
+const arrowHoldMs = () => +($('#rarrow')?.value ?? 1200);
 
 /* ---- Cámara que sigue la acción + minimapa ---- */
 export function camNow(){ const c=$('#rcam'); return c.offsetWidth ? c.getBoundingClientRect().width/(c.offsetWidth*scale()) : 1; }
@@ -111,6 +113,14 @@ export async function rRender(i,anim){
     const owner=ce.byPlayerId||card.ownerPlayerId;
     const e=rCardEl({...card,id},owner); place.push([e,$('#rchain'),'chain']); zoneOf.set(id,'chain');
   }
+  // equipaciones: un equipo con attachedToCardId va dentro de su unidad, detrás de ella y un poco desplazado;
+  // así se mueve y gira con la unidad y no ocupa lugar en la zona
+  const elOf=new Map(place.map(([e])=>[e._cid,e])); place.forEach(([e])=>e._eq=0);
+  for(const pl of place){
+    const host=pl[0]._card?.attachedToCardId && elOf.get(pl[0]._card.attachedToCardId);
+    pl[0].classList.toggle('equip',!!host);
+    if(host && host!==pl[0]){ pl[1]=host; pl[0].style.setProperty('--k',++host._eq); }
+  }
   // quitar cartas que ya no se ven
   const keep=new Set(place.map(x=>x[0]));
   app.R.el.forEach((e,id)=>{ if(!keep.has(e)){
@@ -153,6 +163,7 @@ export async function rRender(i,anim){
     const cs=sc*camNow();   // las cartas dentro de la cámara están escaladas además por el zoom
     app.R.el.forEach((e,id)=>{
       const b=before.get(id), ex=e.classList.contains('exhausted');
+      if(e.classList.contains('equip')){ if(!b) e.animate([{opacity:0},{opacity:1}],{duration:400/app.speed}); return; }   // su lugar lo da la unidad
       if(!b){ e.animate([{opacity:0,transform:'scale(1.3)'},{opacity:1,transform:fmtXform(ex)}],{duration:400/app.speed}); return; }
       const [ox,oy]=center(b.r), [nx,ny]=center(e.getBoundingClientRect()), k=e.closest('#rcam')?cs:sc;
       const dx=(ox-nx)/k, dy=(oy-ny)/k;
@@ -168,9 +179,21 @@ export async function rRender(i,anim){
   app.R.zoneOf=zoneOf;
   const prevI=app.R.i; app.R.i=i; app.R.shown=st; rPos();
   // flechas de objetivo: se dibujan cuando las cartas y la cámara terminan de moverse
-  clearTargetArrows();
-  if(anim){ const tok=app.token; setTimeout(()=>{ if(tok===app.token && app.R?.shown===st) drawTargetArrows(st); },850/app.speed); }
-  else drawTargetArrows(st);
+  // si siguen siendo las mismas flechas (la cadena dura varias jugadas), se quedan y solo se reacomodan;
+  // antes se borraban en cada jugada y al reproducir seguido nunca alcanzaban a aparecer
+  const ak=arrowsKeyOf(st), layer=$('#tarrows'), same=!!ak && layer.dataset.key===ak;
+  if(!same){
+    // al resolverse, se desvanecen en lugar de desaparecer de golpe
+    if(anim && !ak && layer.innerHTML){ layer.classList.add('out'); const tok=app.token; setTimeout(()=>{ if(tok===app.token && layer.classList.contains('out')) clearTargetArrows(); },450); }
+    else clearTargetArrows();
+    if(ak){ layer.classList.remove('out'); layer.dataset.key=ak; }
+  }
+  // flechas nuevas: la reproducción espera a que se vean al menos un momento (Ajustes → Reproducción)
+  if(anim && ak && !same) app.R.arrowHold=performance.now()+(850+arrowHoldMs())/app.speed;
+  if(ak){
+    const tok=app.token, draw=()=>{ if(tok===app.token && app.R?.shown===st) drawTargetArrows(st,same); };
+    if(anim) setTimeout(draw,(same?560:850)/app.speed); else drawTargetArrows(st,same);
+  }
   const out=st.gameOutcome?.winnerPlayerIds;
   if(!anim){ $('#victory').classList.toggle('show',!!(out&&out.length&&i===app.R.frames.length-1)); if(out&&i===app.R.frames.length-1) rVictory(out); return; }
   $('#victory').classList.remove('show');
@@ -235,6 +258,7 @@ export async function rStep(){
   const my=app.token, n=app.R.i+1;
   await runQuiz(n); if(my!==app.token) return false;
   await rRender(n,true); if(my!==app.token) return false;
+  const hold=(app.R.arrowHold||0)-performance.now(); if(hold>0){ await new Promise(r=>setTimeout(r,hold)); if(my!==app.token) return false; }
   await runNotes(n); return my===app.token;
 }
 export async function rPlay(){

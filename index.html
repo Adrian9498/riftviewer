@@ -44,10 +44,15 @@
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
   <symbol id="i-move" viewBox="0 0 24 24"><path d="M4 12h14M14 7l5 5-5 5"/><path d="M4 7v10"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></symbol>
+  <symbol id="i-binder" viewBox="0 0 24 24"><rect x="4" y="3.5" width="7" height="8" rx="1.5"/><rect x="13" y="3.5" width="7" height="8" rx="1.5"/><rect x="4" y="13.5" width="7" height="7" rx="1.5"/><rect x="13" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M7 12h10"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></symbol>
   <symbol id="i-cards" viewBox="0 0 24 24"><rect x="7" y="4" width="11" height="15" rx="2"/><path d="M4.5 7.5v11a2 2 0 0 0 2 2h8"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></symbol>
   <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5" fill="currentColor"/></symbol>
   <!-- símbolos del texto de reglas (:rb_might:, :rb_exhaust:, runas…), dibujados para este proyecto -->
   <symbol id="s-might" viewBox="0 0 24 24"><path d="M20 4l-1 4-9 9-3-3 9-9z"/><path d="M5 12l7 7M7.5 16.5L4 20"/></symbol>
@@ -59,6 +64,8 @@
 <div id="app">
   <header id="topbar">
     <button class="btn ico" id="bHome" title="Pantalla de inicio"><svg class="i"><use href="#i-home"/></svg></button>
+    <button class="btn ico" id="bDecks" title="Constructor de mazos"><svg class="i"><use href="#i-cards"/></svg></button>
+    <button class="btn ico" id="bColl" title="Mi colección"><svg class="i"><use href="#i-binder"/></svg></button>
     <button class="btn ico" id="bPanel" title="Mostrar u ocultar el panel lateral (P)"><svg class="i"><use href="#i-panel"/></svg></button>
     <span class="logo"><span class="lmark"></span>Riftviewer</span>
     <div id="docname"></div>
@@ -159,6 +166,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       </div>
       <div id="brand"></div>
       <div id="wm">Hecho con <b>Riftviewer</b></div>
+      <div id="thumb" class="thumb"></div>
       <div id="chartov" class="ov"><h3>EVOLUCIÓN DE PUNTOS</h3><div class="chartbox"></div></div>
       <div id="sumov" class="ov"></div>
       <div id="quiz" class="ov"><h3>¿QUÉ HARÍAS TÚ?</h3><p class="q"></p><div class="count"></div></div>
@@ -217,6 +225,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
         <div class="igrid">
           <span>Velocidad</span><select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select>
           <div class="irow ronly"><span>Empezar en</span><select id="rskip"><option value="mull">El mulligan</option><option value="1">La primera jugada</option><option value="0">El principio (iniciativa y campos)</option></select></div>
+          <div class="irow ronly"><span>Flechas</span><select id="rarrow"><option value="0">Sin pausa</option><option value="800">Pausa corta</option><option value="1200" selected>Pausa normal</option><option value="2200">Pausa larga</option></select></div>
           <div class="irow ronly"><span>Al terminar</span><select id="rauto"><option value="1">Mostrar resumen y mazos</option><option value="0">Solo pantalla de victoria</option></select></div>
         </div>
       </details>
@@ -260,12 +269,109 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
         <div class="acts"><button class="btn primary" id="hNew"><svg class="i"><use href="#i-pen"/></svg> Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
       </div>
     </div>
+    <button class="hdeck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span><b>Construir un mazo</b><small>Busca cartas, valida las reglas, revisa la curva y comparte tu lista.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
+    <button class="hdeck hcoll" id="hColl"><span class="hic"><svg class="i"><use href="#i-binder"/></svg></span><span><b>Mi colección</b><small>Escanea tus cartas con la cámara y mira cuánto te falta de cada set.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
     <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
     <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
   </div>
 </div>
+<!-- Constructor de mazos -->
+<div id="deckb" hidden>
+  <header class="dbtop">
+    <button class="btn ico" id="dbBack" title="Volver al inicio"><svg class="i"><use href="#i-home"/></svg></button>
+    <span class="logo"><span class="lmark"></span>Mazos</span>
+    <select id="dbList" title="Tus mazos"></select>
+    <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
+    <span class="dbflex"></span>
+    <button class="btn primary" id="dbSaveShared" hidden><svg class="i"><use href="#i-save"/></svg> Guardar en mis mazos</button>
+    <button class="btn" id="dbNew"><svg class="i"><use href="#i-plus"/></svg> Nuevo</button>
+    <button class="btn" id="dbImport"><svg class="i"><use href="#i-upload"/></svg> Importar</button>
+    <button class="btn" id="dbExport"><svg class="i"><use href="#i-save"/></svg> Exportar</button>
+    <button class="btn" id="dbImage" title="Imagen del mazo para redes (1920×1080)"><svg class="i"><use href="#i-brand"/></svg> Imagen</button>
+    <button class="btn" id="dbShare"><svg class="i"><use href="#i-arrow"/></svg> Compartir</button>
+    <button class="btn ico" id="dbDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="dbwork">
+    <section class="dbcat">
+      <div class="dbfilters">
+        <input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…">
+        <div class="dbchips" id="dbDom"></div>
+        <div class="dbrow">
+          <select id="dbType"><option value="">Todos los tipos</option><option value="champ">Campeones de mi leyenda</option><option value="Unit">Unidades</option><option value="Spell">Hechizos</option><option value="Gear">Equipo</option><option value="Legend">Leyendas</option><option value="Battlefield">Campos de batalla</option><option value="Rune">Runas</option></select>
+          <select id="dbCost"><option value="">Cualquier costo</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option value="7">7+</option></select>
+          <select id="dbSet"></select>
+          <select id="dbRar"></select>
+          <select id="dbSort"><option value="cost">Ordenar por costo</option><option value="name">Ordenar por nombre</option><option value="might">Ordenar por poder</option></select>
+        </div>
+        <div class="dbrow">
+          <label title="Oculta las cartas fuera de los dominios de tu leyenda"><input type="checkbox" id="dbFit" checked> Solo de mis dominios</label>
+          <span class="dbto">Agregar al: <span class="seg"><button data-to="main" class="on">Mazo</button><button data-to="side">Banquillo</button></span></span>
+          <small id="dbCount"></small>
+        </div>
+      </div>
+      <div class="dbgrid" id="dbGrid"></div>
+      <div class="dbtip">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</div>
+    </section>
+    <aside class="dbdeck">
+      <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="test">Mano de prueba</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
+      <div id="dbPanel"></div>
+    </aside>
+  </div>
+</div>
+<!-- Colección -->
+<div id="collb" hidden>
+  <header class="dbtop">
+    <button class="btn ico" id="coBack" title="Volver"><svg class="i"><use href="#i-home"/></svg></button>
+    <span class="logo"><span class="lmark"></span>Colección</span>
+    <span class="cotot" id="coTot"></span>
+    <span class="dbflex"></span>
+    <button class="btn" id="coExport" title="Copiar o descargar tu colección como lista"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>
+    <button class="btn primary" id="coScan"><svg class="i"><use href="#i-scan"/></svg> <span>Escanear cartas</span></button>
+  </header>
+  <div class="cowork">
+    <aside class="cosets" id="coSets"></aside>
+    <section class="cocat">
+      <div class="cohead" id="coHead"></div>
+      <div class="dbfilters">
+        <div class="dbrow">
+          <input type="search" id="coQ" placeholder="Buscar por nombre o número…">
+          <span class="seg" id="coOwn"><button data-own="" class="on">Todas</button><button data-own="have">Tengo</button><button data-own="miss">Me faltan</button></span>
+          <select id="coVar"><option value="all">Todas las versiones</option><option value="base">Solo set base</option><option value="alt">Solo versiones especiales</option></select>
+          <select id="coRar"><option value="">Todas las rarezas</option><option>Common</option><option>Uncommon</option><option>Rare</option><option>Epic</option><option>Showcase</option></select>
+          <select id="coSort"><option value="num">Por número</option><option value="price">Más valiosas</option></select>
+          <small id="coCount"></small>
+        </div>
+      </div>
+      <div class="dbgrid cogrid" id="coGrid"></div>
+      <div class="dbtip">Clic: abrir la carta · <b>+</b> / <b>−</b>: sumar o quitar una copia normal · Clic derecho: quitar una</div>
+    </section>
+  </div>
+</div>
+<div id="coscan" hidden>
+  <video id="csVideo" playsinline muted autoplay></video>
+  <div class="csguide" id="csGuide"><i></i><i></i><i></i><i></i><span class="csline"></span><span class="csstrip"></span></div>
+  <header class="cstop">
+    <button class="btn ico" id="csClose" title="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    <div class="csmsg" id="csMsg">Abriendo la cámara…</div>
+    <button class="btn ico" id="csTorch" title="Linterna" hidden><svg class="i"><use href="#i-bulb"/></svg></button>
+    <button class="btn ico" id="csFlip" title="Cambiar de cámara" hidden><svg class="i"><use href="#i-flip"/></svg></button>
+  </header>
+  <div class="csbottom">
+    <div class="csres" id="csRes"></div>
+    <div class="csopts">
+      <span class="seg" id="csFin"><button data-fin="normal" class="on">Normal</button><button data-fin="foil">Foil</button></span>
+      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto"> Agregar al instante</label>
+      <span class="csfocus" id="csFocusW" hidden title="Si la cámara enfoca otra cosa, mueve el enfoque a mano">Enfoque <input type="range" id="csFocus"> <button class="btn mini" id="csFocusAuto">Auto</button></span>
+      <span class="cssess" id="csSess"></span>
+    </div>
+    <div class="cscam"><span>Toca la imagen para enfocar ahí.</span> <span id="csCam"></span></div>
+    <div class="csman"><input type="search" id="csQ" placeholder="¿No la lee? Escribe el número (RAD 001) o el nombre"><div id="csHits"></div></div>
+  </div>
+</div>
 <div id="dropov"><div>Suelta el archivo para abrirlo</div></div>
 <div id="toasts"></div>
+<div id="cardmenu" hidden></div>
+<div id="dsheetw" hidden><div id="dsheet"></div></div>
 <div id="tour"><div class="tbox"></div><div class="tbub"><small class="tstep"></small><h3></h3><p></p><div class="tacts"><button class="btn" id="tSkip">Saltar</button><button class="btn primary" id="tNext">Siguiente</button></div></div></div>
 
 <div id="modal"><div class="mbox"><h2></h2><div class="mbody"></div><div class="mfoot"></div></div></div>

@@ -20,6 +20,8 @@ function encodeReplay(root: unknown) {
 }
 const card = (id: string, name: string, code: string, type = 'unit', exhausted = false) =>
   ({ id, name, cardCode: code, type, exhausted, ownerPlayerId: id.startsWith('a') ? 'pa' : 'pb' });
+// lista completa (leyenda + 40 cartas) para Ana; la de Beto viene incompleta y no se ofrece
+const FULL_LIST = 'Legend:\n1 Leyenda A [UNL-234]\n\nMainDeck:\n' + Array.from({ length: 14 }, (_, i) => `3 Carta ${i} [OGN-${100 + i}]`).join('\n');
 function frame(n: number, opts: { aBase?: object[]; aField?: object[]; bField?: object[]; aScore?: number; active?: string; log?: string; phase?: string; hand?: object[]; arrows?: object; xp?: number }) {
   const board = (legend: object, base: object[], field: object[], score: number) =>
     ({ legend: [legend], champion: [], base, hand: opts.hand || [card('h' + n, 'Stupefy', 'OGN-095', 'spell')], trash: [], deck: [], runeArea: [], legendXp: opts.xp || 0, floatingEnergy: 1,
@@ -30,8 +32,8 @@ function frame(n: number, opts: { aBase?: object[]; aField?: object[]; bField?: 
       phase: opts.phase || 'in_game', targetArrowsByPlayer: opts.arrows || {}, turnNumber: 1 + (n >> 1), activeTurnPlayerId: opts.active || 'pa', chainEntries: [],
       log: opts.log ? [{ id: 'l' + n, text: opts.log, at: n, authorPlayerId: 'pa', turnNumber: 1 }] : [],
       players: [
-        { id: 'pa', name: 'Ana', seat: 0, selectedBattlefield: 'Campo Uno', selectedBattlefieldCardCode: 'OGN-001', board: board(card('aL', 'Leyenda A', 'UNL-234', 'legend'), opts.aBase || [], opts.aField || [], opts.aScore || 0) },
-        { id: 'pb', name: 'Beto', seat: 1, selectedBattlefield: 'Campo Dos', selectedBattlefieldCardCode: 'OGN-002', board: board(card('bL', 'Leyenda B', 'UNL-197', 'legend'), [], opts.bField || [], 0) },
+        { id: 'pa', name: 'Ana', seat: 0, decklistRaw: FULL_LIST, selectedBattlefield: 'Campo Uno', selectedBattlefieldCardCode: 'OGN-001', board: board(card('aL', 'Leyenda A', 'UNL-234', 'legend'), opts.aBase || [], opts.aField || [], opts.aScore || 0) },
+        { id: 'pb', name: 'Beto', seat: 1, decklistRaw: 'Legend:\n1 Leyenda B [UNL-197]\n\nMainDeck:\n3 Stupefy [OGN-095]', selectedBattlefield: 'Campo Dos', selectedBattlefieldCardCode: 'OGN-002', board: board(card('bL', 'Leyenda B', 'UNL-197', 'legend'), [], opts.bField || [], 0) },
       ],
     },
   };
@@ -45,11 +47,13 @@ const replay = encodeReplay({
     frame(1, { aBase: [u1], log: 'Ana played Unidad Uno from hand to base.' }),
     frame(2, { aField: [u1], log: 'Ana moved Unidad Uno to Campo Uno.' }),
     frame(3, { aField: [u1], bField: [u2], active: 'pb', xp: 1, arrows: { pb: [{ sourceAnchor: 'chain', sourceCardId: 'chain-pb-x', targetAnchor: 'board', targetCardId: 'a1' }] } }),
-    frame(4, { aField: [{ ...u1, exhausted: true }], aScore: 1, log: 'Ana conquered Campo Uno and scored 1.' }),
+    // al final, Unidad Uno lleva una equipación (gear con attachedToCardId, justo después de ella en la zona)
+    frame(4, { aField: [{ ...u1, exhausted: true }, { ...card('a9', 'Espada', 'OGN-300', 'gear'), attachedToCardId: 'a1' }], aScore: 1, log: 'Ana conquered Campo Uno and scored 1.' }),
   ],
 });
 
 let errors: unknown[] = [];
+const $ = (q: string) => document.querySelector(q) as HTMLElement;
 let shell: any, engine: any, render: any, state: any, demo: any;
 
 beforeAll(async () => {
@@ -110,9 +114,32 @@ describe('app completa', () => {
       expect(document.querySelector('#frames .tturn[data-sec="mull"]')).not.toBeNull();
       expect(document.querySelectorAll('#frames .tl').length).toBe(state.R.frames.length);
       expect(document.querySelector(`#frames .tl.cur[data-i="${state.R.i}"]`)).not.toBeNull();
+      // la equipación va dentro de su unidad (detrás de ella) y no ocupa lugar en el campo
+      const eq = document.querySelector('#rboard .card.equip') as any;
+      expect(eq?._cid).toBe('a9');
+      expect(eq.parentElement._cid).toBe('a1');
       // barra de reproducción: posición en palabras y la conquista marcada sobre la línea
       expect(document.querySelector('#pos')!.textContent).toMatch(/^Turno \d/);
       expect(document.querySelector('#smarks .mk-conq')).not.toBeNull();
+      // estados manuales: poder y daño valen desde la jugada actual en adelante, no antes
+      const extras = await import('../src/app/replay-extras.js');
+      const unit = [...document.querySelectorAll('#rboard .card')].find(c => (c as any)._cid && (c as any)._zone && (c as any)._zone !== 'hand') as any;
+      expect(unit).toBeTruthy();
+      extras.setMod(unit._cid, { might: 2, dmg: 3, tags: ['Aturdida'] });
+      extras.paintCardExtras(unit, unit._zone, false);
+      expect(unit.querySelector(':scope > .dmg')?.textContent).toBe('3');
+      expect(unit.querySelector(':scope > .tag')?.textContent).toBe('Aturdida');
+      expect(extras.modAt(unit._cid, state.R.i)?.might).toBe(2);
+      expect(extras.modAt(unit._cid, state.R.i - 1)).toBeNull();
+      // la lista de Ana se abre en el constructor (sin guardarla) y se vuelve a la partida
+      expect($('#pinfo [data-deckof="pb"]')).toBeNull();
+      ($('#pinfo [data-deckof="pa"]') as HTMLButtonElement).click();
+      expect(($('#deckb') as HTMLElement).hidden).toBe(false);
+      expect(($('#dbName') as HTMLInputElement).value).toMatch(/^Ana · /);
+      expect(($('#dbSaveShared') as HTMLElement).hidden).toBe(false);
+      ($('#dbBack') as HTMLButtonElement).click();
+      expect(($('#deckb') as HTMLElement).hidden).toBe(true);
+      expect(document.querySelector('#home')!.classList.contains('show')).toBe(false);
       // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
       Object.assign(navigator, { mediaDevices: { getDisplayMedia: () => Promise.reject(new Error('sin pantalla')) } });
       (window as any).MediaRecorder = class {};

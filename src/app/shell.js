@@ -214,6 +214,8 @@ export function init() {
   $('#rview').onchange=e=>{ app.R.view=e.target.value; app.R.layoutKey=''; rJump(app.R.i); };
   try{ $('#rlay').value=localStorage.getItem('rb_lay2')||'lanes'; $('#rcamsel').value=localStorage.getItem('rb_cam')||'suave'; }catch(e){}
   $('#rlay').onchange=e=>{ try{ localStorage.setItem('rb_lay2',e.target.value); }catch(err){} noteLocalChange('settings'); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } };
+  try{ const v=localStorage.getItem('rb_arrow'); if(v) $('#rarrow').value=v; }catch(e){}
+  $('#rarrow').onchange=e=>{ try{ localStorage.setItem('rb_arrow',e.target.value); }catch(err){} };
   $('#rcamsel').onchange=e=>{ try{ localStorage.setItem('rb_cam',e.target.value); }catch(err){} noteLocalChange('settings'); if(app.R) camTo(null,true); };
   $('#rhands').onchange=$('#rlang').onchange=()=>{ if($('#rlang').value) buildFrameList(); rJump(app.R.i); };
   $('#scrub').oninput=e=>{ if(app.R){ app.playing=false; rJump(+e.target.value); } };

@@ -1,5 +1,5 @@
 // Generado a partir de legacy/app.js (sección "cards").
-import { buildOpenRiftIndex, emptyIndex, lookupByCode } from '../data/openrift';
+import { buildOpenRiftIndex, emptyIndex, lookupByCode, openRiftExtraCards } from '../data/openrift';
 import { norm } from '../data/text';
 import { $, API } from './base';
 import { rJump } from './replay-render';
@@ -11,7 +11,7 @@ export let CARDS = [];
 
 export async function loadCards(){
   try{
-    const c = JSON.parse(localStorage.getItem('rb_cards3')||'null');
+    const c = JSON.parse(localStorage.getItem('rb_cards4')||'null');
     if(c && Date.now()-c.t < 864e5*3){ CARDS = c.d; return ready(); }
   }catch(e){}
   try{
@@ -21,19 +21,20 @@ export async function loadCards(){
     rest.forEach(p=>items=items.concat(p.items));
     CARDS = items.map(x=>({
       name:x.name, n:norm(x.name), type:x.classification.type, sup:x.classification.supertype,
-      img:x.media.image_url, text:x.text.plain||'', rich:x.text.rich||'', e:x.attributes.energy, m:x.attributes.might,
+      img:x.media.image_url, text:x.text.plain||'', rich:x.text.rich||'', e:x.attributes.energy, m:x.attributes.might, pw:x.attributes.power,
+      dom:(x.classification.domain||[]).filter(d=>d!=='Colorless'), rar:x.classification.rarity||'', set:x.set?.set_id||'',
       alt:!!(x.metadata.alternate_art||x.metadata.signature&&x.classification.type==='Legend'||x.metadata.overnumbered||/\((Signature|Metal|Alternate|Overnumbered)/i.test(x.name)),
       tags:(x.tags||[]).map(norm), num:x.collector_number,
       code:(x.riftbound_id||'').split('-').slice(0,2).join('-').toUpperCase()
     }));
-    try{ localStorage.removeItem('rb_cards'); localStorage.removeItem('rb_cards2'); localStorage.setItem('rb_cards3',JSON.stringify({t:Date.now(),d:CARDS})); }catch(e){}
+    try{ localStorage.removeItem('rb_cards'); localStorage.removeItem('rb_cards2'); localStorage.removeItem('rb_cards3'); localStorage.setItem('rb_cards4',JSON.stringify({t:Date.now(),d:CARDS})); }catch(e){}
     ready();
   }catch(e){
     setStatus('No se pudieron cargar las cartas de la API ('+e.message+'). Se usarán marcadores de texto.','err');
     run();
   }
 }
-export function ready(){ setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
+export function ready(){ mergeOpenRift(); setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
 export let BYCODE=null;
 export function cardByCode(code,name,imageUrl){
   if(!code && (imageUrl || isToken(name))) return withCustom(tokenCard(name,imageUrl), imgKey(code,name), name);
@@ -56,10 +57,39 @@ export function tokenCard(name,imageUrl){
   if(!img) return null;   // sin imagen: se muestra el nombre en la carta
   return { name:or?.name||name||'', img, text:or?.text||'', type:or?.type||'Token', m:or?.might??null, might:or?.might??null, token:true };
 }
+/* ---- datos para el constructor de mazos (src/deck) ---- */
+const toDeckCard = c => c && ({ code:c.code, name:c.name, type:c.type, sup:c.sup||null, dom:c.dom||[], tags:c.tags||[], e:c.e??null, m:c.m??null, pw:c.pw??null });
+/** carta por código para las reglas del mazo (acepta variantes como "UNL-079A") */
+export function deckCard(code){
+  if(!code) return undefined;
+  if(!BYCODE) cardByCode(code);   // arma el índice
+  const c=BYCODE.get(code.toUpperCase()) || BYCODE.get(code.toUpperCase().replace(/[A-Z*]+$/,''));
+  return c ? {...toDeckCard(c), code} : undefined;
+}
+/** catálogo del constructor: una impresión por nombre (la normal, del set más antiguo) */
+let CATALOG=null;
+export function deckCatalog(){
+  if(CATALOG) return CATALOG;
+  const byName=new Map();
+  for(const c of CARDS){ if(!c.code || c.sup==='Token') continue; const o=byName.get(c.name);
+    if(!o || (o.alt && !c.alt)) byName.set(c.name,c); }
+  return CATALOG=[...byName.values()];
+}
 export function setStatus(t,c){ const s=$('#status'); s.textContent=t; s.className=c||''; }
 
 /* OpenRift: respaldo para cartas que riftcodex no tiene (public/openrift-catalog.json, se genera con "npm run catalogo") */
 export let OR=emptyIndex();
+let OR_CAT=null;
+/** catálogo completo de OpenRift (impresiones de cada set), o null si aún no carga */
+export const orCatalog = () => OR_CAT;
+/** suma al catálogo las cartas que solo tiene OpenRift (sets nuevos como Radiance, que riftcodex aún no publica) */
+function mergeOpenRift(){
+  if(!OR_CAT) return;
+  CARDS=CARDS.filter(c=>c.src!=='openrift');
+  // fuera las variantes de cartas que riftcodex ya tiene ("OGN-095*" si ya está "OGN-095") y los nombres repetidos
+  const have=new Set(CARDS.map(c=>c.code)), names=new Set(CARDS.map(c=>c.n));
+  CARDS=CARDS.concat(openRiftExtraCards(OR_CAT,norm,have).filter(c=>!have.has(c.code.replace(/[A-Z*]+$/,'')) && !names.has(c.n)));
+}
 export const orByCode = code => lookupByCode(OR,code);
 
 /* imágenes propias del usuario (IndexedDB) */
@@ -108,6 +138,6 @@ export function findCardRaw(name){
 
 export function init() {
   fetch('openrift-catalog.json').then(r=>r.ok?r.json():null).then(cat=>{
-    if(!cat) return; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready();
+    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready(); else document.dispatchEvent(new Event('rb:cards'));
   }).catch(()=>{});
 }
