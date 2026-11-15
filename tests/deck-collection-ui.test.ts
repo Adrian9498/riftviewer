@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+const html = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
 const item = (id: string, name: string, type: string, domain: string[], energy: number | null = 2) => ({
   name, riftbound_id: id, classification: { type, supertype: null, domain, rarity: 'Common' }, attributes: { energy, might: type === 'Unit' ? 3 : null, power: null },
   text: { plain: 'Texto de ' + name, rich: '' }, media: { image_url: `https://img/${id}.png` }, metadata: { alternate_art: false, signature: false, overnumbered: false },

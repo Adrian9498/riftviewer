@@ -4,7 +4,7 @@
 import { FINISH_ES, ScanGate, lookalikes, parseCollector, searchPrintings, variantsOf } from '../collection/model';
 import { PICK, artSignature, artSimilarity, findByArt, pickVariant, sigFromB64 } from '../collection/artsig';
 import { norm } from '../data/text';
-import { $ } from './base';
+import { $, pub } from './base';
 import { esc } from './utils';
 import { money } from '../cloud/prices';
 
@@ -39,7 +39,7 @@ export function warmScanner() {
    elige sola la versión (normal, arte alterno, sobrenumerada…) y corrige el número cuando el OCR confunde cifras. */
 let SIGS = null;
 function loadSigs() {
-  if (!SIGS) SIGS = fetch('art-sigs.json').then(r => r.ok ? r.json() : null).then(j => {
+  if (!SIGS) SIGS = fetch(pub('art-sigs.json')).then(r => r.ok ? r.json() : null).then(j => {
     const raw = j?.sigs || {}, cache = new Map();
     return { get: code => { if (!raw[code]) return null; if (!cache.has(code)) cache.set(code, sigFromB64(raw[code])); return cache.get(code); }, n: Object.keys(raw).length };
   }).catch(() => null);

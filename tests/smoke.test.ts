@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+const html = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
 
 // convierte un objeto normal al formato de grafo de RiftAtlas (cada objeto/lista es un nodo)
 function encodeReplay(root: unknown) {

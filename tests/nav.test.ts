@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 vi.mock('tesseract.js', () => ({ createWorker: async () => { throw new Error('sin OCR en pruebas'); } }));
-const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+const html = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const tick = () => new Promise(r => setTimeout(r, 0));
 let errors: unknown[] = [];
