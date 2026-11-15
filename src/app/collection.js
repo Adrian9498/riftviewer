@@ -178,7 +178,7 @@ function cardBody(p) {
     <div class="codeti"><b>${esc(p.name)}</b><small>${p.code} · ${p.rarity}${p.variant !== 'Normal' ? ' · ' + p.variant : ''}</small>
       <div class="cofins">${p.finishes.map(f => `<div class="cofin"><span>${FINISH_ES[f] || f}${priceOf(pricesNow(), p.code, f) != null ? ` <em>${money(priceOf(pricesNow(), p.code, f))}</em>` : ''}</span>
         <button class="btn ico" data-df="${f}" data-d="-1" ${row[f] ? '' : 'disabled'}>−</button><b>${row[f] || 0}</b><button class="btn ico" data-df="${f}" data-d="1">+</button></div>`).join('')}</div>
-      ${pricesNow() ? `<div class="dbsub">Precio en TCGplayer (EE. UU.)</div><div class="cohist" data-hist="${p.code}"><div class="cohc">Cargando historial…</div></div>${tcgplayerUrl(pricesNow(), p.code) ? `<a class="btn mini" href="${tcgplayerUrl(pricesNow(), p.code)}" target="_blank" rel="noopener">Ver en TCGplayer ↗</a>` : ''}` : ''}
+      ${pricesNow() ? `<div class="dbsub">Precio en TCGplayer (EE. UU.) <small class="pvia">vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a></small></div><div class="cohist" data-hist="${p.code}"><div class="cohc">Cargando historial…</div></div>${tcgplayerUrl(pricesNow(), p.code) ? `<a class="btn mini" href="${tcgplayerUrl(pricesNow(), p.code)}" target="_blank" rel="noopener">Ver en TCGplayer ↗</a>` : ''}` : ''}
       ${vars.length > 1 ? `<div class="dbsub">Otras versiones</div><div class="covars">${vars.map(v => `<button class="covar${v.code === p.code ? ' on' : ''}" data-dv="${v.code}" title="${v.code} · ${v.variant}"><img src="${esc(v.img)}" alt=""><small>${v.variant}</small>${countOf(collection(), v.code) ? `<span class="dbn">${countOf(collection(), v.code)}</span>` : ''}</button>`).join('')}</div>` : ''}
     </div></div>`;
 }

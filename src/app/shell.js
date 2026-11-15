@@ -4,6 +4,7 @@ import { $, ic, stage } from './base';
 import { tombDoc, touchAsset } from './cloud-adapter';
 import { IDB, cardByCode, setStatus } from './cards';
 import { replayMeta } from '../replay/meta';
+import { REPLAY_FILE_PREFIX, REPLAY_FORMAT } from '../replay/decode';
 import { applyProject, loadProj, renderClips } from './clips';
 import { DEMO } from './demo';
 import { fit } from './fit';
@@ -52,9 +53,9 @@ export async function readDropped(file){
   const text=await file.text();
   if(/\.txt$/i.test(file.name)) return openScript(text,file.name.replace(/\.txt$/i,''));
   let j; try{ j=JSON.parse(text); }catch(e){ toast('El archivo no es un replay ni un guion válido','err'); return; }
-  if(j.format==='riftatlas-replay') return openReplay(j,file.name.replace(/\.json$/i,'').replace(/^riftatlas-replay-/,'Replay '),text);
+  if(j.format===REPLAY_FORMAT) return openReplay(j,file.name.replace(/\.json$/i,'').replace(REPLAY_FILE_PREFIX,'Replay '),text);
   if(j.format==='rb-vis-project'){ if(!DOC.kind){ toast('Abre primero la partida de este proyecto','err'); return; } return applyProject(j); }
-  toast('No reconozco este archivo. Usa un replay de RiftAtlas (.json) o un guion (.txt).','err');
+  toast('No reconozco este archivo. Usa un replay del simulador (.json) o un guion (.txt).','err');
 }
 export let dragN=0;
 

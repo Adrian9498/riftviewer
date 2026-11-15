@@ -1,4 +1,4 @@
-// Los replays de RiftAtlas guardan un grafo de objetos deduplicado:
+// Los replays del simulador guardan un grafo de objetos deduplicado:
 //   nodes[i] = ["o", [[clave, valor], ...]]   (objeto)
 //            | ["a", [valor, ...]]            (lista)
 // y cualquier valor {"r": n} es una referencia a nodes[n]. Así se comparten
@@ -13,12 +13,17 @@ export interface RawReplay {
   root: { r: number };
 }
 
+/** Identificador que trae cada archivo de replay del simulador en su campo "format". */
+export const REPLAY_FORMAT = 'riftatlas-replay';
+/** Prefijo con el que el simulador nombra los archivos que descarga. */
+export const REPLAY_FILE_PREFIX = /^riftatlas-replay-/;
+
 const isRef = (v: unknown): v is { r: number } =>
   !!v && typeof v === 'object' && !Array.isArray(v) && 'r' in v && Object.keys(v).length === 1;
 
 /** Reconstruye el objeto raíz del replay, resolviendo referencias (y ciclos) a nodos compartidos. */
 export function decodeReplay<T = any>(j: RawReplay): T {
-  if (!j || j.format !== 'riftatlas-replay' || !Array.isArray(j.nodes)) throw new Error('El archivo no es un replay de RiftAtlas');
+  if (!j || j.format !== REPLAY_FORMAT || !Array.isArray(j.nodes)) throw new Error('El archivo no es un replay del simulador');
   const memo = new Map<number, unknown>();
   const D = (v: unknown): unknown => (Array.isArray(v) ? v.map(D) : isRef(v) ? N(v.r) : v);
   function N(i: number): unknown {

@@ -15,14 +15,14 @@ import { esc } from './utils';
 import { switchTab } from './shell';
 import { buildScrubMarks } from './transport';
 
-/* ================= Replays de RiftAtlas ================= */
+/* ================= Replays del simulador ================= */
 
 
 export const BFZ=['battlefieldA','battlefieldB','battlefieldC','battlefieldToken'];
 export const arr = x => !x ? [] : Array.isArray(x) ? x.filter(c=>c&&c.id) : (x.id ? [x] : []);
 
 
-/** lista del mazo de un jugador tal como la guarda RiftAtlas */
+/** lista del mazo de un jugador tal como la guarda el simulador */
 export const deckRawOf = p => p ? (p.deck?.raw||p.decklistRaw||p.submittedDeck?.raw||p.registeredDeck?.raw||'') : '';
 export const tr = t => translateLog(t, $('#rlang').value);
 

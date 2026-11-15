@@ -82,14 +82,14 @@ describe('sincronización entre dos PCs', () => {
     A.s.settings = { data: { brand: { name: '@MiCanal' } }, ts: 100 };
     A.s.projects.set('rb_proj_x', { data: { marks: { 5: { label: 'Jugadón' } } }, ts: 100 });
     A.s.docs.set('script:Final', { kind: 'script', name: 'Final', data: 'turno j1', ts: 100 });
-    A.s.docs.set('rb_proj_replay1', { kind: 'replay', name: 'Replay 1', data: '{"format":"riftatlas-replay"}', ts: 101 });
+    A.s.docs.set('rb_proj_replay1', { kind: 'replay', name: 'Replay 1', data: '{"format":"replay"}', ts: 101 });
     A.s.assets.set('card:RAD-164', { blob: new Blob(['img'], { type: 'image/jpeg' }), ts: 100 });
     await syncAs(A);
     await syncAs(B);
     expect(B.s.settings.data.brand.name).toBe('@MiCanal');
     expect(B.s.projects.get('rb_proj_x')?.data.marks[5].label).toBe('Jugadón');
     expect(B.s.docs.get('script:Final')?.data).toBe('turno j1');
-    expect(B.s.docs.get('rb_proj_replay1')?.data).toBe('{"format":"riftatlas-replay"}');
+    expect(B.s.docs.get('rb_proj_replay1')?.data).toBe('{"format":"replay"}');
     expect(await B.s.assets.get('card:RAD-164')?.blob.text()).toBe('img');
   });
 

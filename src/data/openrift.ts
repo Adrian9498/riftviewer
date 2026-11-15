@@ -86,7 +86,7 @@ export function buildOpenRiftIndex(cat: OpenRiftCatalog, norm: (s: string) => st
 }
 
 /**
- * Busca por código de RiftAtlas. Los replays usan "RAD-174S" (firmada) donde OpenRift usa "RAD-174*";
+ * Busca por código del simulador. Los replays usan "RAD-174S" (firmada) donde OpenRift usa "RAD-174*";
  * si la variante no existe, usa la carta base ("RAD-138A" → "RAD-138").
  */
 export function lookupByCode(idx: OpenRiftIndex, code?: string | null): CardInfo | null {

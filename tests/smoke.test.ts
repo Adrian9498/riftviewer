@@ -5,10 +5,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { REPLAY_FORMAT } from '../src/replay/decode';
 
 const html = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
 
-// convierte un objeto normal al formato de grafo de RiftAtlas (cada objeto/lista es un nodo)
+// convierte un objeto normal al formato de grafo del simulador (cada objeto/lista es un nodo)
 function encodeReplay(root: unknown) {
   const nodes: unknown[] = [];
   const enc = (v: unknown): unknown => {
@@ -16,7 +17,7 @@ function encodeReplay(root: unknown) {
     if (v && typeof v === 'object') { const i = nodes.push(null) - 1; nodes[i] = ['o', Object.entries(v).map(([k, x]) => [k, enc(x)])]; return { r: i }; }
     return v;
   };
-  return { format: 'riftatlas-replay', version: 2, nodes, root: enc(root) };
+  return { format: REPLAY_FORMAT, version: 2, nodes, root: enc(root) };
 }
 const card = (id: string, name: string, code: string, type = 'unit', exhausted = false) =>
   ({ id, name, cardCode: code, type, exhausted, ownerPlayerId: id.startsWith('a') ? 'pa' : 'pb' });

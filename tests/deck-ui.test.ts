@@ -63,7 +63,7 @@ describe('constructor de mazos', () => {
     expect(txt).toMatch(/Elige 3 campos/);
   });
 
-  it('exporta en formato RiftAtlas y el enlace vuelve a abrir el mismo mazo', async () => {
+  it('exporta en el formato del simulador y el enlace vuelve a abrir el mismo mazo', async () => {
     ($('#dbExport') as HTMLButtonElement).click();
     const txt = ($('#modal textarea') as HTMLTextAreaElement).value;
     expect(txt).toMatch(/^Legend:\n1 Diana, Scorn of the Moon \[OGN-001\]\n\nChampion:\n1 Diana, Lunari \[OGN-002\]\n\nMainDeck:\n3 Stupefy \[OGN-004\]/);
