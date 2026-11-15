@@ -173,3 +173,17 @@
 .cohhit{cursor:crosshair}
 .cohtip{position:absolute;bottom:34px;width:90px;padding:4px 8px;border-radius:8px;background:#000d;border:1px solid var(--line2);font-size:12px;color:var(--text);text-align:center;pointer-events:none;white-space:nowrap}
 .cohtip b{color:var(--ivory)}
+
+/* valor de la colección en el tiempo */
+.cotot .coval{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:#e9d29a;font-weight:700;border-bottom:1px dashed #e9d29a88}
+.cotot .coval:hover{color:#fff4cf}
+.cotot .coval svg{width:14px;height:14px}
+.covtop{display:flex;flex-direction:column;gap:6px}
+.covtop:empty{display:none}
+.covrow{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:10px;background:var(--panel2);border:1px solid var(--line)}
+.covrow:hover{border-color:#c8aa6e88}
+.covrow img{width:34px;border-radius:4px}
+.covrow span{flex:1;min-width:0;display:flex;flex-direction:column}
+.covrow b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.covrow small{color:var(--muted);font-size:12px}
+.covrow em{font-style:normal;font-weight:700;color:#e9d29a;font-variant-numeric:tabular-nums}

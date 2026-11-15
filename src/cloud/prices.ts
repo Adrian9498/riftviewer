@@ -68,3 +68,17 @@ export function historyPoints(rows: HistoryRow[], finish = 'normal'): { day: str
   const i = finish === 'normal' ? 0 : 2;
   return rows.flatMap(r => r.price?.[i] != null ? [{ day: r.day, v: r.price[i] as number }] : []);
 }
+
+export interface ValueRow { day: string; value: number; priced: number }
+/**
+ * Valor de tu colección día por día (lo que tienes hoy, a los precios de cada día).
+ * null si no hay nube o la función todavía no existe en Supabase (falta npx supabase db push).
+ */
+export async function collectionValueHistory(items: Record<string, Record<string, number>>, days = 365): Promise<ValueRow[] | null> {
+  const db = supabase(); if (!db) return null;
+  const { data, error } = await db.rpc('collection_value_history', { p_items: items, p_days: days });
+  if (error || !data) return null;
+  return (data as { day: string; value: number | string; priced: number }[]).map(r => ({ day: r.day, value: +r.value, priced: r.priced }));
+}
+/** Puntos de la gráfica del valor, desde una fecha (YYYY-MM-DD) si se da. */
+export const valuePoints = (rows: ValueRow[], from = '') => rows.filter(r => r.day >= from).map(r => ({ day: r.day, v: r.value }));

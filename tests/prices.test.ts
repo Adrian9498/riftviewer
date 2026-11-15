@@ -1,7 +1,7 @@
 // Precios: conversión de los productos de tcgcsv (TCGplayer) a códigos de carta, y lectura en la app.
 import { describe, expect, it } from 'vitest';
 import { codeFor, pricesForGroup } from '../supabase/functions/_shared/prices';
-import { priceOf, collectionValue, historyPoints, money } from '../src/cloud/prices';
+import { priceOf, collectionValue, historyPoints, money, valuePoints } from '../src/cloud/prices';
 
 describe('tcgcsv → códigos', () => {
   it('arma el código desde el set y el número impreso', () => {
@@ -56,5 +56,13 @@ describe('formato de precios', () => {
     expect(money(149.99)).toBe('$150');
     expect(money(1234)).toBe('$1,234');
     expect(money(null)).toBe('—');
+  });
+});
+
+describe('valor de la colección en el tiempo', () => {
+  it('puntos desde una fecha', () => {
+    const rows = [{ day: '2026-11-09', value: 10, priced: 3 }, { day: '2026-11-12', value: 12.5, priced: 3 }, { day: '2026-11-14', value: 11, priced: 4 }];
+    expect(valuePoints(rows)).toHaveLength(3);
+    expect(valuePoints(rows, '2026-11-12')).toEqual([{ day: '2026-11-12', v: 12.5 }, { day: '2026-11-14', v: 11 }]);
   });
 });
