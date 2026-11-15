@@ -96,13 +96,13 @@ describe('mi colección', () => {
   it('precios: en la carta, valor de la colección y orden por las más valiosas', async () => {
     await new Promise(r => setTimeout(r, 10));
     expect(tile('RAD-001').querySelector('.copr')!.textContent).toBe('$0.25');
-    expect($('#coTot').textContent).toContain('vale $3.25');            // 1 normal ($0.25) + 1 foil del arte alterno ($3)
+    expect($('#coSum').textContent).toContain('$3.25');            // 1 normal ($0.25) + 1 foil del arte alterno ($3)
     const s = $('#coSort') as HTMLSelectElement; s.value = 'price'; s.dispatchEvent(new Event('input', { bubbles: true }));
     expect((document.querySelector('#coGrid .coc') as HTMLElement).dataset.code).toBe('RAD-004A');
   });
 
   it('"vale $X" abre el valor de tu colección con lo que más vale', async () => {
-    ($('#coTot [data-value]') as HTMLButtonElement).click();
+    ($('#coSum [data-value]') as HTMLButtonElement).click();
     expect($('#modal').classList.contains('show')).toBe(true);
     const rows = [...document.querySelectorAll('#modal .covrow')].map(r => (r as HTMLElement).dataset.vcard);
     expect(rows).toEqual(['RAD-004A', 'RAD-001']);                        // $3 foil antes que $0.25 normal

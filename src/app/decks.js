@@ -236,6 +236,7 @@ function renderAll() {
   document.querySelectorAll('.dbtabs button').forEach(b => b.classList.toggle('on', b.dataset.dt === TAB));
   if (TAB === 'list') renderList(issues); else if (TAB === 'stats') renderStats(); else if (TAB === 'test') renderTest(); else renderCheck(issues);
   renderCatalog(); renderDeckList();
+  $('#dbPaneN').textContent = `${total(mainWithChampion(D))}/${MAIN_MIN}`;
 }
 
 /* ---------- importar, exportar y compartir ---------- */
@@ -364,7 +365,17 @@ export function openReplayDeck(pid) {
 }
 export function hideDecks() { $('#deckb').hidden = true; document.body.classList.remove('indecks'); $('#hoverprev').classList.remove('show'); }
 
+/* ---------- teléfono: catálogo o mazo, y filtros plegados ---------- */
+// ¿hay ratón? (sin matchMedia, como en las pruebas, se asume que sí)
+const hasHover = () => typeof matchMedia !== 'function' || matchMedia('(hover: hover)').matches;
+function setPane(p) {
+  $('#deckb').dataset.pane = p;
+  document.querySelectorAll('.dbpanes [data-pane]').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
+}
 export function init() {
+  $('#deckb').dataset.pane = 'cat';
+  $('.dbpanes').onclick = e => { const b = e.target.closest('[data-pane]'); if (b) setPane(b.dataset.pane); };
+  $('#dbFiltBtn').onclick = () => { const o = $('#deckb .dbfilters').classList.toggle('open'); $('#dbFiltBtn').setAttribute('aria-expanded', String(o)); };
   // filtros: dominios como botones con su icono, y los sets y rarezas que existan en el catálogo
   $('#dbDom').innerHTML = DOMS.map(d => `<button class="chip" data-dom="${d}" title="${DOM_ES[d]}">${symbolHTML('rb_rune_' + d.toLowerCase())}</button>`).join('') + '<button class="chip" data-dom="none" title="Sin dominio">Sin dominio</button>';
   const fillSelects = () => {
@@ -418,11 +429,11 @@ export function init() {
     if (hi) { if (SIM.mull) return; const k = +hi.dataset.hi; SIM.pick.has(k) ? SIM.pick.delete(k) : SIM.pick.size < MULL_MAX && SIM.pick.add(k); renderTest(); return; }
     const a = e.target.closest('[data-add]'); if (a) { add(a.dataset.add, a.dataset.sec === 'side' ? 'side' : 'main'); return; }
     const r = e.target.closest('[data-rm]'); if (r) { remove(r.dataset.rm, r.dataset.sec); return; }
-    const f = e.target.closest('[data-filter]'); if (f) { F.type = f.dataset.filter; $('#dbType').value = F.type; LIMIT = 120; renderCatalog(); $('#dbGrid').scrollTop = 0; }
+    const f = e.target.closest('[data-filter]'); if (f) { F.type = f.dataset.filter; $('#dbType').value = F.type; LIMIT = 120; renderCatalog(); $('#dbGrid').scrollTop = 0; setPane('cat'); }
   });
   document.querySelector('.dbtabs').onclick = e => { const b = e.target.closest('[data-dt]'); if (b) { TAB = b.dataset.dt; renderAll(); } };
   // vista ampliada en el catálogo y en la lista
-  $('#deckb').addEventListener('mouseover', e => { const t = e.target.closest('.dbc,.dbr'); if (!t) return; clearTimeout(hpT); hpT = setTimeout(() => preview(t.dataset.code, e.clientX, e.clientY), 250); });
+  $('#deckb').addEventListener('mouseover', e => { if (!hasHover()) return; const t = e.target.closest('.dbc,.dbr'); if (!t) return; clearTimeout(hpT); hpT = setTimeout(() => preview(t.dataset.code, e.clientX, e.clientY), 250); });
   $('#deckb').addEventListener('mouseout', e => { if (e.target.closest('.dbc,.dbr') && !e.relatedTarget?.closest?.('.dbc,.dbr')) { clearTimeout(hpT); $('#hoverprev').classList.remove('show'); } });
 
   // abrir un mazo compartido (#deck=…)
