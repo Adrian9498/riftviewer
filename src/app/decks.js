@@ -320,14 +320,16 @@ function sheetHTML() {
     </div>
     <div class="ds-mark">Hecho con <b>Riftviewer</b></div>`;
 }
+const fitSheet = () => $('#dsheet').style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080));
 function exportImage() {
   if (!Object.keys(D.main).length) { toast('Agrega cartas al mazo primero.', 'err'); return; }
   const wrap = $('#dsheetw'), sheet = $('#dsheet');
   captureToPng({
-    w: 1920, h: 1080, file: `mazo-${(D.name || 'riftviewer').replace(/[^w-]+/g, '_').slice(0, 40)}.png`,
+    w: 1920, h: 1080, file: `mazo-${(D.name || 'riftviewer').replace(/[^\w-]+/g, '_').slice(0, 40)}.png`,
     title: 'Todo listo para la imagen', msg: 'Al pulsar el botón, la pantalla se pondrá completa un momento y se guardará la imagen de tu mazo.',
-    show: () => { sheet.innerHTML = sheetHTML(); wrap.hidden = false; sheet.style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080)); return sheet; },
-    hide: () => { wrap.hidden = true; sheet.innerHTML = ''; },
+    // la escala se recalcula al cambiar el tamaño: la pantalla completa termina de abrirse después de mostrar la hoja
+    show: () => { sheet.innerHTML = sheetHTML(); wrap.hidden = false; fitSheet(); addEventListener('resize', fitSheet); return sheet; },
+    hide: () => { removeEventListener('resize', fitSheet); wrap.hidden = true; sheet.innerHTML = ''; },
   });
 }
 
