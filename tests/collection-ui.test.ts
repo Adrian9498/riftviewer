@@ -84,8 +84,8 @@ describe('mi colección', () => {
     expect($('#csMsg').textContent).toMatch(/cámara|lector/);
     const q = $('#csQ') as HTMLInputElement; q.value = 'rad 4'; q.dispatchEvent(new Event('input'));
     expect(document.querySelectorAll('#csHits [data-cspick]').length).toBe(2);   // RAD-004 y su arte alterno
-    ($('#csHits [data-cspick="RAD-004"]') as HTMLButtonElement).click();
-    ($('#csRes [data-csadd="normal"]') as HTMLButtonElement).click();
+    ($('#csHits [data-cspick="RAD-004"]') as HTMLButtonElement).click();   // agregar al instante (por defecto): se suma de una vez
+    expect($('#csStack').hidden).toBe(false);                            // y cae en la pila de la esquina
     expect($('#csSess').textContent).toContain('1 carta');
     ($('[data-csundo]') as HTMLButtonElement).click();
     expect($('#csSess').textContent).toBe('');

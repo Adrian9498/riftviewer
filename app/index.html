@@ -360,11 +360,13 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     <button class="btn ico" id="csTorch" title="Linterna" hidden><svg class="i"><use href="#i-bulb"/></svg></button>
     <button class="btn ico" id="csFlip" title="Cambiar de cámara" hidden><svg class="i"><use href="#i-flip"/></svg></button>
   </header>
+  <!-- pila de cartas agregadas en esta sesión (agregar al instante): tocarla muestra la última -->
+  <button class="csstack" id="csStack" hidden title="Ver la última carta agregada"></button>
   <div class="csbottom">
     <div class="csres" id="csRes"></div>
     <div class="csopts">
       <span class="seg" id="csFin"><button data-fin="normal" class="on">Normal</button><button data-fin="foil">Foil</button></span>
-      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto"> Agregar al instante</label>
+      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto" checked> Agregar al instante</label>
       <span class="csfocus" id="csFocusW" hidden title="Si la cámara enfoca otra cosa, mueve el enfoque a mano">Enfoque <input type="range" id="csFocus"> <button class="btn mini" id="csFocusAuto">Auto</button></span>
       <span class="cssess" id="csSess"></span>
     </div>

@@ -86,7 +86,8 @@ export async function openScanner(ctx) {
     shown: null, alts: [], sess: [], devices: [], dev: -1, torch: false, mode: 0, gate: new ScanGate(), warned: false, seq: 0, done: 0, rr: 0 };
   $('#coscan').hidden = false; document.body.classList.add('scanning');
   $('#csQ').value = ''; $('#csHits').innerHTML = '';
-  renderRes(); renderSess();
+  setAuto(readAuto());
+  renderRes(); renderSess(); renderStack();
   // cámara y lector a la vez: ninguno espera al otro
   loadOcr();
   const st = S; loadSigs().then(s => { if (S === st) st.sigs = s; });
@@ -305,10 +306,56 @@ function add(p, f) {
   S.sess.push({ code: p.code, f });
   msg(`+1 ${p.name}${f === 'normal' ? '' : ' (' + (FINISH_ES[f] || f) + ')'}${S.byArt ? ` · por el arte (leí ${S.byArt})` : ''}. Siguiente carta.`, 'ok');
   S.byArt = null;
-  renderRes(); renderSess();
+  if (auto()) { S.peek = false; fly(p); }
+  renderRes(); renderSess(); renderStack();
 }
+
+/* ---------- agregar al instante: la carta vuela a una pila en la esquina ---------- */
+const AUTO_KEY = 'rb_scan_auto';
+const auto = () => $('#csAuto').checked;
+function readAuto() { try { return localStorage.getItem(AUTO_KEY) !== '0'; } catch (e) { return true; } }
+function setAuto(on) {
+  $('#csAuto').checked = on;
+  $('#coscan').classList.toggle('auto', on);
+  try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch (e) {}
+  if (S) { S.peek = false; renderRes(); renderStack(); }
+}
+/** La pila: las últimas tres cartas agregadas y cuántas van. Va en la esquina inferior derecha de la cámara. */
+function renderStack() {
+  const el = $('#csStack'), last = (S?.sess || []).slice(-3);
+  el.hidden = !auto() || !last.length;
+  if (el.hidden) return;
+  el.innerHTML = last.map((x, i) => `<img src="${esc(S.ctx.cat.byCode.get(x.code)?.img || '')}" alt="" style="--i:${last.length - 1 - i}">`).join('')
+    + `<b>${S.sess.length}</b>`;
+  el.classList.toggle('on', !!S.peek);
+  placeStack();
+}
+/** Arriba del panel de abajo (teléfono) o a la izquierda del panel lateral (PC). */
+function placeStack() {
+  const el = $('#csStack'), r = $('#coscan .csbottom').getBoundingClientRect();
+  const side = r.top < 10 && r.width < innerWidth * 0.6;
+  el.style.right = (side ? innerWidth - r.left + 14 : 14) + 'px';
+  el.style.bottom = (side ? 14 : innerHeight - r.top + 12) + 'px';
+}
+/** Una miniatura sale del marco y cae en la pila. */
+function fly(p) {
+  const g = $('#csGuide').getBoundingClientRect(), st = $('#csStack');
+  if (!p.img || !g.width || typeof document.body.animate !== 'function') return;
+  st.hidden = false; placeStack();
+  const t = st.getBoundingClientRect(), img = document.createElement('img');
+  img.src = p.img; img.className = 'csfly';
+  const w = Math.min(g.width * 0.7, 260);
+  Object.assign(img.style, { width: w + 'px', left: (g.left + g.width / 2 - w / 2) + 'px', top: (g.top + g.height / 2 - w * 0.7) + 'px' });
+  $('#coscan').appendChild(img);
+  const dx = (t.left + t.width / 2) - (g.left + g.width / 2), dy = (t.top + t.height / 2) - (g.top + g.height / 2 - w * 0.7 + w * 0.7);
+  img.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(${56 / w})`, opacity: 0.4 }],
+    { duration: 520, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {}).then(() => img.remove());
+}
+
 function renderRes() {
   const p = S?.shown;
+  // agregando al instante, la carta no ocupa la pantalla: va a la pila (tocarla la muestra aquí)
+  if (p && auto() && !S.peek) { $('#csRes').innerHTML = '<span id="csHeard"></span>'; return; }
   if (!p) { $('#csRes').innerHTML = '<div class="cshint">Apunta al número de la carta (abajo). Con buena luz y sin reflejos lee más rápido.<span id="csHeard"></span></div>'; return; }
   const row = S.ctx.row(p.code), have = Object.entries(row).map(([f, n]) => `${n} ${(FINISH_ES[f] || f).toLowerCase()}`).join(', ');
   $('#csRes').innerHTML = `<div class="csc"><img src="${esc(p.img)}" alt="">
@@ -325,11 +372,14 @@ function renderSess() {
 function undo() {
   const last = S.sess.pop(); if (!last) return;
   S.ctx.add(last.code, last.f, -1);
-  msg('Se quitó la última carta.'); renderRes(); renderSess();
+  S.peek = false;
+  msg('Se quitó la última carta.'); renderRes(); renderSess(); renderStack();
 }
 
 export function init() {
   $('#csClose').onclick = closeScanner;
+  $('#csAuto').onchange = e => setAuto(e.target.checked);
+  addEventListener('resize', () => { if (S) placeStack(); });
   $('#csTorch').onclick = toggleTorch;
   $('#csFlip').onclick = flipCamera;
   $('#csFin').onclick = e => {
@@ -339,8 +389,17 @@ export function init() {
   $('#coscan').addEventListener('click', e => {
     if (!S) return;
     const a = e.target.closest('[data-csadd]'); if (a && S.shown) { add(S.shown, a.dataset.csadd); return; }
+    if (e.target.closest('#csStack')) {
+      const last = S.sess[S.sess.length - 1], p = last && S.ctx.cat.byCode.get(last.code); if (!p) return;
+      S.peek = !S.peek; S.shown = p; S.alts = variantsOf(S.ctx.cat.prints, p); renderRes(); renderStack(); return;
+    }
     const alt = e.target.closest('[data-csalt]');
-    if (alt) { const p = S.ctx.cat.byCode.get(alt.dataset.csalt); if (p) { S.shown = p; if (!S.alts.includes(p)) S.alts = variantsOf(S.ctx.cat.prints, p); renderRes(); } return; }
+    if (alt) {
+      const p = S.ctx.cat.byCode.get(alt.dataset.csalt); if (!p) return;
+      // viendo la última agregada: otra versión la reemplaza (se quita la que se sumó y se suma esta)
+      if (S.peek && S.sess.length && p.code !== S.sess[S.sess.length - 1].code) { const last = S.sess.pop(); S.ctx.add(last.code, last.f, -1); S.shown = p; add(p, finFor(p)); S.peek = true; S.alts = variantsOf(S.ctx.cat.prints, p); renderRes(); renderStack(); return; }
+      S.shown = p; if (!S.alts.includes(p)) S.alts = variantsOf(S.ctx.cat.prints, p); renderRes(); return;
+    }
     if (e.target.closest('[data-csundo]')) undo();
   });
   $('#csQ').oninput = e => {
@@ -352,7 +411,10 @@ export function init() {
     const b = e.target.closest('[data-cspick]'); if (!b || !S) return;
     const p = S.ctx.cat.byCode.get(b.dataset.cspick); if (!p) return;
     S.shown = p; S.alts = variantsOf(S.ctx.cat.prints, p); S.gate.pick(p.code, Date.now());
-    $('#csQ').value = ''; $('#csHits').innerHTML = ''; renderRes(); msg(`Elegiste ${p.name}. Toca "+1" para sumarla.`, 'ok');
+    $('#csQ').value = ''; $('#csHits').innerHTML = '';
+    // agregando al instante, la elegida a mano también se suma de una vez
+    if (auto()) { add(p, finFor(p)); return; }
+    renderRes(); msg(`Elegiste ${p.name}. Toca "+1" para sumarla.`, 'ok');
   };
   // enfoque: tocar la imagen enfoca ahí; la barra lo mueve a mano; "Auto" vuelve a enfocar solo en el número
   $('#csVideo').addEventListener('click', e => {

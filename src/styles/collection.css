@@ -205,3 +205,23 @@
   .cosv b{font-size:24px}
   .cosum .btn{width:100%;justify-content:center}
 }
+
+/* pila de cartas agregadas (agregar al instante) */
+.csstack{position:absolute;z-index:3;width:64px;height:90px;padding:0;border:0;background:none;cursor:pointer}
+.csstack[hidden]{display:none}
+.csstack img{position:absolute;left:0;bottom:0;width:64px;border-radius:6px;box-shadow:0 6px 18px #000c;border:1.5px solid #c8aa6e;
+  transform:translate(calc(var(--i) * -7px),calc(var(--i) * -5px)) rotate(calc(var(--i) * -6deg));transition:transform .2s}
+.csstack b{position:absolute;right:-8px;top:-10px;min-width:26px;height:26px;padding:0 7px;border-radius:999px;display:grid;place-items:center;
+  background:var(--ui-goldgrad);color:#1d1406;font-size:13px;font-weight:800;box-shadow:0 3px 10px #000c}
+.csstack.on img:last-of-type{border-color:#fff4cf;box-shadow:0 0 0 2px #e6c67f,0 6px 18px #000c}
+.csfly{position:fixed;z-index:4;border-radius:10px;box-shadow:0 14px 40px #000d;pointer-events:none;transform-origin:center}
+
+/* teléfono: el panel de abajo compacto para que la cámara se vea */
+@media (max-width:760px){
+  .csbottom{max-height:44vh;gap:8px;padding-top:10px}
+  .cscam,#csFocusW{display:none!important}
+  .csopts{gap:8px 12px}
+  .cssess{margin-left:0}
+  .csc{grid-template-columns:72px 1fr;gap:10px}
+  .credits.cscred{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 0}
+}
