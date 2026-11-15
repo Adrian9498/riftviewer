@@ -1,5 +1,6 @@
 // Generado a partir de legacy/app.js (sección "replay").
 import { decodeReplay } from '../replay/decode';
+import { isCompleteList } from '../deck/format';
 import { computeMulligans } from '../replay/mulligan';
 import { translateLog } from '../replay/translate';
 import { KIND_ICON, actionKind } from '../replay/timeline';
@@ -48,8 +49,8 @@ export function loadReplay(json){
   document.body.classList.add('replay');
   $('#rview').innerHTML=players.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
   $('#rview').value=app.R.view;
-  // con la lista de cada jugador se puede abrir su mazo en el constructor
-  const withDeck=players.filter(p=>deckRawOf(last.players.find(x=>x.id===p.id)));
+  // con la lista de cada jugador se puede abrir su mazo en el constructor (solo si está completa)
+  const withDeck=players.filter(p=>isCompleteList(deckRawOf(last.players.find(x=>x.id===p.id))));
   $('#pinfo').innerHTML=`${players.map(p=>`<b style="color:${p.col}">${esc(p.name)}</b>`).join(' vs ')}<br>${last.turnNumber||'?'} turnos · ${frames.length} jugadas`
     +(withDeck.length?`<div class="pdecks">${withDeck.map(p=>`<button class="btn mini" data-deckof="${esc(p.id)}" title="Abrir su lista en el constructor de mazos">${ic('cards')} Mazo de ${esc(p.name)}</button>`).join('')}</div>`:'');
   buildFrameList();

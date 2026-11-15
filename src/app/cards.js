@@ -1,5 +1,5 @@
 // Generado a partir de legacy/app.js (sección "cards").
-import { buildOpenRiftIndex, emptyIndex, lookupByCode } from '../data/openrift';
+import { buildOpenRiftIndex, emptyIndex, lookupByCode, openRiftExtraCards } from '../data/openrift';
 import { norm } from '../data/text';
 import { $, API } from './base';
 import { rJump } from './replay-render';
@@ -34,7 +34,7 @@ export async function loadCards(){
     run();
   }
 }
-export function ready(){ setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
+export function ready(){ mergeOpenRift(); setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
 export let BYCODE=null;
 export function cardByCode(code,name,imageUrl){
   if(!code && (imageUrl || isToken(name))) return withCustom(tokenCard(name,imageUrl), imgKey(code,name), name);
@@ -79,6 +79,17 @@ export function setStatus(t,c){ const s=$('#status'); s.textContent=t; s.classNa
 
 /* OpenRift: respaldo para cartas que riftcodex no tiene (public/openrift-catalog.json, se genera con "npm run catalogo") */
 export let OR=emptyIndex();
+let OR_CAT=null;
+/** catálogo completo de OpenRift (impresiones de cada set), o null si aún no carga */
+export const orCatalog = () => OR_CAT;
+/** suma al catálogo las cartas que solo tiene OpenRift (sets nuevos como Radiance, que riftcodex aún no publica) */
+function mergeOpenRift(){
+  if(!OR_CAT) return;
+  CARDS=CARDS.filter(c=>c.src!=='openrift');
+  // fuera las variantes de cartas que riftcodex ya tiene ("OGN-095*" si ya está "OGN-095") y los nombres repetidos
+  const have=new Set(CARDS.map(c=>c.code)), names=new Set(CARDS.map(c=>c.n));
+  CARDS=CARDS.concat(openRiftExtraCards(OR_CAT,norm,have).filter(c=>!have.has(c.code.replace(/[A-Z*]+$/,'')) && !names.has(c.n)));
+}
 export const orByCode = code => lookupByCode(OR,code);
 
 /* imágenes propias del usuario (IndexedDB) */
@@ -127,6 +138,6 @@ export function findCardRaw(name){
 
 export function init() {
   fetch('openrift-catalog.json').then(r=>r.ok?r.json():null).then(cat=>{
-    if(!cat) return; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready();
+    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready(); else document.dispatchEvent(new Event('rb:cards'));
   }).catch(()=>{});
 }

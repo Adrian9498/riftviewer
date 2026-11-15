@@ -23,6 +23,7 @@ export interface OpenRiftIndex {
 
 interface Printing {
   shortCode?: string;
+  rarity?: string;
   cardId: string;
   language?: string;
   artVariant?: string;
@@ -33,7 +34,7 @@ interface Printing {
   printedRulesText?: string | null;
   printedName?: string;
 }
-interface Card { name?: string; slug?: string; types?: string[]; superTypes?: string[]; might?: number | null }
+interface Card { name?: string; slug?: string; types?: string[]; superTypes?: string[]; might?: number | null; energy?: number | null; power?: number | null; domains?: string[]; tags?: string[] }
 export interface OpenRiftCatalog { cards?: Record<string, Card>; printings?: Record<string, Printing> }
 
 // los códigos de símbolos (:rb_might:…) se dejan tal cual: los dibuja cardTextHTML al mostrar el texto
@@ -92,4 +93,46 @@ export function lookupByCode(idx: OpenRiftIndex, code?: string | null): CardInfo
   if (!code) return null;
   const c = code.toUpperCase();
   return idx.byCode.get(c) || idx.byCode.get(c.replace(/S$/, '*')) || idx.byCode.get(c.replace(/[A-Z*]+$/, '')) || null;
+}
+
+/** Carta con la misma forma que las de riftcodex (la que usan el visualizador y el constructor). */
+export interface CatalogCard {
+  name: string; n: string; type: string; sup: string | null; img: string; text: string; rich: string;
+  e: number | null; m: number | null; pw: number | null; dom: string[]; rar: string; set: string;
+  alt: boolean; tags: string[]; code: string; src: 'openrift';
+}
+const cap = (s?: string) => s ? s[0].toUpperCase() + s.slice(1) : '';
+
+/**
+ * Cartas de OpenRift que riftcodex todavía no tiene (por ejemplo, un set recién salido como Radiance).
+ * have: códigos que ya vienen de riftcodex. Una entrada por código, con su mejor impresión en inglés.
+ */
+export function openRiftExtraCards(cat: OpenRiftCatalog, norm: (s: string) => string, have: Set<string>): CatalogCard[] {
+  if (!cat?.printings) return [];
+  const cards = cat.cards || {}, best = new Map<string, { p: Printing; s: number }>();
+  for (const p of Object.values(cat.printings)) {
+    if (p.language && p.language !== 'EN') continue;
+    const code = (p.shortCode || '').toUpperCase(), c = cards[p.cardId];
+    if (!code || !c || !p.images?.[0]?.imageId || have.has(code)) continue;
+    const type = (c.types || [])[0];
+    if (!type || type === 'other' || (c.superTypes || []).includes('token')) continue;
+    const sc = score(p);
+    if (!best.has(code) || best.get(code)!.s < sc) best.set(code, { p, s: sc });
+  }
+  return [...best.entries()].map(([code, { p }]) => {
+    const c = cards[p.cardId], type = cap((c.types || [])[0]), sups = c.superTypes || [], tags = c.tags || [];
+    let name = c.name || p.printedName || '';
+    // OpenRift nombra las leyendas sin el campeón ("Boy Who Shattered Time"); riftcodex lo antepone ("Ekko - …")
+    if (type === 'Legend' && tags[0] && !norm(name).startsWith(norm(tags[0]))) name = `${tags[0]} - ${name}`;
+    const num = code.split('-')[1] || '';
+    return {
+      name, n: norm(name), type, sup: cap(sups.find(x => x !== 'token')) || null,
+      img: `https://openrift.app/media/cards/${p.images![0].imageId}-400w.webp`,
+      text: cleanText(p.printedRulesText), rich: '',
+      e: c.energy ?? null, m: c.might ?? null, pw: c.power ?? null,
+      dom: (c.domains || []).filter(d => d !== 'colorless').map(cap), rar: cap(p.rarity), set: code.split('-')[0],
+      alt: p.artVariant !== 'normal' || !!p.isSigned || !!p.isOvernumbered || /[A-Z*]$/.test(num),
+      tags: tags.map(norm), code, src: 'openrift' as const,
+    };
+  });
 }

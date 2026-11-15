@@ -5,7 +5,7 @@
 import { noteLocalChange } from '../cloud/sync';
 import { cardTextHTML, symbolHTML } from '../data/symbols';
 import { norm } from '../data/text';
-import { decodeDeck, encodeDeck, fromText, toText } from '../deck/format';
+import { decodeDeck, encodeDeck, fromText, isCompleteList, toText } from '../deck/format';
 import { emptyDeck, mainWithChampion, slotFor, total } from '../deck/model';
 import { BATTLEFIELDS, MAIN_MIN, MAX_COPIES, RUNES, inIdentity, validateDeck } from '../deck/rules';
 import { OPENING_HAND, atLeastOne, deckStats, mainSize, seenByTurn } from '../deck/stats';
@@ -308,7 +308,7 @@ export function showDecks(d) {
 /** abre en el constructor el mazo con el que jugó alguien en el replay abierto (sin guardarlo todavía) */
 export function openReplayDeck(pid) {
   const last = app.R?.frames[app.R.frames.length - 1]?.state, p = last?.players.find(x => x.id === pid), raw = deckRawOf(p);
-  if (!raw) { toast('Este replay no trae la lista de ese jugador.', 'err'); return; }
+  if (!isCompleteList(raw)) { toast('Este replay no trae la lista completa de ese jugador.', 'err'); return; }
   const { deck, missing } = fromText(raw, newId(), resolve);
   deck.name = `${p.name} · ${(deck.legend && get(deck.legend)?.name.split(',')[0]) || 'mazo'}`;
   showDecks(deck);

@@ -17,6 +17,12 @@ export function toText(d: Deck, get: CardLookup): string {
   ].filter(Boolean).join('\n\n');
 }
 
+/** ¿La lista trae un mazo completo? (leyenda y al menos 40 cartas contando al campeón). Algunos replays solo traen parte. */
+export function isCompleteList(raw: string): boolean {
+  const secs = parseDeck(raw || ''), n = (k: string) => (secs[k] || []).reduce((a, e) => a + e.n, 0);
+  return n('Legend') > 0 && ['Champion', 'MainDeck', 'Main', 'Deck', 'Otros'].reduce((a, k) => a + n(k), 0) >= 40;
+}
+
 /** Lee una lista de RiftAtlas (o una lista simple "3 Nombre [COD]"). resolve convierte nombre/código en código. */
 export function fromText(raw: string, id: string, resolve: (name: string, code?: string) => string | null): { deck: Deck; missing: string[] } {
   const secs = parseDeck(raw), d = emptyDeck(id), missing: string[] = [];
