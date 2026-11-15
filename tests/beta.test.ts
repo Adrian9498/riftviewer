@@ -84,12 +84,33 @@ describe('beta cerrada', () => {
   });
 });
 
+describe('interruptor de Patreon', () => {
+  it('apagado: todo desbloqueado, sin candados ni nada de Patreon en tu cuenta', async () => {
+    fake.st.beta = { cerrada: true, acceso: true, patreon: false } as any;
+    await signIn('invitado@correo.com');
+    expect(document.body.classList.contains('free')).toBe(false);
+    ($('#bAccount') as HTMLButtonElement).click();
+    expect($('#modal').textContent).toContain('todo incluido');
+    expect($('#modal').textContent).not.toContain('Patreon');
+    ($('#modal .mfoot .btn') as HTMLButtonElement).click();
+  });
+  it('encendido: vuelven los candados para quien no tiene Full Access', async () => {
+    fake.st.beta = { cerrada: true, acceso: true, patreon: true } as any;
+    fake.st.authCb?.('SIGNED_IN', fake.st.session);
+    await settle();
+    expect(document.body.classList.contains('free')).toBe(true);
+    ($('#bAccount') as HTMLButtonElement).click();
+    expect($('#modal').textContent).toContain('Patreon');
+    ($('#modal .mfoot .btn') as HTMLButtonElement).click();
+  });
+});
+
 describe('reglas de acceso', () => {
   it('sin saber el estado (sin nube o sin la migración) la app queda abierta', () => {
     expect(canUse(null)).toBe(true);
-    expect(canUse({ cerrada: false, acceso: false })).toBe(true);
-    expect(canUse({ cerrada: true, acceso: true })).toBe(true);
-    expect(canUse({ cerrada: true, acceso: false })).toBe(false);
+    expect(canUse({ cerrada: false, acceso: false, patreon: false })).toBe(true);
+    expect(canUse({ cerrada: true, acceso: true, patreon: false })).toBe(true);
+    expect(canUse({ cerrada: true, acceso: false, patreon: false })).toBe(false);
   });
   it('reconoce el regreso de Google/Discord rechazado por el candado', () => {
     expect(deniedByBeta('https://riftviewer.com/app/#error=server_error&error_code=unexpected_failure&error_description=Database+error+saving+new+user')).toBe(true);

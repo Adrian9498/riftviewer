@@ -15,6 +15,8 @@ Todo se hace en Supabase → **SQL Editor** (o en **Table Editor**, tablas `beta
 | --- | --- |
 | Cerrar la beta | `update public.beta_config set cerrada = true;` |
 | Abrirla a todos | `update public.beta_config set cerrada = false;` |
+| Encender Patreon (Full Access) | `update public.beta_config set patreon = true;` |
+| Apagar Patreon (todo desbloqueado) | `update public.beta_config set patreon = false;` |
 | Invitar a alguien | `insert into public.beta_invitados (email) values ('alguien@correo.com');` |
 | Invitar a varios | `insert into public.beta_invitados (email) values ('a@correo.com'), ('b@correo.com');` |
 | Con una nota | `insert into public.beta_invitados (email, nota) values ('a@correo.com', 'Discord: Ana');` |
@@ -24,6 +26,14 @@ Todo se hace en Supabase → **SQL Editor** (o en **Table Editor**, tablas `beta
 
 Los correos van **en minúsculas** (la tabla lo exige).
 
+## Patreon
+
+Mientras **Patreon está apagado** (así nace, para la beta Friends & Family), todos tienen todo desbloqueado
+y la app no muestra nada de Patreon: sin candados, sin marca de agua, sin la ventana de Full Access y sin
+"Conectar con Patreon" en Tu cuenta (el plan aparece como **Beta · todo incluido**).
+Al encenderlo vuelve todo como antes: plan Gratis / Full Access y la conexión con Patreon.
+El cambio llega a cada usuario la próxima vez que abra la app (o al iniciar sesión).
+
 ## Notas
 
 - **Agrégate tú primero**: las cuentas que ya existían también necesitan invitación para entrar.
@@ -31,5 +41,5 @@ Los correos van **en minúsculas** (la tabla lo exige).
 - Si alguien sin invitación intenta registrarse, ve "Riftviewer está en beta cerrada y ese correo no tiene invitación".
 - La pantalla de acceso es la puerta de la interfaz; la protección real son el candado del registro y que cada
   usuario solo puede leer sus propios datos.
-- Instalación: la migración `supabase/migrations/20261116120000_beta_cerrada.sql` (`npx supabase db push`).
-  Nace con la beta **cerrada**.
+- Instalación: las migraciones `20261116120000_beta_cerrada.sql` y `20261116130000_interruptor_patreon.sql`
+  (`npx supabase db push`). Nacen con la beta **cerrada** y Patreon **apagado**.

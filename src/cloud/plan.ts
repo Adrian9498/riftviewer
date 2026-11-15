@@ -1,6 +1,7 @@
 // Plan del usuario (Gratis / Full Access) y qué funciones incluye.
 // Se guarda en caché para que funcione sin conexión hasta su fecha de vencimiento.
 import { currentUser } from './auth';
+import { onBeta, patreonOn } from './beta';
 import { supabase } from './client';
 
 export type Feature = 'export_hd' | 'no_watermark' | 'export_presets' | 'brand_full' | 'notes_advanced' | 'thumbnail';
@@ -29,13 +30,16 @@ export function isActive(p: PlanState, userId: string | null, now = Date.now()):
 }
 
 export const currentPlan = (): PlanState => plan;
-export const isPremium = (): boolean => isActive(plan, currentUser()?.id ?? null);
+// con Patreon apagado (beta Friends & Family) todos tienen Full Access
+export const isPremium = (): boolean => !patreonOn() || isActive(plan, currentUser()?.id ?? null);
 export const hasFeature = (_f: Feature): boolean => isPremium();   // hoy Full Access incluye todo
 
 export function onPlanChange(fn: (p: PlanState) => void): () => void {
   listeners.add(fn); fn(plan);
   return () => listeners.delete(fn);
 }
+// al saberse si Patreon está encendido, quien pinta candados y marca de agua vuelve a mirar
+onBeta(() => { for (const fn of listeners) fn(plan); });
 function setPlan(p: PlanState) {
   plan = p;
   try { localStorage.setItem(CACHE, JSON.stringify(p)); } catch { /* sin almacenamiento */ }
