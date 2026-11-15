@@ -1,4 +1,4 @@
-// Traducción al español de las líneas del registro de RiftAtlas.
+// Traducción al español de las líneas del registro del simulador.
 
 const RULES: [RegExp, string][] = [
   [/^(.+) played (.+) from hand to base\.$/, '$1 juega $2 en la base'],

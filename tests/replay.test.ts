@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { decodeReplay, type RawReplay } from '../src/replay/decode';
+import { REPLAY_FORMAT, decodeReplay, type RawReplay } from '../src/replay/decode';
 import { translateLog } from '../src/replay/translate';
 import { parseDeck } from '../src/replay/deck';
 
 describe('decodeReplay', () => {
-  // grafo mínimo con la misma forma que los replays de RiftAtlas: dos jugadas que comparten un estado
+  // grafo mínimo con la misma forma que los replays del simulador: dos jugadas que comparten un estado
   const raw: RawReplay = {
-    format: 'riftatlas-replay',
+    format: REPLAY_FORMAT,
     version: 2,
     nodes: [
       ['o', [['score', 3]]],                         // 0: tablero compartido
@@ -30,14 +30,14 @@ describe('decodeReplay', () => {
   });
 
   it('soporta ciclos sin quedarse en un bucle', () => {
-    const cyc: RawReplay = { format: 'riftatlas-replay', nodes: [['o', [['self', { r: 0 }]]]], root: { r: 0 } };
+    const cyc: RawReplay = { format: REPLAY_FORMAT, nodes: [['o', [['self', { r: 0 }]]]], root: { r: 0 } };
     const o = decodeReplay<any>(cyc);
     expect(o.self).toBe(o);
   });
 
   it('rechaza archivos que no son replays o con referencias rotas', () => {
     expect(() => decodeReplay({ format: 'otro', nodes: [], root: { r: 0 } })).toThrow('no es un replay');
-    expect(() => decodeReplay({ format: 'riftatlas-replay', nodes: [], root: { r: 5 } })).toThrow('Referencia rota');
+    expect(() => decodeReplay({ format: REPLAY_FORMAT, nodes: [], root: { r: 5 } })).toThrow('Referencia rota');
   });
 });
 

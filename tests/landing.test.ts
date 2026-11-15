@@ -12,6 +12,25 @@ function goesTo(hash: string): string | null {
   return to;
 }
 
+describe('textos y créditos', () => {
+  const app = readFileSync(resolve(process.cwd(), 'app/index.html'), 'utf8');
+  it('no se menciona RiftAtlas en las páginas (se habla del "simulador")', () => {
+    expect(html).not.toMatch(/riftatlas/i);
+    expect(app).not.toMatch(/riftatlas/i);
+    expect(app).toContain('simulador');
+  });
+  it('donde hay cartas se acredita a las APIs públicas (Riftcodex, OpenRift y TCGCSV)', () => {
+    const credits = app.match(/<p class="credits[^"]*">[\s\S]*?<\/p>/g) || [];
+    expect(credits.length).toBe(4);                 // inicio, constructor, colección y escáner
+    for (const c of credits) {
+      expect(c).toContain('https://riftcodex.com');
+      expect(c).toContain('https://openrift.app');
+      expect(c).toContain('https://tcgcsv.com');
+    }
+    expect(html).toContain('https://riftcodex.com');
+  });
+});
+
 describe('página informativa', () => {
   it('los botones llevan a la app en /app/', () => {
     expect((html.match(/href="app\/"/g) || []).length).toBeGreaterThanOrEqual(3);

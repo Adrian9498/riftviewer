@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { RawReplay } from '../src/replay/decode';
+import { REPLAY_FORMAT, type RawReplay } from '../src/replay/decode';
 import { replayMeta } from '../src/replay/meta';
 
 describe('replayMeta', () => {
   const raw: RawReplay = {
-    format: 'riftatlas-replay',
+    format: REPLAY_FORMAT,
     nodes: [
       ['o', [['cardCode', 'OGN-247'], ['id', 'card_l1'], ['name', 'Jinx']]],
       ['o', [['legend', { r: 0 }], ['score', 8]]],
@@ -30,6 +30,6 @@ describe('replayMeta', () => {
   });
 
   it('devuelve null si no hay jugadas con jugadores', () => {
-    expect(replayMeta({ format: 'riftatlas-replay', nodes: [['a', []], ['o', [['frames', { r: 0 }]]]], root: { r: 1 } })).toBeNull();
+    expect(replayMeta({ format: REPLAY_FORMAT, nodes: [['a', []], ['o', [['frames', { r: 0 }]]]], root: { r: 1 } })).toBeNull();
   });
 });

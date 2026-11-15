@@ -2,7 +2,7 @@
 
 Visualizador de partidas de Riftbound para crear videos.
 
-Convierte replays de RiftAtlas (`.json`) y guiones escritos a mano (`.txt`) en partidas animadas, listas para grabar o exportar como video.
+Convierte replays del simulador (`.json`) y guiones escritos a mano (`.txt`) en partidas animadas, listas para grabar o exportar como video.
 
 ## Requisitos
 - Node.js 22 o superior

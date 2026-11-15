@@ -1,4 +1,4 @@
-// Flechas de objetivo que registra RiftAtlas (por ejemplo, un hechizo en la cadena que apunta a una unidad).
+// Flechas de objetivo que registra el simulador (por ejemplo, un hechizo en la cadena que apunta a una unidad).
 
 export interface TargetArrow {
   owner: string;
@@ -10,7 +10,7 @@ export interface TargetArrow {
 }
 
 const CARD_ID = /card_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
-/** RiftAtlas nombra el origen en la cadena como "chain-<jugador>-<card_…>-<uuid>": se extrae la carta original. */
+/** El simulador nombra el origen en la cadena como "chain-<jugador>-<card_…>-<uuid>": se extrae la carta original. */
 export const sourceCardOf = (s: string): string => s.match(CARD_ID)?.[0] ?? s;
 
 type RawArrow = { sourceAnchor?: string; sourceCardId?: string; targetAnchor?: string; targetCardId?: string };

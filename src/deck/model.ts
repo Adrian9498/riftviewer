@@ -1,5 +1,5 @@
 // Mazo de Riftbound: leyenda, campeón elegido, mazo principal, runas, campos de batalla y banquillo.
-// Las cartas se guardan por código ("OGN-095"), igual que en las listas de RiftAtlas.
+// Las cartas se guardan por código ("OGN-095"), igual que en las listas del simulador.
 
 export interface Deck {
   id: string;

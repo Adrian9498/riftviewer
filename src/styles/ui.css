@@ -468,3 +468,11 @@ body.gated{overflow:hidden}
 .gbtns .btn{justify-content:center;padding:11px 16px}
 .glink{color:var(--muted);font-size:13px;margin-top:4px}
 .glink:hover{color:#e6c67f}
+
+/* créditos de las APIs públicas (cartas y precios) */
+.credits{margin:14px 0 4px;padding:0 4px;font-size:11.5px;line-height:1.5;color:var(--muted);text-align:center}
+.credits a,.pvia a{color:#c8aa6e;text-decoration:none}
+.credits a:hover,.pvia a:hover{text-decoration:underline}
+.credits.hcred{margin-top:18px}
+.credits.cscred{margin:8px 0 0;font-size:10.5px;opacity:.8}
+.pvia{font-weight:400;color:var(--muted)}

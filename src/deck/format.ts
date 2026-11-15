@@ -1,8 +1,8 @@
-// Importar y exportar mazos: texto de RiftAtlas y enlaces para compartir.
+// Importar y exportar mazos: texto del simulador y enlaces para compartir.
 import { parseDeck } from '../replay/deck';
 import { type CardLookup, type Deck, emptyDeck } from './model';
 
-/** Texto en el formato de RiftAtlas ("3 Stupefy [OGN-095]"), con sus secciones. */
+/** Texto en el formato del simulador ("3 Stupefy [OGN-095]"), con sus secciones. */
 export function toText(d: Deck, get: CardLookup): string {
   const line = (code: string, n: number) => `${n} ${get(code)?.name ?? code} [${code}]`;
   const block = (title: string, rows: [string, number][]) => rows.length ? `${title}:\n${rows.map(([c, n]) => line(c, n)).join('\n')}` : '';
@@ -23,7 +23,7 @@ export function isCompleteList(raw: string): boolean {
   return n('Legend') > 0 && ['Champion', 'MainDeck', 'Main', 'Deck', 'Otros'].reduce((a, k) => a + n(k), 0) >= 40;
 }
 
-/** Lee una lista de RiftAtlas (o una lista simple "3 Nombre [COD]"). resolve convierte nombre/código en código. */
+/** Lee una lista del simulador (o una lista simple "3 Nombre [COD]"). resolve convierte nombre/código en código. */
 export function fromText(raw: string, id: string, resolve: (name: string, code?: string) => string | null): { deck: Deck; missing: string[] } {
   const secs = parseDeck(raw), d = emptyDeck(id), missing: string[] = [];
   const add = (sec: string, fn: (code: string, n: number) => void) => (secs[sec] || []).forEach(e => {

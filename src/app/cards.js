@@ -43,17 +43,18 @@ export function cardByCode(code,name,imageUrl){
   return withCustom(base, imgKey(code,name), name);
 }
 
-/* tokens: no traen código de carta. Los replays de RiftAtlas dan su propia imagen ("/tokens/SandSoldier.webp");
-   en los guiones se usa la de OpenRift o, si no la tiene, la de RiftAtlas por nombre. Nunca se buscan por parecido,
+/* tokens: no traen código de carta. Los replays del simulador dan su propia imagen ("/tokens/SandSoldier.webp");
+   en los guiones se usa la de OpenRift o, si no la tiene, la del simulador por nombre. Nunca se buscan por parecido,
    para que "Sprite" no termine siendo "Sprite Burst". */
-export const RIFTATLAS='https://play.riftatlas.com';
+/** servidor del simulador: de ahí salen las imágenes de fichas que traen los replays */
+export const SIM_ORIGIN='https://play.riftatlas.com';
 export const isToken = name => !!name && OR.tokens.has(norm(name));
-// tokens que RiftAtlas sí publica en /tokens (revisado en oct 2026); Bomb y XP Tracker no tienen imagen en ningún lado
-const RA_TOKENS=new Set(['Bird','Brush','Gold','Mech','Recruit','Reflection','SandSoldier','ShadowClone','Sprite','Tentacle']);
+// tokens que el simulador sí publica en /tokens (revisado en oct 2026); Bomb y XP Tracker no tienen imagen en ningún lado
+const SIM_TOKENS=new Set(['Bird','Brush','Gold','Mech','Recruit','Reflection','SandSoldier','ShadowClone','Sprite','Tentacle']);
 export function tokenCard(name,imageUrl){
   const or=OR.tokens.get(norm(name||'')), file=(name||'').replace(/[^A-Za-z0-9]/g,'');
-  const img = imageUrl ? (/^https?:/.test(imageUrl) ? imageUrl : RIFTATLAS+(imageUrl.startsWith('/')?'':'/')+imageUrl)
-    : or?.img || (RA_TOKENS.has(file) ? `${RIFTATLAS}/tokens/${file}.webp` : '');
+  const img = imageUrl ? (/^https?:/.test(imageUrl) ? imageUrl : SIM_ORIGIN+(imageUrl.startsWith('/')?'':'/')+imageUrl)
+    : or?.img || (SIM_TOKENS.has(file) ? `${SIM_ORIGIN}/tokens/${file}.webp` : '');
   if(!img) return null;   // sin imagen: se muestra el nombre en la carta
   return { name:or?.name||name||'', img, text:or?.text||'', type:or?.type||'Token', m:or?.might??null, might:or?.might??null, token:true };
 }

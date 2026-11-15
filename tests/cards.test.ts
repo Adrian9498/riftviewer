@@ -35,10 +35,10 @@ describe('OpenRift', () => {
     expect(idx.byCode.has('RAD-500')).toBe(false);
   });
 
-  it('empareja los códigos de RiftAtlas, incluidas las variantes', () => {
+  it('empareja los códigos del simulador, incluidas las variantes', () => {
     expect(lookupByCode(idx, 'RAD-164')?.name).toBe('Packed Amphitheater');
     expect(lookupByCode(idx, 'rad-138A')?.img).toContain('img-RAD-138a');   // alternativa existente
-    expect(lookupByCode(idx, 'RAD-174S')?.img).toContain('img-RAD-174*');   // "S" de RiftAtlas = "*" de OpenRift
+    expect(lookupByCode(idx, 'RAD-174S')?.img).toContain('img-RAD-174*');   // "S" del simulador = "*" de OpenRift
     expect(lookupByCode(idx, 'RAD-138Z')?.img).toContain('img-RAD-138-');   // variante inexistente → carta base
     expect(lookupByCode(idx, null)).toBeNull();
   });

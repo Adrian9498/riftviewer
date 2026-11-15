@@ -66,7 +66,7 @@ describe('reglas de construcción', () => {
   });
 });
 
-describe('formato de RiftAtlas y enlaces', () => {
+describe('formato del simulador y enlaces', () => {
   const raw = 'Legend:\n1 Diana, Scorn of the Moon [L1]\n\nChampion:\n1 Diana, Lunari [CH]\n\nMainDeck:\n3 Carta 1 [M1]\n2 Gear [GR]\n\nBattlefields:\n1 Campo 1 [B1]\n1 Campo 2 [B2]\n\nRunes:\n6 Mind Rune [RM]\n6 Chaos Rune [RC]\n\nSideboard:\n1 Fury Spell [FU]\n1 Desconocida [ZZZ-999]';
   const resolve = (name: string, code?: string) => (code && C[code] ? code : Object.values(C).find(c => c.name === name)?.code ?? null);
 

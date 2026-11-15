@@ -1,5 +1,5 @@
 // Constructor de mazos: catálogo con filtros, mazo con validación de reglas, estadísticas,
-// importar/exportar en el formato de RiftAtlas y enlaces para compartir.
+// importar/exportar en el formato del simulador y enlaces para compartir.
 // Los mazos se guardan como proyectos ("rb_proj_deck:<id>"), así se sincronizan con la nube sin tablas nuevas;
 // al borrar se deja una marca {deleted:true} para que el borrado también llegue a otras PCs.
 import { noteLocalChange } from '../cloud/sync';
@@ -148,7 +148,7 @@ function costLine() {
   const c = deckCost(cards);
   if (!c) return '';
   const miss = c.hasCollection ? (c.missN ? ` · te faltan ${c.missN} (${money(c.missCost)}) <button class="btn mini" data-missing>Ver qué me falta</button>` : ' · <b class="ok">tienes todas</b>') : '';
-  return `<div class="dbcost" title="Precio de mercado en TCGplayer (EE. UU.), cada carta a su versión más barata${c.unpriced ? `. ${c.unpriced} sin precio` : ''}">Cuesta ~<b>${money(c.cost)}</b>${miss}</div>`;
+  return `<div class="dbcost" title="Precio de mercado en TCGplayer (EE. UU.) vía TCGCSV, cada carta a su versión más barata${c.unpriced ? `. ${c.unpriced} sin precio` : ''}">Cuesta ~<b>${money(c.cost)}</b>${miss}</div>`;
 }
 function renderList(issues) {
   NEEDS = hasCollection() ? new Map(deckNeedsFor(deckCards()).map(x => [x.code, x])) : null;
@@ -246,7 +246,7 @@ function resolve(name, code) {
 }
 function openImport() {
   const body = openModal('Importar mazo', `
-    <div class="full hint">Pega la lista de RiftAtlas (por ejemplo "3 Stupefy [OGN-095]", con sus secciones Legend, Champion, MainDeck…) o un enlace de Riftviewer.</div>
+    <div class="full hint">Pega la lista del simulador (por ejemplo "3 Stupefy [OGN-095]", con sus secciones Legend, Champion, MainDeck…) o un enlace de Riftviewer.</div>
     <textarea class="full chtxt" id="dbImp" rows="12" placeholder="Legend:&#10;1 Diana, Scorn of the Moon [UNL-234]&#10;&#10;MainDeck:&#10;3 Stupefy [OGN-095]"></textarea>`,
     [['Cancelar'], ['Importar', 'primary', () => {
       const raw = $('#dbImp').value.trim(); if (!raw) { alert('Pega una lista o un enlace.'); return false; }
@@ -266,7 +266,7 @@ function openMissing() {
   const n = miss.reduce((a, x) => a + x.miss, 0), priced = miss.filter(x => x.price != null), cost = priced.reduce((a, x) => a + x.price * x.miss, 0);
   const txt = tcgplayerList(miss);
   const body = openModal(`Te faltan ${n} carta${n === 1 ? '' : 's'}`, `
-    <div class="full hint">Cuentan tus copias de cualquier versión. Precio de mercado en TCGplayer (EE. UU.), cada carta a su versión más barata.</div>
+    <div class="full hint">Cuentan tus copias de cualquier versión. Precio de mercado en TCGplayer (EE. UU.) vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>, cada carta a su versión más barata.</div>
     <table class="full dbmiss"><tr><th>Carta</th><th>Tienes</th><th>Faltan</th><th>Precio</th><th>Total</th></tr>
       ${miss.map(x => `<tr><td>${esc(x.name)}</td><td>${x.have}/${x.n}</td><td><b>${x.miss}</b></td><td>${x.price != null ? money(x.price) : '—'}</td><td>${x.price != null ? money(x.price * x.miss) : '—'}</td></tr>`).join('')}
       <tr class="tot"><td colspan="4">Total${priced.length < miss.length ? ` (${miss.length - priced.length} sin precio)` : ''}</td><td>${money(Math.round(cost * 100) / 100)}</td></tr></table>
@@ -280,7 +280,7 @@ function copy(text, msg) { navigator.clipboard?.writeText(text).then(() => toast
 function openExport() {
   const txt = toText(D, get);
   const body = openModal('Exportar mazo', `
-    <div class="full hint">Formato de RiftAtlas: puedes pegarlo directamente al registrar tu mazo.</div>
+    <div class="full hint">Formato del simulador: puedes pegarlo directamente al registrar tu mazo.</div>
     <textarea class="full chtxt" readonly rows="14">${esc(txt)}</textarea>`,
     [['Descargar .txt', 'ghost', () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' })); a.download = `${(D.name || 'mazo').replace(/[^\w-]+/g, '_')}.txt`; a.click(); return false; }],
      ['Cerrar'], ['Copiar lista', 'primary', () => { copy(txt, 'Lista copiada'); return false; }]]);
@@ -318,7 +318,7 @@ function sheetHTML() {
         <div class="ds-runes">${Object.entries(D.runes).map(([c, n]) => `<span>${domIcons(get(c)?.dom || [])}<b>×${n}</b></span>`).join('')}</div>
       </div>
     </div>
-    <div class="ds-mark">Hecho con <b>Riftviewer</b></div>`;
+    <div class="ds-mark">Hecho con <b>Riftviewer</b> · cartas: Riftcodex y OpenRift</div>`;
 }
 const fitSheet = () => $('#dsheet').style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080));
 function exportImage() {
