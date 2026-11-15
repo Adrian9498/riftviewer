@@ -1,6 +1,7 @@
 # Publicar en GitHub Pages
 
-La app se publica sola en `https://adrian9498.github.io/riftviewer/` cada vez que cambia `main`.
+La app se publica sola en **https://riftviewer.com** cada vez que cambia `main`
+(dominio propio; `https://adrian9498.github.io/riftviewer/` redirige ahí).
 Lo hace el flujo [`.github/workflows/pages.yml`](../.github/workflows/pages.yml): instala dependencias,
 descarga el catálogo de cartas y calcula las huellas del arte (`npm run catalogo`), corre las pruebas,
 compila y publica `dist/`. Si una prueba falla, no se publica nada y la versión anterior sigue en línea.
@@ -32,8 +33,8 @@ Van como **Variables**, no como *Secrets*, porque son públicas: terminan dentro
 
 Supabase → tu proyecto → **Authentication → URL Configuration**:
 
-- **Site URL**: `https://adrian9498.github.io/riftviewer/`
-- **Redirect URLs**: agrega `https://adrian9498.github.io/riftviewer/**`
+- **Site URL**: `https://riftviewer.com`
+- **Redirect URLs**: agrega `https://riftviewer.com/**` y `https://www.riftviewer.com/**`
   (deja también `http://localhost:5173/**` para seguir probando en tu PC).
 
 Sin esto, los correos de confirmación y el inicio de sesión con Google o Discord regresan a la dirección vieja.
@@ -43,12 +44,30 @@ Sin esto, los correos de confirmación y el inicio de sesión con Google o Disco
 En `supabase/.env.patreon`, agrega la dirección a `APP_URLS` (separadas por coma) y súbelo otra vez:
 
 ```
-APP_URLS=http://localhost:5173,https://adrian9498.github.io
+APP_URLS=http://localhost:5173,https://riftviewer.com,https://www.riftviewer.com
 ```
 
 ```
 npx supabase secrets set --env-file supabase/.env.patreon
 ```
+
+## Dominio propio (riftviewer.com)
+
+Configurado en GitHub → **Settings → Pages → Custom domain**. Con un flujo de GitHub Actions no hace falta el archivo `CNAME` en el repo.
+
+En el DNS del proveedor del dominio:
+
+| Tipo | Nombre | Valor |
+| --- | --- | --- |
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `adrian9498.github.io` |
+
+**Ningún otro registro A** en `@` (los proveedores suelen dejar uno propio de "página en construcción":
+hay que borrarlo). Cuando GitHub muestre *DNS check successful*, emite el certificado y se puede marcar
+**Enforce HTTPS**. Sin HTTPS no funciona la cámara del escáner.
 
 ## Publicar
 
