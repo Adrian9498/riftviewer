@@ -427,3 +427,25 @@ body.thumbing #thumb,.thumb.show{display:block}
 .card.equip.exhausted{transform:translate(calc(var(--k,1) * 14%),calc(var(--k,1) * -19%)) rotate(calc(var(--k,1) * 5deg));filter:brightness(.7)}
 .card.equip > :not(.face){display:none}
 .card.equip .face{box-shadow:0 2px 10px #000c}
+
+/* ---------- navegación: botón "◆ Riftviewer ▾" y su menú ---------- */
+.navbtn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 10px 0 8px;border-radius:10px;border:1px solid transparent;background:transparent;cursor:pointer;flex:none}
+.navbtn:hover,.navbtn[aria-expanded="true"]{background:#ffffff0d;border-color:#c8aa6e55}
+.navbtn:focus-visible{outline:2px solid #c8aa6e;outline-offset:2px}
+.navbtn .navname{font-family:Cinzel,serif;font-weight:700;font-size:15px;letter-spacing:2px;background:var(--ui-goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.navbtn .navchev{width:14px;height:14px;color:#c8aa6e;transform:rotate(90deg);transition:transform .15s}
+.navbtn[aria-expanded="true"] .navchev{transform:rotate(-90deg)}
+.navsec{font-family:Cinzel,serif;font-weight:700;font-size:15px;color:var(--ivory,#f0e6d2);white-space:nowrap;padding-left:10px;border-left:1px solid var(--line)}
+.navmenu{position:fixed;z-index:2000;min-width:290px;max-width:calc(100vw - 16px);padding:6px;border-radius:14px;background:linear-gradient(#141e33,#0e1626);border:1px solid #c8aa6e55;box-shadow:0 18px 50px #000c}
+.navmenu[hidden]{display:none}
+.navit{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.navit>svg:first-child{width:20px;height:20px;flex:none;color:#c8aa6e}
+.navit span{flex:1;min-width:0;display:flex;flex-direction:column}
+.navit b{font-size:14px;font-weight:600}
+.navit small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navit>svg:last-child:not(:first-child){width:16px;height:16px;color:var(--ok)}
+.navit:hover:not([disabled]),.navit:focus-visible{background:#ffffff10;outline:none}
+.navit.on{background:#c8aa6e1a}
+.navit[disabled]{opacity:.45;cursor:default}
+.navsep{height:1px;margin:6px 4px;background:var(--line)}
+@media (max-width:640px){ .navbtn .navname{display:none} .navsec{font-size:14px} }

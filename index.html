@@ -63,11 +63,8 @@
 </defs></svg>
 <div id="app">
   <header id="topbar">
-    <button class="btn ico" id="bHome" title="Pantalla de inicio"><svg class="i"><use href="#i-home"/></svg></button>
-    <button class="btn ico" id="bDecks" title="Constructor de mazos"><svg class="i"><use href="#i-cards"/></svg></button>
-    <button class="btn ico" id="bColl" title="Mi colección"><svg class="i"><use href="#i-binder"/></svg></button>
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <button class="btn ico" id="bPanel" title="Mostrar u ocultar el panel lateral (P)"><svg class="i"><use href="#i-panel"/></svg></button>
-    <span class="logo"><span class="lmark"></span>Riftviewer</span>
     <div id="docname"></div>
     <div class="tgroup">
       <button class="btn" id="bSettings" title="Estilo, cámara, sonido, tu marca y más"><svg class="i"><use href="#i-sliders"/></svg> Ajustes</button>
@@ -278,8 +275,8 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
 <!-- Constructor de mazos -->
 <div id="deckb" hidden>
   <header class="dbtop">
-    <button class="btn ico" id="dbBack" title="Volver al inicio"><svg class="i"><use href="#i-home"/></svg></button>
-    <span class="logo"><span class="lmark"></span>Mazos</span>
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <span class="navsec">Mazos</span>
     <select id="dbList" title="Tus mazos"></select>
     <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
     <span class="dbflex"></span>
@@ -322,8 +319,8 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
 <!-- Colección -->
 <div id="collb" hidden>
   <header class="dbtop">
-    <button class="btn ico" id="coBack" title="Volver"><svg class="i"><use href="#i-home"/></svg></button>
-    <span class="logo"><span class="lmark"></span>Colección</span>
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <span class="navsec">Colección</span>
     <span class="cotot" id="coTot"></span>
     <span class="dbflex"></span>
     <button class="btn" id="coExport" title="Copiar o descargar tu colección como lista"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>

@@ -137,7 +137,8 @@ describe('app completa', () => {
       expect(($('#deckb') as HTMLElement).hidden).toBe(false);
       expect(($('#dbName') as HTMLInputElement).value).toMatch(/^Ana · /);
       expect(($('#dbSaveShared') as HTMLElement).hidden).toBe(false);
-      ($('#dbBack') as HTMLButtonElement).click();
+      ($('#deckb [data-nav]') as HTMLButtonElement).click();
+      ($('#navmenu [data-go="partida"]') as HTMLButtonElement).click();
       expect(($('#deckb') as HTMLElement).hidden).toBe(true);
       expect(document.querySelector('#home')!.classList.contains('show')).toBe(false);
       // Exportar: se elige en palabras y el resumen dice cuántas jugadas se grabarán
