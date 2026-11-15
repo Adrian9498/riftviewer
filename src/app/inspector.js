@@ -1,5 +1,5 @@
 // Inspector de Ajustes (panel derecho): se abre y cierra desde la barra superior y recuerda qué secciones dejaste abiertas.
-import { $ } from './base';
+import { $, isPhone } from './base';
 import { renderBrandPanels } from './brand';
 import { fit } from './fit';
 
@@ -8,6 +8,8 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 
 export function setInspector(open) {
   document.body.classList.toggle('noinsp', !open);
+  // en el teléfono Ajustes es una hoja: abrirla cierra el panel de jugadas
+  if (open && isPhone()) { document.body.classList.add('nopanel'); $('#bPanel').classList.remove('on'); }
   $('#bSettings').classList.toggle('on', open);
   write('rb_insp', open);
   fit();

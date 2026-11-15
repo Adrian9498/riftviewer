@@ -76,6 +76,7 @@
   </header>
   <div id="work">
   <aside id="editor">
+    <div class="sheetbar"><b>Jugadas, clips y notas</b><button class="btn ico" id="bPanelX" title="Cerrar"><svg class="i"><use href="#i-x"/></svg></button></div>
     <div id="pinfo"></div>
     <div class="tabs"><button data-t="jug" class="on"><span class="ronly">Jugadas</span><span class="sonly">Guion</span></button><button data-t="clips"><svg class="i"><use href="#i-star"/></svg> Clips</button><button data-t="notas"><svg class="i"><use href="#i-note"/></svg> Notas</button></div>
     <div id="frames" class="tab on" data-t="jug"></div>
@@ -292,7 +293,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
   <div class="dbwork">
     <section class="dbcat">
       <div class="dbfilters">
-        <input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…">
+        <div class="dbqrow"><input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…"><button class="btn" id="dbFiltBtn" aria-expanded="false"><svg class="i"><use href="#i-sliders"/></svg> Filtros</button></div>
         <div class="dbchips" id="dbDom"></div>
         <div class="dbrow">
           <select id="dbType"><option value="">Todos los tipos</option><option value="champ">Campeones de mi leyenda</option><option value="Unit">Unidades</option><option value="Spell">Hechizos</option><option value="Gear">Equipo</option><option value="Legend">Leyendas</option><option value="Battlefield">Campos de batalla</option><option value="Rune">Runas</option></select>
@@ -310,20 +311,21 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       </div>
       <div class="dbgrid" id="dbGrid"></div>
       <p class="credits">Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> · precios: TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.</p>
-      <div class="dbtip">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</div>
+      <div class="dbtip"><span class="tmouse">Clic: agregar · Clic derecho: quitar · Shift + clic: al banquillo</span><span class="ttouch">Toca una carta para agregarla · − para quitarla</span></div>
     </section>
     <aside class="dbdeck">
       <div class="dbtabs"><button data-dt="list" class="on">Mazo</button><button data-dt="stats">Estadísticas</button><button data-dt="test">Mano de prueba</button><button data-dt="check">Revisión <span id="dbIssues"></span></button></div>
       <div id="dbPanel"></div>
     </aside>
   </div>
+  <!-- teléfono: se cambia entre el catálogo y el mazo -->
+  <nav class="dbpanes" aria-label="Constructor"><button data-pane="cat" class="on"><svg class="i"><use href="#i-cards"/></svg> Cartas</button><button data-pane="deck"><svg class="i"><use href="#i-list"/></svg> Mi mazo <b id="dbPaneN">0/40</b></button></nav>
 </div>
 <!-- Colección -->
 <div id="collb" hidden>
   <header class="dbtop">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <span class="navsec">Colección</span>
-    <span class="cotot" id="coTot"></span>
     <span class="dbflex"></span>
     <button class="btn" id="coExport" title="Copiar o descargar tu colección como lista"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>
     <button class="btn primary" id="coScan"><svg class="i"><use href="#i-scan"/></svg> <span>Escanear cartas</span></button>
@@ -331,6 +333,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
   <div class="cowork">
     <aside class="cosets" id="coSets"></aside>
     <section class="cocat">
+      <div class="cosum" id="coSum" hidden></div>
       <div class="cohead" id="coHead"></div>
       <div class="dbfilters">
         <div class="dbrow">
@@ -357,11 +360,13 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     <button class="btn ico" id="csTorch" title="Linterna" hidden><svg class="i"><use href="#i-bulb"/></svg></button>
     <button class="btn ico" id="csFlip" title="Cambiar de cámara" hidden><svg class="i"><use href="#i-flip"/></svg></button>
   </header>
+  <!-- pila de cartas agregadas en esta sesión (agregar al instante): tocarla muestra la última -->
+  <button class="csstack" id="csStack" hidden title="Ver la última carta agregada"></button>
   <div class="csbottom">
     <div class="csres" id="csRes"></div>
     <div class="csopts">
       <span class="seg" id="csFin"><button data-fin="normal" class="on">Normal</button><button data-fin="foil">Foil</button></span>
-      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto"> Agregar al instante</label>
+      <label title="Suma la carta en cuanto la reconoce"><input type="checkbox" id="csAuto" checked> Agregar al instante</label>
       <span class="csfocus" id="csFocusW" hidden title="Si la cámara enfoca otra cosa, mueve el enfoque a mano">Enfoque <input type="range" id="csFocus"> <button class="btn mini" id="csFocusAuto">Auto</button></span>
       <span class="cssess" id="csSess"></span>
     </div>

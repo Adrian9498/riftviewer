@@ -1,6 +1,6 @@
 // Generado a partir de legacy/app.js (sección "shell").
 import { noteLocalChange } from '../cloud/sync';
-import { $, ic, stage } from './base';
+import { $, ic, stage, FMT_KEY, isPhone } from './base';
 import { tombDoc, touchAsset } from './cloud-adapter';
 import { IDB, cardByCode, setStatus } from './cards';
 import { replayMeta } from '../replay/meta';
@@ -117,7 +117,8 @@ export function switchTab(t){
 /* formato: siempre visible en la barra superior */
 export function setFmt(f){
   stage.className=f; document.querySelectorAll('#fmtseg button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  try{ localStorage.setItem('rb_fmt',f); }catch(e){} noteLocalChange('settings'); fit();
+  // en el teléfono el formato es de este dispositivo: no se sincroniza ni pisa al de la PC
+  try{ localStorage.setItem(FMT_KEY(),f); }catch(e){} if(!isPhone()) noteLocalChange('settings'); fit();
   if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else jumpTo(idx);
 }
 /* estilo de la mesa: Fantasía (contenido) o Torneo (análisis de campeonato) */
@@ -132,7 +133,9 @@ export function setSkin(s){
 export function togglePanel(force){
   const off=force!==undefined?!force:!document.body.classList.contains('nopanel');
   document.body.classList.toggle('nopanel',off); $('#bPanel').classList.toggle('on',!off);
-  if(off && !togglePanel.told && (togglePanel.told=true)) toast('Panel oculto: el tablero usa toda la ventana. Lleva el mouse arriba para ver la barra, o pulsa P. Con F11 queda a pantalla completa.');
+  // en el teléfono el panel es una hoja: abrirlo cierra Ajustes, y no hay "mouse arriba" que explicar
+  if(!off && isPhone()){ document.body.classList.add('noinsp'); $('#bSettings').classList.remove('on'); }
+  if(off && !isPhone() && !togglePanel.told && (togglePanel.told=true)) toast('Panel oculto: el tablero usa toda la ventana. Lleva el mouse arriba para ver la barra, o pulsa P. Con F11 queda a pantalla completa.');
   requestAnimationFrame(()=>{ fit(); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } });
 }
 
@@ -149,7 +152,7 @@ export function openHelp(){
   body.querySelector('#hTour').onclick=()=>{ closeModal(); startTour(); };
   body.querySelector('#hReset').onclick=()=>{
     if(!confirm('¿Volver a las opciones de fábrica? Se recargará la página.')) return;
-    try{ ['rb_brand','rb_snd','rb_lay','rb_lay2','rb_cam','rb_fmt','rb_skin','rb_tour'].forEach(k=>localStorage.removeItem(k));
+    try{ ['rb_brand','rb_snd','rb_lay','rb_lay2','rb_cam','rb_fmt','rb_fmt_m','rb_skin','rb_tour'].forEach(k=>localStorage.removeItem(k));
       // marca el restablecimiento como el cambio más reciente, para que la nube no devuelva los ajustes viejos
       localStorage.setItem('rb_settings_ts',String(Date.now())); }catch(e){}
     touchAsset('brand:logo',true); touchAsset('brand:bg',true);
@@ -208,7 +211,9 @@ export function init() {
   $('#skinseg').onclick=e=>{ const b=e.target.closest('button'); if(b) setSkin(b.dataset.s); };
   $('#bCmds').onclick=()=>{ openModal('Comandos del guion',`<div class="full">${$('#cmdHelp').innerHTML}</div>`,[['Cerrar','primary']]); };
   $('#bPanel').onclick=()=>togglePanel();
-  $('#bPanel').classList.add('on');
+  $('#bPanelX').onclick=()=>togglePanel(false);
+  // en el teléfono la mesa arranca a pantalla completa y el panel se abre como hoja desde abajo
+  if(isPhone()) document.body.classList.add('nopanel'); else $('#bPanel').classList.add('on');
   $('#bHelp').onclick=openHelp;
   $('#tNext').onclick=()=>{ if(++TK<TOUR.length) tourStep(); else endTour(); };
   $('#tSkip').onclick=endTour;

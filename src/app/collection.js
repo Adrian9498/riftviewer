@@ -97,7 +97,14 @@ export function deckCost(cards) {
 function renderTotal() {
   const items = Object.values(collection().items), copies = items.reduce((a, r) => a + Object.values(r).reduce((x, y) => x + y, 0), 0);
   const val = pricesNow() ? collectionValue(pricesNow(), collection().items).value : 0;
-  $('#coTot').innerHTML = copies ? `${copies} carta${copies === 1 ? '' : 's'} · ${items.length} distinta${items.length === 1 ? '' : 's'}${val ? ` · <button class="coval" data-value title="Ver el valor de tu colección en el tiempo">vale ${money(val)} ${ic('chart')}</button>` : ''}` : '';
+  // tarjeta de arriba: cuánto vale todo lo que tienes y un botón grande a la gráfica de su valor
+  const el = $('#coSum');
+  el.hidden = !copies;
+  if (!copies) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="cosv"><small>Tu colección vale</small><b>${val ? money(val) : '—'}</b>
+      <span>${copies} carta${copies === 1 ? '' : 's'} · ${items.length} distinta${items.length === 1 ? '' : 's'}${val ? '' : ' · sin precios todavía'}</span></div>
+    ${val ? `<button class="btn primary" data-value>${ic('chart')} <span>Ver su valor en el tiempo</span></button>` : ''}`;
+  el.classList.toggle('click', !!val);
 }
 function renderSets() {
   const cat = catalog(); if (!cat) return;
@@ -315,7 +322,8 @@ export function init() {
   SET = ls('rb_coll_set') || '';
   $('#hColl').onclick = showCollection;
   $('#coScan').onclick = scan;
-  $('#coTot').onclick = e => { if (e.target.closest('[data-value]')) openValue(); };
+  // toda la tarjeta del valor abre la gráfica (no solo el botón)
+  $('#coSum').onclick = () => { if ($('#coSum').classList.contains('click')) openValue(); };
   $('#coExport').onclick = openExport;
   $('#coSets').onclick = e => {
     const b = e.target.closest('[data-set]'); if (!b) return;

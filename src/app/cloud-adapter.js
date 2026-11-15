@@ -1,6 +1,6 @@
 // Puente entre los datos locales de la app (localStorage + IndexedDB) y la sincronización con la nube.
 import { noteLocalChange, settingsTs } from '../cloud/sync';
-import { $ } from './base';
+import { $, isPhone } from './base';
 import { BR, BRIMG, applyBrand } from './brand';
 import { CUSTOM, IDB } from './cards';
 import { PROJKEY, loadProj, renderClips } from './clips';
@@ -44,7 +44,8 @@ export const localAdapter = {
     const v = data?.view || {};
     if (v.layout) { localStorage.setItem('rb_lay2', v.layout); $('#rlay').value = v.layout; }
     if (v.camera) { localStorage.setItem('rb_cam', v.camera); $('#rcamsel').value = v.camera; }
-    if (v.fmt && v.fmt !== $('#stage').className) setFmt(v.fmt);
+    // el formato de la PC no se aplica en el teléfono (ahí se usa 9:16 o el que elijas en el teléfono)
+    if (v.fmt && !isPhone() && v.fmt !== $('#stage').className) setFmt(v.fmt);
     if (v.skin && v.skin !== $('#stage').dataset.skin) setSkin(v.skin);
     localStorage.setItem('rb_settings_ts', String(ts));
   },

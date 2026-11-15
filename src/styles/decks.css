@@ -170,3 +170,53 @@
 .dbmiss td{padding:5px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .dbmiss td:nth-child(n+2),.dbmiss th:nth-child(n+2){text-align:right}
 .dbmiss tr.tot td{font-weight:700;border-bottom:0;color:#e9d29a}
+
+/* búsqueda con botón de filtros (el botón solo se ve en el teléfono) */
+.dbqrow{display:flex;gap:8px}
+.dbqrow #dbQ{flex:1;min-width:0}
+#dbFiltBtn{display:none;flex:none}
+.dbtip .ttouch{display:none}
+.dbpanes{display:none}
+
+/* ---------- teléfono ---------- */
+@media (max-width:760px){
+  /* barra: menú, lista de mazos y borrar · nombre · acciones con ícono y texto chico */
+  .dbtop{flex-wrap:wrap;gap:6px;padding:8px 10px;min-height:0}
+  .dbtop .navsec,.dbtop .dbflex{display:none}
+  #dbList{order:1;flex:1;min-width:0;max-width:none}
+  #dbDel{order:2}
+  #dbName{order:3;width:100%}
+  #dbSaveShared{order:4;width:100%;justify-content:center}
+  #dbNew,#dbImport,#dbExport,#dbImage,#dbShare{order:5;flex:1 1 0;min-width:0;flex-direction:column;gap:2px;padding:6px 2px;font-size:10.5px;line-height:1.1}
+  #dbNew svg,#dbImport svg,#dbExport svg,#dbImage svg,#dbShare svg{width:18px;height:18px}
+
+  /* una pantalla a la vez: catálogo o mazo */
+  .dbwork{display:block;position:relative}
+  .dbcat,.dbdeck{height:100%;border:0}
+  #deckb[data-pane="deck"] .dbcat,#deckb:not([data-pane="deck"]) .dbdeck{display:none}
+
+  /* filtros plegados: solo la búsqueda, el resto con "Filtros" */
+  .dbfilters{padding:10px;gap:8px}
+  #dbFiltBtn{display:inline-flex}
+  #dbFiltBtn[aria-expanded="true"]{border-color:var(--acc);color:var(--acc2)}
+  .dbfilters:not(.open) .dbchips,.dbfilters:not(.open) .dbrow{display:none}
+  .dbrow select{flex:1 1 140px;min-width:0}
+  #dbCount{margin-left:0}
+
+  .dbgrid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;padding:10px}
+  .dbtabs button{padding:11px 4px;font-size:13px}
+
+  /* barra de abajo: Cartas / Mi mazo */
+  .dbpanes{display:flex;flex:none;border-top:1px solid var(--line);background:#0a1221;padding-bottom:env(safe-area-inset-bottom)}
+  .dbpanes button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 8px;background:none;border:0;border-top:2px solid transparent;color:var(--muted);font-weight:600;font-size:14px}
+  .dbpanes button.on{color:var(--acc2);border-top-color:var(--acc)}
+  .dbpanes svg{width:18px;height:18px}
+  .dbpanes b{font-variant-numeric:tabular-nums;color:var(--text)}
+}
+/* con el dedo: botones + y − siempre visibles, y las instrucciones para tocar */
+@media (hover:none){
+  .dbc .dbcb{opacity:1}
+  .dbc:hover{transform:none;box-shadow:0 4px 12px #0009}
+  .dbtip .tmouse{display:none}
+  .dbtip .ttouch{display:inline}
+}
