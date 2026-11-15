@@ -1,0 +1,64 @@
+# Publica Riftviewer en GitHub Pages cada vez que cambia main (o a mano, desde la pestaña Actions).
+# Las variables VITE_* van en Settings → Secrets and variables → Actions → Variables (son públicas: van en la página).
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# una publicación a la vez; si llega otra, espera a que termine la actual
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # el catálogo de OpenRift y las huellas del arte no se versionan: se generan en cada publicación
+      - name: Descargar el catálogo de cartas y calcular las huellas del arte
+        run: npm run catalogo
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Compilar
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_PATREON_URL: ${{ vars.VITE_PATREON_URL }}
+          SIN_SOURCEMAPS: '1'
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
