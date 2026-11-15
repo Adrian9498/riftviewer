@@ -113,6 +113,7 @@ export const localAdapter = {
   },
 
   refresh(changed) {
+    if (changed.has('projects')) document.dispatchEvent(new Event('rb:projects'));
     if (changed.has('projects') && PROJKEY) { loadProj(PROJKEY); if (app.R) buildFrameList(); renderClips(); renderNotes(); }
     if (changed.has('docs') && $('#home').classList.contains('show')) renderRecents();
     if (changed.has('settings') || changed.has('assets')) { applyBrand(); rerender(); }

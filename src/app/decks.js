@@ -18,6 +18,8 @@ import { isPremium } from '../cloud/plan';
 import { DOC, toast } from './shell';
 import { app } from './state';
 import { closeModal, esc, openModal } from './utils';
+import { deckCost } from './collection';
+import { latestPrices, money } from '../cloud/prices';
 
 const KEY = id => 'rb_proj_deck:' + id;
 const get = code => deckCard(code);
@@ -125,6 +127,17 @@ function row(code, n, sec, bad) {
     <button class="btn mini ico" data-rm="${esc(code)}" data-sec="${sec}" title="Quitar">−</button>${n != null ? `<button class="btn mini ico" data-add="${esc(code)}" data-sec="${sec}" title="Agregar">+</button>` : ''}</div>`;
 }
 const countTag = (n, goal, exact) => `<span class="dbcnt ${exact ? (n === goal ? 'ok' : 'no') : (n >= goal ? 'ok' : 'no')}">${n}/${goal}</span>`;
+/** "Cuesta ~$X · te faltan N ($Y)" con precios de TCGplayer y tu colección. */
+function costLine() {
+  const cards = [[D.legend, 1], [D.champion, 1], ...Object.entries(mainWithChampion(D)).filter(([c]) => c !== D.champion), ...Object.entries(D.runes), ...D.battlefields.map(b => [b, 1])]
+    .filter(([c, n]) => c && n).map(([code, n]) => ({ code, name: get(code)?.name || code, n }));
+  if (!cards.length) return '';
+  // el campeón ya va en mainWithChampion: se cuenta una sola vez
+  const c = deckCost(cards.filter((x, i, a) => !(x.code === D.champion && a.findIndex(y => y.code === D.champion) !== i)));
+  if (!c) return '';
+  const miss = c.hasCollection ? (c.missN ? ` · te faltan ${c.missN} (${money(c.missCost)})` : ' · <b class="ok">tienes todas</b>') : '';
+  return `<div class="dbcost" title="Precio de mercado en TCGplayer (EE. UU.), cada carta a su versión más barata${c.unpriced ? `. ${c.unpriced} sin precio` : ''}">Cuesta ~<b>${money(c.cost)}</b>${miss}</div>`;
+}
 function renderList(issues) {
   const legend = D.legend && get(D.legend), legImg = D.legend && cardByCode(D.legend)?.img;
   const bad = new Set(issues.filter(i => i.level === 'error').flatMap(i => i.codes || []));
@@ -138,6 +151,7 @@ function renderList(issues) {
     <div class="dbhero"${legImg ? ` style="--img:url('${esc(legImg)}')"` : ''}>
       <b>${esc(legend?.name || 'Sin leyenda')}</b><span class="doms">${legend ? domIcons(legend.dom) : ''}</span>
       <div class="dbcnts">Principal ${countTag(nMain, MAIN_MIN)} · Runas ${countTag(nRunes, RUNES, true)} · Campos ${countTag(D.battlefields.length, BATTLEFIELDS, true)}</div>
+      ${costLine()}
     </div>
     ${sec('Leyenda', D.legend ? row(D.legend, null, 'legend', bad) : hint('Elige una leyenda', 'Legend'))}
     ${sec('Campeón elegido', D.champion ? row(D.champion, null, 'champion', bad) : hint(legend ? `Elige un campeón de ${legend.name.split(',')[0]}` : 'Primero elige una leyenda', 'champ'))}
@@ -300,6 +314,7 @@ function preview(code, x, y) {
 
 /* ---------- abrir y cerrar la sección ---------- */
 export function showDecks(d) {
+  latestPrices().then(p => { if (p && !$('#deckb').hidden && D) renderAll(); }).catch(() => {});
   $('#home').classList.remove('show'); $('#deckb').hidden = false; document.body.classList.add('indecks');
   if (d) openDeck(d, true);
   else if (!D) { const last = allDecks()[0]; if (last) openDeck(last); else newDeck(); }

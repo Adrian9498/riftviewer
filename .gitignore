@@ -6,3 +6,5 @@ dist/
 # catálogo de OpenRift: se genera con actualizar-openrift.cmd (no se versiona)
 openrift-cards.js
 public/openrift-catalog.json
+# huellas del arte para el escáner: se generan con npm run catalogo
+public/art-sigs.json

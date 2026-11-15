@@ -151,3 +151,8 @@
 .ds-runes .sym{width:46px;height:46px}
 .ds-mark{position:absolute;right:56px;bottom:26px;font-size:18px;color:#aab5cc}
 .ds-mark b{font-family:Cinzel,serif;color:#e6c67f}
+
+/* costo del mazo (TCGplayer) */
+.dbcost{font-size:12.5px;color:var(--muted)}
+.dbcost b{color:#e9d29a;font-variant-numeric:tabular-nums}
+.dbcost b.ok{color:var(--ok)}
