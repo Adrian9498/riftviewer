@@ -365,6 +365,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <span class="navsec">Colección</span>
     <span class="dbflex"></span>
+    <button class="btn" id="coTrade" title="Lo que te sobra y lo que buscas, para cambiar con otros"><svg class="i"><use href="#i-flip"/></svg> <span>Intercambios</span></button>
     <button class="btn" id="coExport" title="Copiar o descargar tu colección como lista"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>
     <button class="btn primary" id="coScan"><svg class="i"><use href="#i-scan"/></svg> <span>Escanear cartas</span></button>
   </header>
@@ -389,12 +390,28 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     </section>
   </div>
 </div>
+<!-- intercambios: lo que me sobra, lo que busco y el cruce con la lista de otro (src/app/trade.js) -->
+<div id="trade" hidden>
+  <header class="mstop">
+    <button class="btn ico" id="trClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    <div class="mstitle"><b>Intercambios</b><small>Lo que te sobra y lo que buscas</small></div>
+    <button class="btn primary" id="trShareBtn"><svg class="i"><use href="#i-export"/></svg> <span>Compartir mi lista</span></button>
+  </header>
+  <nav class="mstabs" role="tablist" aria-label="Intercambios">
+    <button role="tab" data-trtab="have"><svg class="i"><use href="#i-binder"/></svg><span>Me sobra</span><small id="trNHave"></small></button>
+    <button role="tab" data-trtab="want"><svg class="i"><use href="#i-target"/></svg><span>Busco</span><small id="trNWant"></small></button>
+    <button role="tab" data-trtab="peers"><svg class="i"><use href="#i-user"/></svg><span>Listas de otros</span><small id="trNPeers"></small></button>
+  </nav>
+  <div class="trbody" id="trBody"></div>
+  <div id="trSheet" hidden></div>
+</div>
 <!-- en la mesa: leer en inglés la carta del rival (src/app/table.js) -->
 <div id="mesa" hidden>
   <header class="mstop">
     <button class="btn ico" id="msClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
     <div class="mstitle"><b>En la mesa</b><small id="msDeck"></small></div>
     <div class="mschips" id="msChips"></div>
+    <button class="btn mini msreset" id="msReset" title="Empezar de cero: mazo, leyenda rival, cartas, reloj, moneda y dado"><svg class="i"><use href="#i-replay"/></svg><span>Reiniciar</span></button>
   </header>
   <div id="msPick" hidden></div>
   <nav class="mstabs" role="tablist" aria-label="En la mesa">

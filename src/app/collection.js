@@ -56,7 +56,7 @@ function quickRemove(p) {
    Para jugar sirve cualquier versión, así que se cuenta por nombre de carta.
    riftcodex escribe las leyendas "Ekko - Boy Who Shattered Time" y el constructor "Ekko, Boy…" para las de OpenRift;
    en OpenRift la carta se llama solo "Boy Who Shattered Time". Por eso primero se busca el código en el catálogo. */
-const nameKey = n => norm(String(n || '').split(' - ').pop());
+export const nameKey = n => norm(String(n || '').split(' - ').pop());
 const keyOf = c => nameKey(catalog()?.byCode.get(String(c.code || '').toUpperCase())?.name || c.name);
 let NAMES = null, OWNED = null, REV = 0;
 const bumpRev = () => { REV++; OWNED = null; };
