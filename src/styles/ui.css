@@ -517,3 +517,11 @@ body.gated{overflow:hidden}
   #annot>.btn svg{width:18px;height:18px}
   #annot .asep{margin:0 2px}
 }
+
+/* ---------- iPhone: entrar sin que se caiga la pestaña ---------- */
+/* iOS hace zoom al escribir en campos con letra menor a 16px; ese zoom redibuja la mesa entera y se queda sin memoria */
+@media (pointer:coarse){ input,select,textarea{font-size:max(16px,1em)} }
+/* con la pantalla de acceso puesta, lo de atrás no se dibuja */
+body.gated #app,body.gated #home,body.gated #deckb,body.gated #collb,body.gated #coscan{visibility:hidden}
+/* el desenfoque de fondo de las ventanas pesa mucho en el teléfono */
+@media (pointer:coarse){ #modal,#startrec{-webkit-backdrop-filter:none;backdrop-filter:none;background:#000d} }
