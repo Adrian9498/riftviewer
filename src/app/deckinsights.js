@@ -120,6 +120,53 @@ export function probHTML(d) {
 }
 export function setSeen(n) { SEEN = n; }
 
+/* ---------- mano de prueba: barajar, mano inicial, mulligan y robar ---------- */
+const MULL_MAX = 2;
+let H = null;   // { id, lib, hand, opening, sel, mull }
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+export function newHand(d) {
+  const lib = shuffle(Object.entries(d.main).flatMap(([c, n]) => Array(n).fill(c)));
+  H = { id: d.id, lib, hand: lib.splice(0, OPENING_HAND), opening: OPENING_HAND, sel: new Set(), mull: false };
+}
+/** Las elegidas se apartan, robas otras tantas y las apartadas van al fondo del mazo. */
+export function mulligan() {
+  if (!H || H.mull || !H.sel.size) return;
+  const out = [...H.sel].sort((a, b) => b - a).map(i => H.hand.splice(i, 1)[0]);
+  H.hand.push(...H.lib.splice(0, out.length));
+  H.lib.push(...shuffle(out));
+  H.sel.clear(); H.mull = true;
+}
+export function drawCard() {
+  if (!H?.lib.length) return;
+  H.sel.clear(); H.mull = true;
+  H.hand.push(H.lib.shift());
+}
+export function pickHandCard(i) {
+  if (!H || H.mull || i >= H.opening) return;
+  if (H.sel.has(i)) H.sel.delete(i); else if (H.sel.size < MULL_MAX) H.sel.add(i);
+}
+export function handHTML(d) {
+  const N = total(d.main);
+  if (N < OPENING_HAND) return '';
+  if (H?.id !== d.id || H.lib.length + H.hand.length !== N) newHand(d);
+  const extra = H.hand.length - H.opening;
+  const hint = !H.mull
+    ? `Tu mano inicial de ${OPENING_HAND}. Toca hasta ${MULL_MAX} cartas para devolverlas en el mulligan, o roba para seguir con esta.`
+    : `Quedan ${plural(H.lib.length, 'carta')} en el mazo${extra > 0 ? ` · robaste ${extra}` : ''}.`;
+  return `<div id="ddHand">
+    <div class="ddhbar">
+      <button class="btn mini" data-hand="new">${ic('replay')} Nueva mano</button>
+      ${H.mull ? '' : `<button class="btn mini${H.sel.size ? ' primary' : ''}" data-hand="mull"${H.sel.size ? '' : ' disabled'}>${ic('flip')} Mulligan${H.sel.size ? ` (${H.sel.size})` : ''}</button>`}
+      <button class="btn mini" data-hand="draw"${H.lib.length ? '' : ' disabled'}>${ic('plus')} Robar carta</button>
+    </div>
+    <p class="dlhint">${hint}</p>
+    <div class="ddhand">${H.hand.map((c, i) => {
+      const name = nameOf(c), img = cardByCode(c)?.img || '', pick = !H.mull && i < H.opening;
+      return `<${pick ? 'button' : 'div'} class="ddhc${H.sel.has(i) ? ' sel' : ''}${i >= H.opening ? ' new' : ''}"${pick ? ` data-hcard="${i}" aria-pressed="${H.sel.has(i)}"` : ''} data-code="${esc(c)}" title="${esc(name)}">
+        <img src="${esc(img)}" alt="${esc(name)}">${i >= H.opening ? `<b>+${i - H.opening + 1}</b>` : ''}${H.sel.has(i) ? `<em>${ic('flip')} Al fondo</em>` : ''}</${pick ? 'button' : 'div'}>`;
+    }).join('')}</div></div>`;
+}
+
 /* ---------- pestañas de la página: la lista, rendimiento, probabilidades, reemplazos ---------- */
 let TAB = 'deck', TAB_DECK = null;   // al abrir otro mazo se empieza por la lista
 export function insightsHTML(d, shared, list, count) {
@@ -127,6 +174,7 @@ export function insightsHTML(d, shared, list, count) {
   const reps = (d.replays || []).filter(r => r.analysis?.result).length;
   const tabs = [
     { id: 'deck', icon: 'cards', label: 'Mazo', badge: count, html: list },
+    { id: 'hand', icon: 'play', label: 'Mano de prueba', html: handHTML(d) },
     !shared && { id: 'perf', icon: 'chart', label: 'Rendimiento', badge: reps || '', html: perfHTML(d) },
     { id: 'prob', icon: 'sparkle', label: 'Probabilidades', html: probHTML(d) },
     !shared && { id: 'alt', icon: 'bulb', label: 'Reemplazos', html: altHTML(d) },

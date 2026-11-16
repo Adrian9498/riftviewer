@@ -123,16 +123,47 @@ describe('repeticiones en un mazo', () => {
     ([...document.querySelectorAll('#dlGrid .dlc')].find(t => t.textContent!.includes('Grande')) as HTMLElement).click();
     // la lista y el análisis van en pestañas; se abre en la lista
     const tabs = [...document.querySelectorAll('#ddBody [data-instab]')] as HTMLButtonElement[];
-    expect(tabs.map(t => t.dataset.instab)).toEqual(['deck', 'perf', 'prob']);
+    expect(tabs.map(t => t.dataset.instab)).toEqual(['deck', 'hand', 'perf', 'prob']);
     expect(tabs[0].textContent).toContain('12');
     expect($('#ddpan-deck').hidden).toBe(false);
     expect($('#ddpan-deck').textContent).toContain('Mazo principal');
     expect($('#ddpan-prob').hidden).toBe(true);
-    tabs[1].click();
+    tabs[2].click();
     expect($('#ddpan-perf').hidden).toBe(false);
     expect($('#ddpan-deck').hidden).toBe(true);
-    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
-    tabs[2].click();
+    expect(tabs[2].getAttribute('aria-selected')).toBe('true');
+
+    // mano de prueba: 4 cartas, mulligan de hasta 2, y robar
+    tabs[1].click();
+    const hand = () => [...document.querySelectorAll('#ddHand .ddhc')];
+    const left = () => +($('#ddHand .dlhint').textContent!.match(/Quedan (\d+)/)?.[1] ?? -1);
+    expect(hand()).toHaveLength(4);
+    const pick = (i: number) => (document.querySelectorAll('#ddHand [data-hcard]')[i] as HTMLElement).click();
+    pick(0); pick(1); pick(2);   // la tercera no se puede: máximo 2
+    expect(document.querySelectorAll('#ddHand .ddhc.sel')).toHaveLength(2);
+    ($('#ddHand [data-hand="mull"]') as HTMLButtonElement).click();
+    expect(hand()).toHaveLength(4);
+    expect(left()).toBe(8);
+    expect($('#ddHand [data-hand="mull"]')).toBeNull();   // un solo mulligan
+    ($('#ddHand [data-hand="draw"]') as HTMLButtonElement).click();
+    expect(hand()).toHaveLength(5);
+    expect(left()).toBe(7);
+    // las 12 cartas siguen siendo las del mazo
+    const seen = hand().map(h => (h as HTMLElement).dataset.code);
+    expect(seen.every(c => ['OGN-001', 'OGN-002', 'OGN-003', 'OGN-004'].includes(c!))).toBe(true);
+    ($('#ddHand [data-hand="new"]') as HTMLButtonElement).click();
+    expect(hand()).toHaveLength(4);
+    expect($('#ddHand [data-hand="mull"]')).not.toBeNull();
+
+    // cambiar el nombre desde la página
+    ($('#ddBody [data-rename]') as HTMLButtonElement).click();
+    ($('#ddRen') as HTMLInputElement).value = '  Grande v2 ';
+    ([...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === 'Guardar') as HTMLButtonElement).click();
+    expect(JSON.parse(localStorage.getItem('rb_proj_deck:m2')!).name).toBe('Grande v2');
+    expect($('#ddBody h1').textContent).toContain('Grande v2');
+    expect(($('#ddBody [data-instab].on') as HTMLElement).dataset.instab).toBe('hand');   // se queda en la pestaña
+
+    ($('#ddBody [data-instab="prob"]') as HTMLButtonElement).click();
     const rows = () => [...document.querySelectorAll('#ddBody .ddtbl tbody tr')].map(r => [...r.querySelectorAll('td')].map(td => td.textContent!.trim()));
     // 12 cartas, 3 copias: 1 − (9·8·7·6)/(12·11·10·9) = 75% en la mano inicial
     const row = rows().find(r => r[0] === 'OGN-001')!;

@@ -21,6 +21,7 @@ import { deckCost } from './collection';
 import { ago, openReplay, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 import * as DB from './decks';
+import { drawCard, handHTML, mulligan, newHand, pickHandCard } from './deckinsights';
 import { analyzeText, backfill, insightsHTML, matchupsHTML, openCompare, recordHTML, restoreVersion, setSeen, showInsightsTab, swapCard } from './deckinsights';
 import { fullRecord } from '../deck/analysis';
 
@@ -112,6 +113,15 @@ function renameFolder(from) {
       F.folder = to; renderLib(); toast(`Carpeta renombrada a "${to}"`, 'ok');
     }]]);
   const inp = $('#dlRenF'); inp.select();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') document.querySelector('#modal .mfoot .btn.primary')?.click(); });
+}
+function renameDeck(d) {
+  openModal('Cambiar nombre', `<label class="full">Nombre del mazo<input type="text" id="ddRen" maxlength="60" value="${esc(d.name || '')}"></label>`,
+    [['Cancelar'], ['Guardar', 'primary', () => {
+      const to = $('#ddRen').value.trim(); if (!to) { $('#ddRen').focus(); return false; }
+      if (to !== d.name) { d.name = to; DB.writeDeck(d); renderDetail(); toast('Nombre cambiado', 'ok'); }
+    }]]);
+  const inp = $('#ddRen'); inp.select();
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') document.querySelector('#modal .mfoot .btn.primary')?.click(); });
 }
 function deleteFolder(name) {
@@ -258,7 +268,7 @@ export function renderDetail() {
       ${i.img ? `<div class="ddleg ddc" data-code="${esc(d.legend)}"><img src="${esc(i.img)}" alt="${esc(i.legendName)}"></div>` : `<div class="ddleg none">${ic('cards')}</div>`}
       <div class="ddhead">
         <div class="ddtags">${statusTag(i, 'ddst')}${cleanFolder(d.folder) ? `<span class="dlfold">${ic('folder')}${esc(d.folder)}</span>` : ''}${shared ? '<span class="ddshared">Compartido · todavía no está en tus mazos</span>' : ''}</div>
-        <h1>${esc(d.name || 'Sin nombre')}</h1>
+        <h1>${esc(d.name || 'Sin nombre')}${shared ? '' : `<button class="ddren" data-rename title="Cambiar nombre" aria-label="Cambiar nombre">${ic('pen')}</button>`}</h1>
         <div class="ddsub">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}${champ ? ` · campeón: ${esc(champ.name)}` : ''}</span></div>
         ${shared ? '' : `<div class="ddacts"><button class="btn mini${d.fav ? ' on' : ''}" data-fav aria-pressed="${!!d.fav}">${ic('star')} ${d.fav ? 'Favorito' : 'Marcar favorito'}</button>
           <button class="btn mini" data-move>${ic('folder')} ${cleanFolder(d.folder) ? 'Cambiar de carpeta' : 'Mover a carpeta'}</button>
@@ -354,6 +364,15 @@ export function initLib() {
     if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
     if (e.target.closest('[data-compare]')) { openCompare(d); return; }
     const tab = e.target.closest('[data-instab]'); if (tab) { showInsightsTab(body, tab.dataset.instab); return; }
+    if (e.target.closest('[data-rename]')) { renameDeck(d); return; }
+    // mano de prueba: se redibuja solo su panel
+    const ha = e.target.closest('[data-hand]'), hc = e.target.closest('[data-hcard]');
+    if (ha || hc) {
+      if (hc) pickHandCard(+hc.dataset.hcard);
+      else ({ new: () => newHand(d), mull: mulligan, draw: drawCard })[ha.dataset.hand]?.();
+      const box = $('#ddHand'); if (box) box.outerHTML = handHTML(d);
+      return;
+    }
     const cnt = e.target.closest('[data-repcount]');
     if (cnt) { const r = d.replays?.find(x => x.id === cnt.dataset.repcount); if (r) { r.count = r.count === false; DB.writeDeck(d); renderDetail(); } return; }
     const sw = e.target.closest('[data-swap]'); if (sw) { swapCard(d, sw.dataset.swap, sw.dataset.to); renderDetail(); return; }
