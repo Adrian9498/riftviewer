@@ -89,10 +89,40 @@
 /* herramientas */
 #msTools{display:flex;flex-direction:column;gap:10px}
 .mstool{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
-.msroll{display:flex;align-items:baseline;gap:8px;margin-left:auto;min-width:90px;justify-content:flex-end;color:var(--muted)}
-.msroll b{font-family:Cinzel,serif;font-size:24px;color:var(--acc2);animation:msPop .3s ease-out}
-@keyframes msPop{from{transform:scale(.6);opacity:0}}
 .msclockt{font-family:Cinzel,serif;font-size:30px;font-weight:700;min-width:96px;font-variant-numeric:tabular-nums;color:var(--ivory,#f0e6d2)}
 .msclockt.warn{color:#f2a5a3}
 .msclock select{margin-left:auto;padding:7px 8px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;color:var(--text)}
-@media (prefers-reduced-motion:reduce){ .msroll b{animation:none} }
+
+/* moneda y d20 */
+.mstool:first-child{align-items:center}
+.msrollb{display:flex;flex-direction:column;gap:8px}
+.msstage{margin-left:auto;display:flex;align-items:center;gap:14px;min-height:96px;perspective:600px}
+.msstage>small{color:var(--muted)}
+.msroll{display:flex;flex-direction:column;align-items:flex-start;min-width:74px;color:var(--muted)}
+.msroll b{font-family:Cinzel,serif;font-size:26px;line-height:1.1;color:var(--acc2)}
+.msroll small{font-size:12px}
+.msroll:not(.done) b{opacity:.0}
+.msroll.done b{animation:msPop .3s ease-out}
+@keyframes msPop{from{transform:scale(.5);opacity:0}}
+
+.mscoin{width:76px;height:76px;perspective:500px}
+.mscoin-in{position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.mscoin-in>span{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:50%;backface-visibility:hidden;
+  background:radial-gradient(circle at 35% 30%,#fff3c4,#e2c172 38%,#a8813a 72%,#6e5222);box-shadow:inset 0 0 0 4px #c8aa6e,inset 0 0 0 7px #7a5c26,0 6px 14px #000a;color:#3d2c0c}
+.mscoin-in>span .i{width:24px;height:24px}
+.mscoin-in>span i{font-style:normal;font-family:Cinzel,serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.mscoin-in>.b{transform:rotateX(180deg);background:radial-gradient(circle at 35% 30%,#f4f0e4,#cfc4a8 38%,#9c8f70 72%,#5e5440)}
+
+.msd20{position:relative;width:84px;height:84px;display:grid;place-items:center;filter:drop-shadow(0 6px 10px #000a)}
+.msd20 svg{position:absolute;inset:0;width:100%;height:100%}
+.msd20 .o{fill:#1d2b4a;stroke:#c8aa6e;stroke-width:2.5;stroke-linejoin:round}
+.msd20 .t{fill:#26385f;stroke:#c8aa6e;stroke-width:2;stroke-linejoin:round}
+.msd20 .l{fill:none;stroke:#c8aa6e88;stroke-width:1.5}
+.msd20 b{position:relative;top:6px;font-family:Cinzel,serif;font-weight:900;font-size:24px;color:var(--ivory,#f0e6d2);font-variant-numeric:tabular-nums}
+.msd20.rolling b{color:var(--muted)}
+.msd20.crit .o,.msd20.crit .t{stroke:#9be3b8;fill:#183a2c}
+.msd20.crit b{color:#9be3b8}
+.msd20.fail .o,.msd20.fail .t{stroke:#f2a5a3;fill:#3a1c22}
+.msd20.fail b{color:#f2a5a3}
+@media (prefers-reduced-motion:reduce){ .msroll.done b{animation:none} .msroll:not(.done) b{opacity:1} }
+@media (max-width:480px){ .msstage{min-height:84px} .mscoin{width:64px;height:64px} .msd20{width:72px;height:72px} }

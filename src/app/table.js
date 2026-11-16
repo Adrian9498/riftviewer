@@ -126,8 +126,49 @@ function undo() {
 }
 
 /* ---------- moneda, dado y reloj de ronda ---------- */
-function flip() { M.roll = { kind: 'coin', v: Math.random() < 0.5 ? 'Cara' : 'Cruz', n: (M.roll?.n || 0) + 1 }; save(); renderTools(); }
-function die() { M.roll = { kind: 'die', v: String(1 + Math.floor(Math.random() * 6)), n: (M.roll?.n || 0) + 1 }; save(); renderTools(); }
+const calm = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+const anim = (el, frames, opts) => (typeof el?.animate === 'function' && !calm() ? el.animate(frames, opts).finished.catch(() => {}) : Promise.resolve());
+/** Volado: la moneda sube girando y cae del lado que salió. */
+function flip() {
+  const v = Math.random() < 0.5 ? 'Cara' : 'Cruz';
+  M.roll = { kind: 'coin', v }; save(); renderTools(); rolling();
+  const coin = $('#msTools .mscoin-in'), end = `rotateX(${1800 + (v === 'Cruz' ? 180 : 0)}deg)`;
+  coin.style.transform = end;
+  anim($('#msTools .mscoin'), [{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-70px) scale(1.25)', offset: 0.45 }, { transform: 'translateY(0) scale(1)' }],
+    { duration: 1100, easing: 'cubic-bezier(.3,.7,.4,1)' });
+  anim(coin, [{ transform: 'rotateX(0deg)' }, { transform: end }], { duration: 1100, easing: 'cubic-bezier(.2,.6,.3,1)' }).then(() => land());
+}
+/** d20: rueda dando vueltas, los números pasan rápido y se detiene en el que salió. */
+function die() {
+  const v = 1 + Math.floor(Math.random() * 20);
+  M.roll = { kind: 'd20', v: String(v) }; save(); renderTools(); rolling();
+  const box = $('#msTools .msd20'), num = box?.querySelector('b');
+  if (num && !calm()) {
+    box.classList.add('rolling');
+    let k = 0; const t = setInterval(() => { num.textContent = String(1 + Math.floor(Math.random() * 20)); if (++k > 14) { clearInterval(t); num.textContent = String(v); } }, 55);
+  }
+  anim(box, [{ transform: 'translate(-40px,-50px) rotate(-260deg) scale(.6)' }, { transform: 'translate(8px,6px) rotate(25deg) scale(1.08)', offset: 0.7 },
+    { transform: 'translate(-3px,0) rotate(-8deg) scale(.97)', offset: 0.85 }, { transform: 'none' }], { duration: 950, easing: 'cubic-bezier(.25,.8,.35,1)' })
+    .then(() => { if (num) num.textContent = String(v); box?.classList.remove('rolling'); land(); });
+}
+/** Mientras gira, el resultado escrito no se ve todavía. */
+const rolling = () => { if (!calm()) $('#msTools .msroll')?.classList.remove('done'); };
+/** Al caer: el resultado se anuncia y un pequeño golpe. */
+function land() {
+  const o = $('#msTools .msroll'); if (!o) return;
+  o.classList.add('done'); navigator.vibrate?.(25);
+}
+const D20 = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="o" points="50,3 91,27 91,73 50,97 9,73 9,27"/><polygon class="t" points="50,22 78,68 22,68"/>'
+  + '<path class="l" d="M50,3 50,22 M91,27 78,68 M91,27 50,22 M9,27 50,22 M9,27 22,68 M91,73 78,68 M9,73 22,68 M50,97 78,68 M50,97 22,68"/></svg>';
+function rollHTML(r) {
+  if (!r) return '<div class="msstage"><small>¿Quién empieza?</small></div>';
+  if (r.kind === 'coin') return `<div class="msstage"><div class="mscoin" aria-hidden="true"><div class="mscoin-in" style="transform:rotateX(${r.v === 'Cruz' ? 180 : 0}deg)">
+      <span class="f">${ic('crown')}<i>Cara</i></span><span class="b">${ic('star')}<i>Cruz</i></span></div></div>
+    <output class="msroll done" aria-live="polite"><b>${esc(r.v)}</b><small>volado</small></output></div>`;
+  const n = +r.v;
+  return `<div class="msstage"><div class="msd20${n === 20 ? ' crit' : n === 1 ? ' fail' : ''}" aria-hidden="true">${D20}<b>${n}</b></div>
+    <output class="msroll done" aria-live="polite"><b>${n}</b><small>${n === 20 ? '¡crítico!' : n === 1 ? 'pifia' : 'd20'}</small></output></div>`;
+}
 const clockLeft = c => c.end ? Math.max(0, c.end - Date.now()) : c.left;
 function clockToggle() {
   const c = M.clock;
@@ -183,8 +224,8 @@ function renderTools() {
   const c = M.clock, left = clockLeft(c), r = M.roll;
   $('#msTools').innerHTML = `
     <div class="mstool">
-      <button class="btn" data-mscoin>${ic('dot')} Moneda</button><button class="btn" data-msdie>${ic('cards')} Dado</button>
-      <output class="msroll${r ? ' on' : ''}" aria-live="polite">${r ? `<b data-n="${r.n}">${esc(r.v)}</b><small>${r.kind === 'coin' ? 'volado' : 'dado de 6'}</small>` : '<small>¿Quién empieza?</small>'}</output>
+      <div class="msrollb"><button class="btn" data-mscoin>${ic('crown')} Lanzar moneda</button><button class="btn" data-msdie>${ic('sparkle')} Tirar d20</button></div>
+      ${rollHTML(r && r.kind !== 'die' ? r : null)}
     </div>
     <div class="mstool msclock">
       <span class="msclockt${left <= WARN_MS ? ' warn' : ''}" id="msClockT">${fmt(left)}</span>

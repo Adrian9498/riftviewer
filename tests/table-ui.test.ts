@@ -152,7 +152,8 @@ describe('en la mesa', () => {
     expect(['Cara', 'Cruz']).toContain($('#msTools .msroll b').textContent);
     ($('#msTools [data-msdie]') as HTMLButtonElement).click();
     expect(+$('#msTools .msroll b').textContent!).toBeGreaterThanOrEqual(1);
-    expect(+$('#msTools .msroll b').textContent!).toBeLessThanOrEqual(6);
+    expect(+$('#msTools .msroll b').textContent!).toBeLessThanOrEqual(20);
+    expect($('#msTools .msd20')).not.toBeNull();
     const min = $('#msMin') as HTMLSelectElement; min.value = '30'; min.dispatchEvent(new Event('change', { bubbles: true }));
     expect($('#msClockT').textContent).toBe('30:00');
     ($('#msTools [data-msclock]') as HTMLButtonElement).click();
