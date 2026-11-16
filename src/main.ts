@@ -7,6 +7,7 @@ import './styles/skins-fx.css';
 import './styles/decks.css';
 import './styles/collection.css';
 import './styles/table.css';
+import './styles/trade.css';
 import { init as initCards } from './app/cards.js';
 import { init as initReplay } from './app/replay.js';
 import { init as initShell } from './app/shell.js';
@@ -31,12 +32,13 @@ import { init as initDecks } from './app/decks.js';
 import { init as initCollection } from './app/collection.js';
 import { init as initScanner } from './app/scanner.js';
 import { init as initTable } from './app/table.js';
+import { init as initTrade } from './app/trade.js';
 import { init as initNav } from './app/nav.js';
 import { init as initGate } from './app/gate.js';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initTable, initGate, initNav]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initTable, initTrade, initGate, initNav]) init();
 }
 
 start();

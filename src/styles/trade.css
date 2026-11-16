@@ -1,0 +1,62 @@
+/* Intercambios (src/app/trade.js). La barra de arriba y las pestañas usan los estilos de "En la mesa" (.mstop, .mstabs). */
+#trade{position:fixed;inset:0;z-index:1200;display:flex;flex-direction:column;background:var(--bg,#0a1221);color:var(--text);overflow:hidden}
+#trade[hidden]{display:none}
+#trade .mstop .btn.primary{flex:none}
+.trbody{flex:1;overflow-y:auto;padding:16px max(16px,calc((100% - 1100px) / 2)) 28px;box-sizing:border-box}
+
+.trsum{margin:4px 0 12px;color:var(--acc2);font-weight:600;font-size:14px}
+.trgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:14px}
+.trc{display:flex;flex-direction:column;gap:3px;padding:6px;border:1px solid transparent;border-radius:12px;background:none;color:var(--text);text-align:left;cursor:pointer;transition:background .15s,border-color .15s}
+.trc:hover{background:var(--panel2);border-color:var(--line2)}
+.trc[data-trnop]{cursor:default}
+.trc[data-trnop]:hover{background:none;border-color:transparent}
+.trimg{position:relative;display:block;aspect-ratio:744/1039;border-radius:9px;background:#111b2e center/cover no-repeat;box-shadow:0 4px 12px #0009;margin-bottom:4px}
+.trimg b{position:absolute;right:6px;bottom:6px;padding:2px 8px;border-radius:8px;background:#0a1221e6;color:var(--acc2);font-size:13px}
+.trfin{position:absolute;left:6px;top:6px;padding:2px 7px;border-radius:7px;background:linear-gradient(135deg,#9be3ff,#d8a6ff,#ffe39b);color:#1a1530;font-style:normal;font-weight:700;font-size:11px}
+.trn{font-size:13px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trc small{color:var(--muted);font-size:12px}
+.trtag{align-self:flex-start;padding:1px 7px;border-radius:7px;background:#c8aa6e22;color:var(--acc2);font-style:normal;font-size:11px;font-weight:600}
+.trh{display:flex;align-items:baseline;gap:8px;margin:22px 0 10px;font-family:Cinzel,serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+.trh small{font-family:Inter,sans-serif;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12.5px}
+.trchips{display:flex;flex-wrap:wrap;gap:6px}
+.trman{margin:4px 0 14px}
+.trman input{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--text);font-size:15px}
+#trHits{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#trHits:empty{display:none}
+
+/* listas de otros */
+.trpeers{display:flex;flex-direction:column;gap:8px}
+.trpeer{display:flex;gap:8px;align-items:center}
+.trpeerb{flex:1;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);color:var(--text);text-align:left;cursor:pointer}
+.trpeerb:hover{border-color:var(--acc)}
+.trpeerb>span{flex:1;display:flex;flex-direction:column}
+.trpeerb small{color:var(--muted)}
+.trpeerb>.i:first-child{width:22px;height:22px;color:var(--acc)}
+.trback{margin-bottom:8px}
+.trback .i{transform:rotate(90deg)}
+.trpeerh{margin:4px 0 14px;font-family:Cinzel,serif;font-size:22px;color:var(--ivory,#f0e6d2)}
+.trbal{display:flex;align-items:center;justify-content:center;gap:18px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:6px}
+.trbal>span:not(.trbalx){display:flex;flex-direction:column;align-items:center;min-width:110px}
+.trbal small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.trbal b{font-family:Cinzel,serif;font-size:24px;color:var(--acc2)}
+.trbalx .i{width:22px;height:22px;color:var(--acc)}
+.trsec{margin-top:4px}
+.trall{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:0 14px}
+.trall summary{padding:12px 0;cursor:pointer;font-weight:600}
+.trall summary small{color:var(--muted);font-weight:400;margin-left:6px}
+.trall[open]{padding-bottom:14px}
+
+/* compartir: hoja como la de elegir mazo en la mesa */
+#trSheet{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:#000b}
+#trSheet[hidden]{display:none}
+.trshare{max-width:520px}
+.trlbl{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
+.trlbl input{padding:11px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--text);font-size:15px}
+.trshb{display:flex;flex-direction:column;gap:8px}
+.trshb .btn{justify-content:center;padding:12px}
+@media (min-width:761px){ #trSheet{align-items:center;padding:24px} }
+@media (max-width:760px){
+  #trade .mstop .btn.primary span{display:none}
+  .trgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .trc{padding:3px}
+}
