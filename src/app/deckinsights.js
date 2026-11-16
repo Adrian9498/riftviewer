@@ -114,11 +114,35 @@ export function probHTML(d) {
     <td>${pct(pAny(N, r.k, OPENING_HAND))}</td><td>${pct(pAnyMulligan(N, r.k))}</td><td>${pct(pAny(N, r.k, SEEN))}</td></tr>`;
   const opts = Array.from({ length: 11 }, (_, i) => i + 5).map(n => `<option value="${n}"${n === SEEN ? ' selected' : ''}>${n} cartas</option>`).join('');
   return `<section class="ddsec ddwide"><h3>${ic('sparkle')} Probabilidades de robo <small>${N} cartas sin el campeón</small></h3>
-    <p class="dlhint">Probabilidad de tener al menos una copia. La mano inicial es de ${OPENING_HAND}; con mulligan devuelves hasta 2 buscándola.</p>
+    <p class="dlhint">Probabilidad de tener al menos una copia entre las ${N} cartas del mazo (sin el campeón). La mano inicial es de ${OPENING_HAND}; con mulligan devuelves hasta 2 buscándola.</p>
     <div class="ddtbl"><table><thead><tr><th>Carta</th><th>Copias</th><th>Mano inicial</th><th>Con mulligan</th><th>Tras ver <select id="ddSeen" aria-label="Cartas vistas">${opts}</select></th></tr></thead>
     <tbody>${groups.map(tr).join('')}${rows.map(tr).join('')}</tbody></table></div></section>`;
 }
 export function setSeen(n) { SEEN = n; }
+
+/* ---------- pestañas bajo la lista: rendimiento, probabilidades, reemplazos ---------- */
+let TAB = null;   // null: rendimiento si ya hay partidas, si no probabilidades
+export function insightsHTML(d, shared) {
+  const reps = (d.replays || []).filter(r => r.analysis?.result).length;
+  const tabs = [
+    !shared && { id: 'perf', icon: 'chart', label: 'Rendimiento', badge: reps || '', html: perfHTML(d) },
+    { id: 'prob', icon: 'sparkle', label: 'Probabilidades', html: probHTML(d) },
+    !shared && { id: 'alt', icon: 'bulb', label: 'Reemplazos', html: altHTML(d) },
+  ].filter(t => t && t.html);
+  if (tabs.length < 2) return tabs[0]?.html || '';
+  const on = tabs.find(t => t.id === (TAB || (reps ? 'perf' : 'prob')))?.id || tabs[0].id;
+  return `<div class="ddins">
+    <div class="ddtabs" role="tablist" aria-label="Análisis del mazo">${tabs.map(t => `<button role="tab" id="ddtab-${t.id}" data-instab="${t.id}" aria-controls="ddpan-${t.id}" aria-selected="${t.id === on}" tabindex="${t.id === on ? 0 : -1}" class="${t.id === on ? 'on' : ''}">
+      ${ic(t.icon)} ${t.label}${t.badge ? ` <small>${t.badge}</small>` : ''}</button>`).join('')}</div>
+    ${tabs.map(t => `<div class="ddpan" role="tabpanel" id="ddpan-${t.id}" aria-labelledby="ddtab-${t.id}"${t.id === on ? '' : ' hidden'}>${t.html}</div>`).join('')}
+  </div>`;
+}
+/** Cambia de pestaña sin volver a dibujar la página (se recuerda al volver a entrar). */
+export function showInsightsTab(root, id) {
+  TAB = id;
+  for (const b of root.querySelectorAll('[data-instab]')) { const on = b.dataset.instab === id; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }
+  for (const p of root.querySelectorAll('.ddpan')) p.hidden = p.id !== `ddpan-${id}`;
+}
 
 /* ---------- reemplazos ---------- */
 export function altHTML(d) {

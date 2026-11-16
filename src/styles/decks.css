@@ -455,3 +455,16 @@
   .ddcmp{grid-template-columns:1fr}
   .ddtbl td,.ddtbl th{padding:6px 8px}
 }
+
+/* pestañas del análisis bajo la lista */
+.ddins{margin-top:10px}
+.ddtabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.ddtabs::-webkit-scrollbar{display:none}
+.ddtabs button{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer;transition:color .15s}
+.ddtabs button:hover{color:var(--text)}
+.ddtabs button.on{color:var(--acc2);border-bottom-color:var(--acc)}
+.ddtabs button small{min-width:18px;padding:1px 6px;border-radius:9px;background:var(--panel2);color:var(--muted);font-size:11.5px;text-align:center}
+.ddtabs button.on small{background:#c8aa6e22;color:var(--acc2)}
+.ddpan .ddsec{margin:0}
+.ddpan .ddsec>h3{display:none}
+@media (max-width:760px){ .ddtabs button{padding:10px 11px;font-size:13.5px} }

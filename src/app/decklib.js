@@ -21,7 +21,7 @@ import { deckCost } from './collection';
 import { ago, openReplay, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 import * as DB from './decks';
-import { altHTML, analyzeText, backfill, matchupsHTML, openCompare, perfHTML, probHTML, recordHTML, restoreVersion, setSeen, swapCard } from './deckinsights';
+import { analyzeText, backfill, insightsHTML, matchupsHTML, openCompare, recordHTML, restoreVersion, setSeen, showInsightsTab, swapCard } from './deckinsights';
 import { fullRecord } from '../deck/analysis';
 
 const DOMS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
@@ -273,7 +273,7 @@ export function renderDetail() {
       </div>
     </section>
     <div class="ddcols">
-      <div class="ddmain">${listHTML(d)}${shared ? '' : perfHTML(d)}${probHTML(d)}${shared ? '' : altHTML(d)}</div>
+      <div class="ddmain">${listHTML(d)}${insightsHTML(d, shared)}</div>
       <aside class="ddside">
         ${shared ? '' : recordHTML(d)}
         ${shared ? '' : replaysHTML(d)}
@@ -353,6 +353,7 @@ export function initLib() {
     if (e.target.closest('[data-move]')) { openMove(d); return; }
     if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
     if (e.target.closest('[data-compare]')) { openCompare(d); return; }
+    const tab = e.target.closest('[data-instab]'); if (tab) { showInsightsTab(body, tab.dataset.instab); return; }
     const cnt = e.target.closest('[data-repcount]');
     if (cnt) { const r = d.replays?.find(x => x.id === cnt.dataset.repcount); if (r) { r.count = r.count === false; DB.writeDeck(d); renderDetail(); } return; }
     const sw = e.target.closest('[data-swap]'); if (sw) { swapCard(d, sw.dataset.swap, sw.dataset.to); renderDetail(); return; }
@@ -371,6 +372,12 @@ export function initLib() {
   // si se sale de la página con una nota a medio guardar
   body.addEventListener('focusout', e => { if (e.target.id === 'ddNotes' && notesT) { clearTimeout(notesT); notesT = null; const d = DB.currentDeck(); if (d && !DB.isShared()) DB.writeDeck(d); } });
   body.addEventListener('change', e => { if (e.target.id === 'ddSeen') { setSeen(+e.target.value); renderDetail(); } });
+  // flechas para moverse entre las pestañas del análisis
+  body.addEventListener('keydown', e => {
+    const t = e.target.closest?.('[data-instab]'); if (!t || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+    const all = [...t.parentElement.querySelectorAll('[data-instab]')], n = all[(all.indexOf(t) + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+    e.preventDefault(); showInsightsTab(body, n.dataset.instab); n.focus();
+  });
   body.addEventListener('keydown', e => { const r = e.target.closest?.('[data-rep]'); if (r && e.target === r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDeckReplay(r.dataset.rep); } });
   // soltar replays sobre la página de un mazo los guarda en él (en lugar de abrirlos como partida)
   body.addEventListener('drop', e => {
