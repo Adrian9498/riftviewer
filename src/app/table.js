@@ -1,7 +1,11 @@
 // En la mesa: para partidas presenciales con cartas en otro idioma (por ejemplo chino contra inglés).
-// Escaneas la carta que jugó el rival (o escribes su número) y ves su nombre y su texto en inglés, en grande.
-// Las cartas vistas quedan en una tira para volver a leerlas sin escanear otra vez.
+// - Eliges con qué mazo juegas y escaneas la leyenda del rival: ves tu récord contra ella y tus notas.
+// - Escaneas la carta que jugó el rival (o escribes su número) y ves su nombre y su texto en inglés, en grande.
+//   Las cartas vistas quedan en una tira para volver a leerlas sin escanear otra vez.
+// - Al terminar, Gané / Perdí lo anota en el récord del mazo y contra esa leyenda.
+// - Moneda, dado y reloj de ronda.
 import { searchPrintings } from '../collection/model';
+import { baseCode, fullRecord, matchups } from '../deck/analysis';
 import { cardTextHTML } from '../data/symbols';
 import { norm } from '../data/text';
 import { $, ic } from './base';
@@ -10,55 +14,139 @@ import { catalog } from './collection';
 import { openScanner, releaseScanner, warmScanner } from './scanner';
 import { toast } from './shell';
 import { esc } from './utils';
+import * as DB from './decks';
+import { renderDetail, renderLib } from './decklib';
 
 const KEY = 'rb_mesa', FRESH = 6 * 3600 * 1000;   // una partida que quedó abierta hace más de 6 h ya no sirve
 const TYPE_ES = { Unit: 'Unidad', Spell: 'Hechizo', Gear: 'Equipo', Legend: 'Leyenda', Battlefield: 'Campo de batalla', Rune: 'Runa', Token: 'Ficha' };
-let M = null;      // { deck, seen: códigos (el más nuevo primero), cur, ts }
+const ROUND_MIN = [30, 40, 50, 55, 60], WARN_MS = 5 * 60 * 1000;
+/**
+ * M: { deckId, opp: {code,name}|null, seen: códigos (el más nuevo primero), cur, ts,
+ *      clock: { min, end: hora en que acaba si corre, left: ms que quedan si está en pausa, warned },
+ *      last: la última partida anotada (para deshacer), roll: último volado o dado }
+ */
+let M = null;
 let lock = null;   // pantalla siempre encendida mientras está abierta
+let tick = 0;
 
 const ls = (v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(KEY) || 'null'); localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) { return null; } };
 const save = () => { M.ts = Date.now(); ls(M); };
+const pct = x => Math.round(x * 100) + '%';
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const newClock = (min = 50) => ({ min, end: null, left: min * 60000, warned: false });
 
-/** Abre la mesa. deck: nombre del mazo con el que juegas (opcional, solo se muestra). */
-export function openTable(deck = '') {
+/* ---------- el mazo con el que juegas ---------- */
+/** El mazo guardado; si es el que está abierto en la página de mazos, ese mismo objeto (para no pisar cambios). */
+function deckById(id) {
+  if (!id) return null;
+  const cur = DB.currentDeck();
+  if (cur?.id === id && !DB.isShared()) return cur;
+  return DB.allDecks().find(d => d.id === id) || null;
+}
+/** Vuelve a pintar la sección de mazos si está a la vista (cambió el récord). */
+function refreshDecks() {
+  const b = $('#deckb'); if (!b || b.hidden) return;
+  if (b.dataset.view === 'detail' && DB.currentDeck()) renderDetail();
+  else if (b.dataset.view === 'lib') renderLib();
+}
+
+/** Abre la mesa. deckId: el mazo con el que juegas (opcional; se puede elegir dentro). */
+export function openTable(deckId = '') {
   const old = ls();
-  M = old && Date.now() - (old.ts || 0) < FRESH && Array.isArray(old.seen) ? { ...old, deck: deck || old.deck || '' } : { deck, seen: [], cur: null };
+  M = old && Date.now() - (old.ts || 0) < FRESH && Array.isArray(old.seen) ? old : { seen: [], cur: null, opp: null };
+  if (deckId) M.deckId = deckId;
+  if (M.deckId && !deckById(M.deckId)) M.deckId = '';
+  M.clock ||= newClock();
   save();
   $('#mesa').hidden = false; document.body.classList.add('inmesa');
   $('#msQ').value = ''; $('#msHits').innerHTML = '';
   render();
+  clearInterval(tick); tick = setInterval(clockTick, 1000);
   warmScanner().catch(() => {});
   keepAwake();
 }
 export function closeTable() {
   if (!M) return;
-  M = null;
+  M = null; clearInterval(tick);
   $('#mesa').hidden = true; document.body.classList.remove('inmesa');
   lock?.release?.().catch?.(() => {}); lock = null;
   releaseScanner();
+  refreshDecks();
 }
 async function keepAwake() {
   try { if (M && !lock && document.visibilityState === 'visible') { lock = await navigator.wakeLock?.request('screen'); lock?.addEventListener?.('release', () => { lock = null; }); } } catch (e) { lock = null; }
 }
 
-/** Una carta vista: va al principio de la tira y se muestra. */
+/* ---------- cartas del rival ---------- */
+/** Una carta vista: va al principio de la tira y se muestra. Si es una leyenda y todavía no hay, es la del rival. */
 export function showCard(code) {
   if (!M) return;
+  if (!M.opp && info(code).type === 'Legend') { setOpp(code); return; }
   M.seen = [code, ...M.seen.filter(c => c !== code)].slice(0, 40);
   M.cur = code; save(); render();
   $('#msCard')?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
 }
-function scan() {
-  const cat = catalog(); if (!cat) { toast('Espera a que cargue el catálogo de cartas.'); return; }
-  openScanner({ cat, lookup: true, pick: p => showCard(p.code) });
+function setOpp(code) {
+  const c = info(code);
+  M.opp = { code, name: c.name }; save(); render();
+  toast(`Rival: ${c.name}`, 'ok');
 }
-function newGame() { M.seen = []; M.cur = null; save(); render(); toast('Partida nueva', 'ok'); }
-
+function scan(forLegend = false) {
+  const cat = catalog(); if (!cat) { toast('Espera a que cargue el catálogo de cartas.'); return; }
+  openScanner({ cat, lookup: true, pick: p => (forLegend ? setOpp(p.code) : showCard(p.code)) });
+}
 /** Lo que se sabe de la carta: el catálogo de impresiones (nombre, imagen) y el de Riftcodex (texto, energía, poder). */
 function info(code) {
   const p = catalog()?.byCode.get(code), d = cardByCode(code, p?.name) || {};
-  return { code, name: p?.name || d.name || code, img: p?.img || d.img || '', type: d.type || p?.type || '', e: d.e, m: d.m ?? d.might, pw: d.pw, text: d.text, rich: d.rich };
+  return { code, name: p?.name || d.name || code, img: p?.img || d.img || '', type: d.type || p?.type || '', e: d.e, m: d.m ?? d.might, text: d.text, rich: d.rich };
 }
+
+/* ---------- resultado ---------- */
+function vsLegend(d, code) {
+  if (!d || !code) return null;
+  return matchups(d.replays || [], d.games || []).find(m => baseCode(m.legendCode) === baseCode(code)) || null;
+}
+function record(result) {
+  const d = deckById(M.deckId);
+  if (!d) { toast('Elige arriba con qué mazo jugaste.'); $('#msDeckSel').focus(); return; }
+  const g = { id: newId(), ts: Date.now(), result, opp: M.opp ? { legendCode: M.opp.code, legendName: M.opp.name } : null, seen: [...M.seen] };
+  (d.games ||= []).push(g);
+  DB.writeDeck(d);
+  M.last = { deckId: d.id, id: g.id, result };
+  // la siguiente partida (al mejor de tres) suele ser contra el mismo rival: la leyenda se queda
+  M.seen = []; M.cur = null; save(); render(); refreshDecks();
+  navigator.vibrate?.(40);
+}
+function undo() {
+  const l = M.last; if (!l) return;
+  const d = deckById(l.deckId);
+  if (d?.games) { d.games = d.games.filter(g => g.id !== l.id); DB.writeDeck(d); }
+  M.last = null; save(); render(); refreshDecks();
+  toast('Se quitó la última partida anotada');
+}
+
+/* ---------- moneda, dado y reloj de ronda ---------- */
+function flip() { M.roll = { kind: 'coin', v: Math.random() < 0.5 ? 'Cara' : 'Cruz', n: (M.roll?.n || 0) + 1 }; save(); renderTools(); }
+function die() { M.roll = { kind: 'die', v: String(1 + Math.floor(Math.random() * 6)), n: (M.roll?.n || 0) + 1 }; save(); renderTools(); }
+const clockLeft = c => c.end ? Math.max(0, c.end - Date.now()) : c.left;
+function clockToggle() {
+  const c = M.clock;
+  if (c.end) { c.left = clockLeft(c); c.end = null; }
+  else { if (c.left <= 0) Object.assign(c, newClock(c.min)); c.end = Date.now() + c.left; }
+  save(); renderTools();
+}
+function clockReset(min = M.clock.min) { M.clock = newClock(min); save(); renderTools(); }
+function clockTick() {
+  if (!M?.clock?.end) return;
+  const c = M.clock, left = clockLeft(c);
+  if (!c.warned && left <= WARN_MS) { c.warned = true; save(); navigator.vibrate?.([200, 100, 200]); toast('Quedan 5 minutos de ronda'); }
+  if (left <= 0) { c.left = 0; c.end = null; save(); navigator.vibrate?.([400, 150, 400, 150, 400]); toast('Se acabó el tiempo de la ronda'); }
+  const el = $('#msClockT'); if (el) { el.textContent = fmt(left); el.classList.toggle('warn', left <= WARN_MS); }
+  if (!c.end) renderTools();
+}
+const fmt = ms => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+/* ---------- pintar ---------- */
 function cardHTML(code) {
   const c = info(code);
   const stats = [TYPE_ES[c.type] || c.type, c.e != null && `Energía ${c.e}`, c.m != null && `Poder ${c.m}`].filter(Boolean);
@@ -70,23 +158,74 @@ function cardHTML(code) {
       ${c.text || c.rich ? `<div class="mstext" lang="en">${cardTextHTML(c.rich, c.text)}</div>` : '<p class="dlhint">Sin texto.</p>'}
     </div></article>`;
 }
+function gameHTML() {
+  const d = deckById(M.deckId), decks = DB.allDecks();
+  const sel = `<label class="msdeck">${ic('cards')}<select id="msDeckSel" aria-label="Mazo con el que juegas">
+    <option value="">${decks.length ? 'Elige tu mazo…' : 'Todavía no tienes mazos'}</option>
+    ${decks.map(x => `<option value="${esc(x.id)}"${x.id === M.deckId ? ' selected' : ''}>${esc(x.name || 'Sin nombre')}</option>`).join('')}</select></label>`;
+  let opp;
+  if (M.opp) {
+    const c = info(M.opp.code), m = vsLegend(d, M.opp.code), g = m ? m.w + m.l : 0;
+    opp = `<div class="msopp"><img src="${esc(c.img)}" alt="">
+      <span><small>Leyenda rival</small><b>${esc(M.opp.name)}</b>
+        <em>${!d ? 'Elige tu mazo para ver tu récord contra ella' : g ? `Contra ella: <b>${m.w}-${m.l}</b> · ${pct(m.w / g)} de victorias` : 'Primera vez contra ella con este mazo'}</em></span>
+      <button class="btn mini" data-msopp>${ic('camera')} Cambiar</button></div>`;
+  } else {
+    opp = `<button class="msopp none" data-msopp>${ic('camera')}<span><b>Escanea la leyenda del rival</b><small>Para ver tu récord contra ella y anotar contra quién jugaste</small></span></button>`;
+  }
+  const notes = d?.notes ? `<details class="msnotes"><summary>${ic('note')} Tus notas del mazo</summary><p>${esc(d.notes)}</p></details>` : '';
+  const last = M.last && M.last.deckId === M.deckId
+    ? `<div class="mslast ${M.last.result}">${ic(M.last.result === 'w' ? 'trophy' : 'x')}<span>Anotada: <b>${M.last.result === 'w' ? 'victoria' : 'derrota'}</b>${d ? ` · el mazo va ${fullRecord(d).w}-${fullRecord(d).l}` : ''}</span><button class="btn mini" data-msundo>Deshacer</button></div>` : '';
+  return [`${sel}${opp}${notes}`, `<h3 class="msh">¿Cómo terminó?</h3><div class="msres"><button class="btn msw" data-msres="w">${ic('trophy')} Gané</button><button class="btn msl" data-msres="l">${ic('x')} Perdí</button></div>${last}`];
+}
+function renderTools() {
+  if (!M) return;
+  const c = M.clock, left = clockLeft(c), r = M.roll;
+  $('#msTools').innerHTML = `
+    <div class="mstool">
+      <button class="btn" data-mscoin>${ic('dot')} Moneda</button><button class="btn" data-msdie>${ic('cards')} Dado</button>
+      <output class="msroll${r ? ' on' : ''}" aria-live="polite">${r ? `<b data-n="${r.n}">${esc(r.v)}</b><small>${r.kind === 'coin' ? 'volado' : 'dado de 6'}</small>` : '<small>¿Quién empieza?</small>'}</output>
+    </div>
+    <div class="mstool msclock">
+      <span class="msclockt${left <= WARN_MS ? ' warn' : ''}" id="msClockT">${fmt(left)}</span>
+      <button class="btn${c.end ? '' : ' primary'}" data-msclock>${ic(c.end ? 'pause' : 'play')} ${c.end ? 'Pausar' : left < c.min * 60000 && left > 0 ? 'Seguir' : 'Iniciar ronda'}</button>
+      <button class="btn ico" data-msclockreset title="Reiniciar el reloj" aria-label="Reiniciar el reloj">${ic('replay')}</button>
+      <select id="msMin" aria-label="Minutos de la ronda">${ROUND_MIN.map(n => `<option value="${n}"${n === c.min ? ' selected' : ''}>${n} min</option>`).join('')}</select>
+    </div>`;
+}
 function render() {
   if (!M) return;
-  $('#msDeck').textContent = M.deck ? `Jugando con ${M.deck}` : 'Partida presencial';
+  const d = deckById(M.deckId);
+  $('#msDeck').textContent = d ? `Jugando con ${d.name || 'Sin nombre'}` : 'Partida presencial';
+  [$('#msGame').innerHTML, $('#msEnd').innerHTML] = gameHTML();
+  renderTools();
   const cur = M.cur && M.seen.includes(M.cur) ? M.cur : null;
   $('#msView').innerHTML = cur ? cardHTML(cur)
     : `<div class="msempty">${ic('camera')}<b>Escanea la carta que jugó tu rival</b><span>Funciona con cartas en chino, inglés u otro idioma: ves su nombre y su texto en inglés. Apunta al número de abajo de la carta.</span></div>`;
-  $('#msSeen').innerHTML = M.seen.length ? `<div class="mshead"><h3>Cartas del rival en esta partida <small>${M.seen.length}</small></h3><button class="btn mini" data-msnew>${ic('replay')} Partida nueva</button></div>
+  $('#msSeen').innerHTML = M.seen.length ? `<div class="mshead"><h3>Cartas del rival en esta partida <small>${M.seen.length}</small></h3><button class="btn mini" data-msnew>${ic('x')} Limpiar</button></div>
     <div class="msstrip">${M.seen.map(code => { const c = info(code); return `<button class="msth${code === cur ? ' on' : ''}" data-mscard="${esc(code)}" title="${esc(c.name)}"><img src="${esc(c.img)}" alt="${esc(c.name)}" loading="lazy"><span>${esc(c.name)}</span></button>`; }).join('')}</div>` : '';
 }
 
 export function init() {
   $('#hMesa').onclick = () => openTable();
   $('#msClose').onclick = closeTable;
-  $('#msScan').onclick = scan;
+  $('#msScan').onclick = () => scan();
   $('#mesa').addEventListener('click', e => {
+    if (!M) return;
     const t = e.target.closest('[data-mscard]'); if (t) { showCard(t.dataset.mscard); return; }
-    if (e.target.closest('[data-msnew]')) newGame();
+    if (e.target.closest('[data-msopp]')) { scan(true); return; }
+    const res = e.target.closest('[data-msres]'); if (res) { record(res.dataset.msres); return; }
+    if (e.target.closest('[data-msundo]')) { undo(); return; }
+    if (e.target.closest('[data-msnew]')) { M.seen = []; M.cur = null; save(); render(); return; }
+    if (e.target.closest('[data-mscoin]')) { flip(); return; }
+    if (e.target.closest('[data-msdie]')) { die(); return; }
+    if (e.target.closest('[data-msclock]')) { clockToggle(); return; }
+    if (e.target.closest('[data-msclockreset]')) clockReset();
+  });
+  $('#mesa').addEventListener('change', e => {
+    if (!M) return;
+    if (e.target.id === 'msDeckSel') { M.deckId = e.target.value; M.last = null; save(); render(); }
+    if (e.target.id === 'msMin') clockReset(+e.target.value);
   });
   $('#msQ').oninput = e => {
     const cat = catalog(); if (!cat) return;
@@ -100,5 +239,5 @@ export function init() {
   };
   // en captura: corre antes que el del escáner, así Esc con la cámara abierta solo cierra la cámara
   addEventListener('keydown', e => { if (e.key === 'Escape' && M && $('#coscan').hidden) closeTable(); }, true);
-  document.addEventListener('visibilitychange', () => { if (M) keepAwake(); });
+  document.addEventListener('visibilitychange', () => { if (M) { keepAwake(); clockTick(); } });
 }

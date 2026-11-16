@@ -4,7 +4,7 @@
 // - de los precios y tu colección: reemplazos más baratos o que ya tienes.
 // Todo es puro (sin DOM) para poder probarlo.
 import type { DCard, Deck } from './model';
-import type { DeckReplay, LibDeck, Version } from './library';
+import type { DeckReplay, LibDeck, TableGame, Version } from './library';
 import { inIdentity } from './rules';
 
 /** Código sin la letra de la variante ("UNL-079A" → "UNL-079"), para comparar impresiones. */
@@ -99,21 +99,21 @@ const counted = (r: DeckReplay) => r.analysis?.result && r.count !== false;
 export function fullRecord(d: LibDeck): { w: number; l: number } {
   const r = { w: d.record?.w || 0, l: d.record?.l || 0 };
   for (const x of d.replays || []) if (counted(x)) r[x.analysis!.result!]++;
+  for (const g of d.games || []) r[g.result]++;
   return r;
 }
 
 export interface Matchup { key: string; legendCode: string | null; legendName: string; w: number; l: number }
-/** Victorias y derrotas contra cada leyenda rival (de las repeticiones que cuentan). */
-export function matchups(reps: DeckReplay[]): Matchup[] {
+/** Victorias y derrotas contra cada leyenda rival (de las repeticiones que cuentan y de las partidas en la mesa con leyenda). */
+export function matchups(reps: DeckReplay[], games: TableGame[] = []): Matchup[] {
   const by = new Map<string, Matchup>();
-  for (const r of reps) {
-    if (!counted(r)) continue;
-    for (const o of r.analysis!.opp) {
-      const name = o.legendName || 'Leyenda desconocida', key = baseCode(o.legendCode) || name;
-      const m = by.get(key) || { key, legendCode: o.legendCode, legendName: name, w: 0, l: 0 };
-      m[r.analysis!.result!]++; by.set(key, m);
-    }
-  }
+  const add = (o: { legendCode: string | null; legendName: string | null }, res: 'w' | 'l') => {
+    const name = o.legendName || 'Leyenda desconocida', key = baseCode(o.legendCode) || name;
+    const m = by.get(key) || { key, legendCode: o.legendCode, legendName: name, w: 0, l: 0 };
+    m[res]++; by.set(key, m);
+  };
+  for (const r of reps) if (counted(r)) for (const o of r.analysis!.opp) add(o, r.analysis!.result!);
+  for (const g of games) if (g.opp) add(g.opp, g.result);
   return [...by.values()].sort((a, b) => (b.w + b.l) - (a.w + a.l) || a.legendName.localeCompare(b.legendName));
 }
 

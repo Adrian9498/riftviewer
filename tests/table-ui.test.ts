@@ -11,14 +11,14 @@ const pr = (code: string, cardId: string) =>
   ({ shortCode: code, setId: 's-rad', rarity: 'common', artVariant: 'normal', finish: 'normal', images: [{ imageId: 'img-' + code }], publicCode: `${code}/167-EN`, language: 'EN', cardId });
 const catalog = {
   sets: [{ id: 's-rad', slug: 'RAD', name: 'Radiance', setType: 'main', releases: { EN: { releasedAt: '2026-10-23' } } }],
-  cards: { c1: { name: 'Amateur Demolitionist', types: ['unit'], superTypes: [] }, c2: { name: 'Brawl', types: ['spell'], superTypes: [] } },
-  printings: { a: pr('RAD-001', 'c1'), c: pr('RAD-004', 'c2') },
+  cards: { c1: { name: 'Amateur Demolitionist', types: ['unit'], superTypes: [] }, c2: { name: 'Brawl', types: ['spell'], superTypes: [] }, c3: { name: 'Rengar', types: ['legend'], superTypes: [] } },
+  printings: { a: pr('RAD-001', 'c1'), c: pr('RAD-004', 'c2'), l: pr('RAD-200', 'c3') },
 };
 const rc = (id: string, name: string, type: string, text: string, energy: number, might: number | null) => ({
   name, classification: { type, supertype: null, domain: ['Fury'], rarity: 'Common' }, media: { image_url: 'https://x/' + id + '.png' },
   text: { plain: text, rich: text }, attributes: { energy, might, power: null }, metadata: {}, tags: [], collector_number: 1, riftbound_id: id + '-1', set: { set_id: 'RAD' },
 });
-const items = [rc('rad-001', 'Amateur Demolitionist', 'Unit', 'When you play me, deal 2 to a unit.', 3, 2), rc('rad-004', 'Brawl', 'Spell', 'Two units fight.', 2, null)];
+const items = [rc('rad-001', 'Amateur Demolitionist', 'Unit', 'When you play me, deal 2 to a unit.', 3, 2), rc('rad-004', 'Brawl', 'Spell', 'Two units fight.', 2, null), rc('rad-200', 'Rengar', 'Legend', 'Hunt.', 0, null)];
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const errors: unknown[] = [];
@@ -30,6 +30,7 @@ beforeAll(async () => {
   (Element.prototype as any).animate = () => ({ finished: Promise.resolve(), cancel() {} });
   (Element.prototype as any).scrollIntoView = () => {};
   localStorage.clear();
+  localStorage.setItem('rb_proj_deck:m1', JSON.stringify({ id: 'm1', name: 'Diana', legend: null, champion: null, main: {}, runes: {}, battlefields: [], side: {}, updatedAt: 1, notes: 'Mulligan: busca unidades de 2', record: { w: 1, l: 0 } }));
   vi.stubGlobal('fetch', vi.fn(async (url: string) =>
     String(url).includes('openrift-catalog') ? { ok: true, json: async () => catalog }
       : String(url).includes('riftcodex') ? { ok: true, json: async () => ({ items, pages: 1 }) } : { ok: false, json: async () => null }));
@@ -99,6 +100,67 @@ describe('en la mesa', () => {
     ($('#msSeen [data-msnew]') as HTMLButtonElement).click();
     expect($('#msSeen').textContent).toBe('');
     expect($('#msView .msempty')).not.toBeNull();
+    expect(errors).toEqual([]);
+  });
+
+  it('elige el mazo, escanea la leyenda rival y anota el resultado contra ella', async () => {
+    const deck = () => JSON.parse(localStorage.getItem('rb_proj_deck:m1')!);
+    // sin mazo elegido no se anota
+    ($('#msEnd [data-msres="w"]') as HTMLButtonElement).click();
+    expect(deck().games).toBeUndefined();
+    const sel = $('#msDeckSel') as HTMLSelectElement; sel.value = 'm1'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    expect($('#msDeck').textContent).toContain('Diana');
+    expect($('#msGame .msnotes').textContent).toContain('busca unidades de 2');
+    // la leyenda del rival, con el escáner
+    ($('#msGame [data-msopp]') as HTMLButtonElement).click();
+    await new Promise(r => setTimeout(r, 10));
+    search('#csQ', 'RAD 200');
+    ($('#csHits [data-cspick="RAD-200"]') as HTMLButtonElement).click();
+    expect($('#msGame .msopp b').textContent).toBe('Rengar');
+    expect($('#msGame .msopp').textContent).toContain('Primera vez');
+    // una carta normal escaneada va a la tira; gané: se anota y la tira se limpia, la leyenda se queda
+    search('#msQ', 'RAD 004'); ($('#msHits [data-mspick="RAD-004"]') as HTMLButtonElement).click();
+    ($('#msEnd [data-msres="w"]') as HTMLButtonElement).click();
+    const g = deck().games;
+    expect(g).toHaveLength(1);
+    expect(g[0]).toMatchObject({ result: 'w', opp: { legendCode: 'RAD-200', legendName: 'Rengar' }, seen: ['RAD-004'] });
+    expect($('#msSeen').textContent).toBe('');
+    expect($('#msEnd .mslast').textContent).toContain('2-0');
+    expect($('#msGame .msopp').textContent).toContain('1-0');
+    ($('#msEnd [data-msres="l"]') as HTMLButtonElement).click();
+    expect($('#msGame .msopp').textContent).toContain('1-1');
+    // deshacer quita la última
+    ($('#msEnd [data-msundo]') as HTMLButtonElement).click();
+    expect(deck().games).toHaveLength(1);
+    expect($('#msGame .msopp').textContent).toContain('1-0');
+  });
+
+  it('en la página del mazo cuenta en el récord y contra cada leyenda', async () => {
+    esc();
+    ($('#hDecks') as HTMLButtonElement).click();
+    ([...document.querySelectorAll('#dlGrid .dlc')].find(t => t.textContent!.includes('Diana')) as HTMLElement).click();
+    expect($('#ddBody .ddkpis').textContent).toContain('2-0');
+    expect($('#ddBody .ddmu').textContent).toContain('Rengar');
+    expect($('#ddBody').textContent).toContain('1 en la mesa');
+    // desde el mazo, la mesa abre con ese mazo elegido
+    ($('#ddBody [data-mesa]') as HTMLButtonElement).click();
+    expect(($('#msDeckSel') as HTMLSelectElement).value).toBe('m1');
+  });
+
+  it('moneda, dado y reloj de ronda', () => {
+    ($('#msTools [data-mscoin]') as HTMLButtonElement).click();
+    expect(['Cara', 'Cruz']).toContain($('#msTools .msroll b').textContent);
+    ($('#msTools [data-msdie]') as HTMLButtonElement).click();
+    expect(+$('#msTools .msroll b').textContent!).toBeGreaterThanOrEqual(1);
+    expect(+$('#msTools .msroll b').textContent!).toBeLessThanOrEqual(6);
+    const min = $('#msMin') as HTMLSelectElement; min.value = '30'; min.dispatchEvent(new Event('change', { bubbles: true }));
+    expect($('#msClockT').textContent).toBe('30:00');
+    ($('#msTools [data-msclock]') as HTMLButtonElement).click();
+    expect($('#msTools [data-msclock]').textContent).toContain('Pausar');
+    ($('#msTools [data-msclock]') as HTMLButtonElement).click();
+    expect($('#msTools [data-msclock]').textContent).toContain('Seguir');
+    ($('#msTools [data-msclockreset]') as HTMLButtonElement).click();
+    expect($('#msClockT').textContent).toBe('30:00');
     expect(errors).toEqual([]);
   });
 });

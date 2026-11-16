@@ -365,7 +365,7 @@ export function initLib() {
     if (e.target.closest('[data-move]')) { openMove(d); return; }
     if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
     if (e.target.closest('[data-compare]')) { openCompare(d); return; }
-    if (e.target.closest('[data-mesa]')) { openTable(d.name || ''); return; }
+    if (e.target.closest('[data-mesa]')) { openTable(d.id); return; }
     const tab = e.target.closest('[data-instab]'); if (tab) { showInsightsTab(body, tab.dataset.instab); return; }
     if (e.target.closest('[data-rename]')) { renameDeck(d); return; }
     // mano de prueba: se redibuja solo su panel

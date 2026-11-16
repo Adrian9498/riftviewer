@@ -54,3 +54,45 @@
 
 /* el escáner en modo "solo buscar": sin acabado, sin agregar al instante, sin sesión */
 #coscan.lookup #csFin,#coscan.lookup .csopts>label,#coscan.lookup #csSess,#coscan.lookup #csStack{display:none}
+
+/* la partida: mazo, leyenda rival, notas */
+#msGame{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.msdeck{display:flex;align-items:center;gap:8px;padding:0 0 0 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);color:var(--muted)}
+.msdeck select{flex:1;min-width:0;padding:11px 10px 11px 0;background:none;border:0;color:var(--text);font-size:15px}
+.msopp{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:left;color:var(--text)}
+.msopp img{width:54px;aspect-ratio:744/1039;object-fit:cover;border-radius:6px;flex:none}
+.msopp>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.msopp small{color:var(--muted);font-size:12px}
+.msopp b{font-size:16px}
+.msopp em{font-style:normal;color:var(--muted);font-size:13px}
+.msopp em b{font-size:13px;color:var(--acc2)}
+.msopp.none{cursor:pointer;border-style:dashed;border-color:var(--line2);width:100%}
+.msopp.none:hover{border-color:var(--acc)}
+.msopp.none>.i{width:24px;height:24px;color:var(--acc);flex:none}
+.msnotes{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 12px}
+.msnotes summary{display:flex;align-items:center;gap:8px;padding:10px 0;cursor:pointer;color:var(--muted);font-weight:600}
+.msnotes p{margin:0 0 12px;white-space:pre-wrap;line-height:1.5}
+
+/* resultado */
+.msh{margin:24px 0 10px;font-family:Cinzel,serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+.msres{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msres .btn{justify-content:center;padding:15px;font-size:17px;font-weight:700;border-radius:12px}
+.msres .msw{border-color:#4caf7a88;color:#9be3b8;background:#4caf7a1a}
+.msres .msw:hover{background:#4caf7a33}
+.msres .msl{border-color:#e0605e88;color:#f2a5a3;background:#e0605e1a}
+.msres .msl:hover{background:#e0605e33}
+.mslast{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.mslast>span{flex:1}
+.mslast.w>.i{color:#9be3b8}
+.mslast.l>.i{color:#f2a5a3}
+
+/* herramientas */
+#msTools{display:flex;flex-direction:column;gap:10px}
+.mstool{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.msroll{display:flex;align-items:baseline;gap:8px;margin-left:auto;min-width:90px;justify-content:flex-end;color:var(--muted)}
+.msroll b{font-family:Cinzel,serif;font-size:24px;color:var(--acc2);animation:msPop .3s ease-out}
+@keyframes msPop{from{transform:scale(.6);opacity:0}}
+.msclockt{font-family:Cinzel,serif;font-size:30px;font-weight:700;min-width:96px;font-variant-numeric:tabular-nums;color:var(--ivory,#f0e6d2)}
+.msclockt.warn{color:#f2a5a3}
+.msclock select{margin-left:auto;padding:7px 8px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;color:var(--text)}
+@media (prefers-reduced-motion:reduce){ .msroll b{animation:none} }

@@ -17,6 +17,17 @@ export interface LibDeck extends Deck {
   createdAt?: number;
   /** repeticiones guardadas en el mazo; el archivo va aparte (IndexedDB y la nube), aquí solo el resumen */
   replays?: DeckReplay[];
+  /** partidas presenciales anotadas desde "En la mesa" */
+  games?: TableGame[];
+}
+
+/** Una partida presencial: el resultado, la leyenda rival (si se escaneó) y las cartas suyas que se vieron. */
+export interface TableGame {
+  id: string;
+  ts: number;
+  result: 'w' | 'l';
+  opp: { legendCode: string | null; legendName: string | null } | null;
+  seen?: string[];
 }
 
 export interface DeckReplay {
@@ -155,6 +166,7 @@ export function duplicate(d: LibDeck, id: string, now = Date.now()): LibDeck {
   c.id = id; c.name = `${d.name || 'Mazo'} (copia)`; c.fav = false; c.updatedAt = now; c.createdAt = now;
   delete c.record; c.history = [];
   delete c.replays;   // los archivos son del mazo original
+  delete c.games;
   delete (c as { deleted?: boolean }).deleted; delete (c as { ts?: number }).ts;
   return c;
 }
