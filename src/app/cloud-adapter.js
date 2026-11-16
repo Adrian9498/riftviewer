@@ -85,7 +85,7 @@ export const localAdapter = {
 
   async listAssets() {
     const meta = readJSON(ASSET_META, {});
-    const keys = (await IDB.entries()).map(([k]) => k).filter(k => /^(card|brand|snd):/.test(k));
+    const keys = (await IDB.entries()).map(([k]) => k).filter(k => /^(card|brand|snd|rep):/.test(k));
     const out = keys.map(k => ({ key: k, ts: meta[k]?.deleted ? 0 : (meta[k]?.ts || 0) }));
     for (const [k, m] of Object.entries(meta)) if (m.deleted && !keys.includes(k)) out.push({ key: k, ts: m.ts, deleted: true });
     return out;
@@ -94,11 +94,14 @@ export const localAdapter = {
     const v = await IDB.get(key);
     if (!v) return null;
     if (v instanceof Blob) return v;
+    if (key.startsWith('rep:') && typeof v === 'string') return new Blob([v], { type: 'application/json' });
     if (typeof v === 'string' && v.startsWith('data:')) return await (await fetch(v)).blob();
     return null;
   },
   async putAsset(key, blob, ts) {
-    if (key.startsWith('snd:')) {
+    if (key.startsWith('rep:')) {
+      await IDB.set(key, await blob.text());
+    } else if (key.startsWith('snd:')) {
       const k = key.slice(4); await IDB.set(key, blob); SFX.blobs[k] = blob; if (SFX.ctx) await SFX.decode(k);
     } else {
       const url = await blobToDataURL(blob); await IDB.set(key, url);
@@ -108,7 +111,8 @@ export const localAdapter = {
   },
   async removeAsset(key, ts) {
     await IDB.del(key).catch(() => {});
-    if (key.startsWith('snd:')) { delete SFX.blobs[key.slice(4)]; delete SFX.bufs[key.slice(4)]; }
+    if (key.startsWith('rep:')) { /* solo el archivo */ }
+    else if (key.startsWith('snd:')) { delete SFX.blobs[key.slice(4)]; delete SFX.bufs[key.slice(4)]; }
     else if (key.startsWith('card:')) CUSTOM.delete(key); else BRIMG[key.slice(6)] = null;
     const meta = readJSON(ASSET_META, {}); meta[key] = { ts, deleted: true }; writeJSON(ASSET_META, meta);
   },

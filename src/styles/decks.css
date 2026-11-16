@@ -388,3 +388,15 @@
 @media (hover:none){ .dlfav.dldel{opacity:1} }
 .dlfx{display:flex;flex-wrap:wrap;gap:6px;margin:10px 8px 0;padding-top:10px;border-top:1px solid var(--line)}
 @media (max-width:760px){ .dlfx{flex:none;flex-wrap:nowrap;margin:0;padding:0 0 0 6px;border-top:0;border-left:1px solid var(--line)} .dlfx .btn{white-space:nowrap} }
+
+/* repeticiones guardadas en un mazo */
+.ddreps{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.ddreps .rtile{grid-template-columns:64px minmax(0,1fr) auto;gap:10px;padding:8px}
+.ddreps .rtile:hover{transform:none}
+.ddreps .rtile .rart{height:48px}
+.ddreps .rinfo b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ddreps .rvs{font-size:12.5px;gap:2px 8px}
+.ddreps .rinfo small{color:var(--muted);font-size:12px}
+.ddreps .rx{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
+.ddreps .rx .i{width:17px;height:17px}
+.ddreps .rx:hover{color:var(--err);background:#ff6b6b14}

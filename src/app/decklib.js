@@ -9,12 +9,16 @@ import { BATTLEFIELDS, MAIN_MIN, RUNES, validateDeck } from '../deck/rules';
 import { mainWithChampion, total } from '../deck/model';
 import { deckStats } from '../deck/stats';
 import {
-  HISTORY_MAX, NO_FOLDER, addResult, cleanFolder, domainsIn, duplicate, emptyFilter, filterDecks, folders, games, legendsIn, versionSize, winRate,
+  HISTORY_MAX, NO_FOLDER, addResult, replayKey, cleanFolder, domainsIn, duplicate, emptyFilter, filterDecks, folders, games, legendsIn, versionSize, winRate,
 } from '../deck/library';
 import { $, ic } from './base';
-import { cardByCode, deckCard } from './cards';
+import { IDB, cardByCode, deckCard } from './cards';
+import { touchAsset } from './cloud-adapter';
+import { go } from './nav';
+import { replayMeta } from '../replay/meta';
+import { REPLAY_FILE_PREFIX, REPLAY_FORMAT } from '../replay/decode';
 import { deckCost } from './collection';
-import { ago, toast } from './shell';
+import { ago, openReplay, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 import * as DB from './decks';
 
@@ -95,8 +99,8 @@ function toggleFav(id) { const d = stored(id); if (!d) return; d.fav = !d.fav; D
 /** Pregunta antes de borrar un mazo; `then` corre solo si se borró. */
 function askDelete(d, then) {
   if (!d) return;
-  openModal('Borrar mazo', `<p class="full">¿Borrar <b>${esc(d.name || 'Sin nombre')}</b>? Se borra también su récord, sus notas y su historial, y no se puede deshacer.</p>`,
-    [['Cancelar'], ['Borrar', 'danger', () => { DB.deleteDeck(d.id); toast('Mazo borrado', 'ok'); then?.(); }]]);
+  openModal('Borrar mazo', `<p class="full">¿Borrar <b>${esc(d.name || 'Sin nombre')}</b>? Se borran también su récord, sus notas, su historial y sus repeticiones, y no se puede deshacer.</p>`,
+    [['Cancelar'], ['Borrar', 'danger', () => { removeDeck(d); toast('Mazo borrado', 'ok'); then?.(); }]]);
 }
 function renameFolder(from) {
   openModal('Renombrar carpeta', `<label class="full">Nombre<input type="text" id="dlRenF" maxlength="40" value="${esc(from)}"></label>`,
@@ -113,7 +117,7 @@ function deleteFolder(name) {
   const done = msg => { F.folder = ''; renderLib(); toast(msg, 'ok'); };
   openModal('Borrar carpeta', `<p class="full">¿Qué hacemos con la carpeta <b>${esc(name)}</b> y sus ${plural(decks.length, 'mazo')}?</p>`, [
     ['Cancelar'],
-    ['Borrar carpeta y mazos', 'danger', () => { for (const d of decks) DB.deleteDeck(d.id); done(`Borrados la carpeta y ${plural(decks.length, 'mazo')}`); }],
+    ['Borrar carpeta y mazos', 'danger', () => { for (const d of decks) removeDeck(d); done(`Borrados la carpeta y ${plural(decks.length, 'mazo')}`); }],
     ['Solo la carpeta', 'primary', () => { for (const d of decks) { delete d.folder; DB.writeDeck(d); } done('Carpeta borrada: sus mazos quedan sin carpeta'); }],
   ]);
 }
@@ -162,6 +166,75 @@ function checkHTML(issues) {
     ? issues.map(i => `<div class="dbiss ${i.level}">${ic(i.level === 'error' ? 'x' : 'help')}<span>${esc(i.msg)}${i.codes?.length ? `<small>${i.codes.map(c => esc(deckCard(c)?.name || c)).join(', ')}</small>` : ''}</span></div>`).join('')
     : `<div class="ddok">${ic('check')} Cumple todas las reglas</div>`}</section>`;
 }
+/* ---------- repeticiones de las partidas jugadas con el mazo ---------- */
+const MAX_REPLAY = 10 * 1024 * 1024;   // lo que admite la nube por archivo
+function repTile(r) {
+  const ps = r.meta?.players || [];
+  const art = ps.length
+    ? `<div class="rart legs">${ps.slice(0, 2).map(p => { const u = (p.legendCode || p.legendName) ? cardByCode(p.legendCode, p.legendName)?.img || '' : ''; return `<span${u ? ` style="background-image:url('${esc(u)}')"` : ''}></span>`; }).join('')}</div>`
+    : `<div class="rart">${ic('replay')}</div>`;
+  const score = ps.length ? `<div class="rvs">${ps.map(p => `<span class="${p.winner ? 'win' : ''}">${p.winner ? ic('crown') : ''}${esc(p.name)} <b>${p.score}</b></span>`).join('<i>vs</i>')}</div>` : '';
+  const sub = [r.meta?.turns ? plural(r.meta.turns, 'turno') : '', when(r.ts)].filter(Boolean).join(' · ');
+  return `<div class="rtile ddrep" data-rep="${esc(r.id)}" tabindex="0" title="Ver esta repetición">${art}
+    <div class="rinfo"><b>${esc(ps.length ? ps.map(p => p.name).join(' vs ') : r.name)}</b>${score}<small>${esc(sub)}</small></div>
+    <button class="rx" data-repdel="${esc(r.id)}" title="Quitar del mazo" aria-label="Quitar esta repetición del mazo">${ic('trash')}</button></div>`;
+}
+function replaysHTML(d) {
+  const list = d.replays || [];
+  return `<section class="ddbox"><h4>${ic('replay')} Repeticiones${list.length ? ` <small>${list.length}</small>` : ''}</h4>
+    ${list.length ? `<div class="ddreps">${list.map(repTile).join('')}</div>`
+      : '<p class="dlhint">Sube los replays (.json) de las partidas que jugaste con este mazo y ábrelos con un clic. También puedes soltarlos sobre esta página.</p>'}
+    <button class="btn mini" data-repadd>${ic('upload')} Subir repeticiones</button></section>`;
+}
+/** Guarda los replays en el mazo: el archivo en IndexedDB (y en la nube), el resumen en el mazo. */
+export async function addReplays(files) {
+  const d = DB.currentDeck(); if (!d || DB.isShared() || !files.length) return 0;
+  let ok = 0;
+  for (const f of files) {
+    let text, j;
+    try { text = await f.text(); j = JSON.parse(text); } catch (e) { j = null; }
+    if (j?.format !== REPLAY_FORMAT) { toast(`"${f.name}" no es un replay del simulador`, 'err'); continue; }
+    if (text.length > MAX_REPLAY) { toast(`"${f.name}" pesa más de 10 MB`, 'err'); continue; }
+    const name = f.name.replace(/\.json$/i, '').replace(REPLAY_FILE_PREFIX, 'Replay ');
+    if ((d.replays || []).some(r => r.name === name && r.size === text.length)) { toast(`"${name}" ya está en este mazo`); continue; }
+    let meta = null; try { meta = replayMeta(j); } catch (e) {}
+    const id = newId(), key = replayKey(d.id, id);
+    try { await IDB.set(key, text); } catch (e) { toast('No hay espacio para guardar la repetición', 'err'); continue; }
+    touchAsset(key);
+    d.replays = [{ id, name, ts: Date.now(), size: text.length, meta }, ...(d.replays || [])];
+    ok++;
+  }
+  if (ok) {
+    DB.writeDeck(d);
+    if (DB.currentDeck() === d) renderDetail();
+    toast(ok === 1 ? 'Repetición guardada en el mazo' : `${ok} repeticiones guardadas en el mazo`, 'ok');
+  }
+  return ok;
+}
+function pickReplays() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json'; inp.multiple = true;
+  inp.onchange = () => addReplays([...inp.files]);
+  inp.click();
+}
+async function openDeckReplay(rid) {
+  const d = DB.currentDeck(), r = d?.replays?.find(x => x.id === rid); if (!r) return;
+  const text = await IDB.get(replayKey(d.id, rid)).catch(() => null);
+  if (typeof text !== 'string') { toast('Esta repetición todavía no llega a este dispositivo. Espera a que se sincronice e inténtalo de nuevo.', 'err'); return; }
+  let j; try { j = JSON.parse(text); } catch (e) { toast('El archivo de esta repetición está dañado', 'err'); return; }
+  if (openReplay(j, r.name, text)) go('partida');
+}
+const dropReplayFile = (deckId, id) => { const key = replayKey(deckId, id); IDB.del(key).catch(() => {}); touchAsset(key, true); };
+function removeReplay(rid) {
+  const d = DB.currentDeck(), r = d?.replays?.find(x => x.id === rid); if (!r) return;
+  openModal('Quitar repetición', `<p class="full">¿Quitar <b>${esc(r.name)}</b> de este mazo? Se borra el archivo guardado aquí.</p>`,
+    [['Cancelar'], ['Quitar', 'danger', () => {
+      dropReplayFile(d.id, rid); d.replays = d.replays.filter(x => x.id !== rid); DB.writeDeck(d); renderDetail(); toast('Repetición quitada', 'ok');
+    }]]);
+}
+/** Borra un mazo junto con los archivos de sus repeticiones. */
+function removeDeck(d) { for (const r of d.replays || []) dropReplayFile(d.id, r.id); DB.deleteDeck(d.id); }
+
 const when = ts => new Date(ts).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 function changes(r, sign) {
   return Object.entries(r).sort((a, b) => b[1] - a[1]).map(([k, n]) => {
@@ -207,6 +280,7 @@ export function renderDetail() {
       <div class="ddmain">${listHTML(d)}</div>
       <aside class="ddside">
         ${shared ? '' : recordHTML(d)}
+        ${shared ? '' : replaysHTML(d)}
         ${shared ? (d.notes ? `<section class="ddbox"><h4>${ic('note')} Notas</h4><p class="ddnotes">${esc(d.notes)}</p></section>` : '')
           : `<section class="ddbox"><h4>${ic('note')} Notas</h4><textarea id="ddNotes" rows="5" maxlength="4000" placeholder="Plan de juego, mulligans, cambios contra ciertos mazos…">${esc(d.notes || '')}</textarea></section>`}
         ${statsHTML(d)}
@@ -279,6 +353,9 @@ export function initLib() {
     if (e.target.closest('[data-missing]')) { DB.openMissing(); return; }
     if (e.target.closest('[data-fav]')) { d.fav = !d.fav; DB.writeDeck(d); renderDetail(); return; }
     if (e.target.closest('[data-move]')) { openMove(d); return; }
+    if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
+    const rdel = e.target.closest('[data-repdel]'); if (rdel) { removeReplay(rdel.dataset.repdel); return; }
+    const rep = e.target.closest('[data-rep]'); if (rep) { openDeckReplay(rep.dataset.rep); return; }
     const res = e.target.closest('[data-res]');
     if (res) { addResult(d, res.dataset.res, +res.dataset.delta); DB.writeDeck(d); renderDetail(); return; }
     const c = e.target.closest('.ddc'); if (c && !DB.hasHover()) showCard(c.dataset.code);
@@ -290,4 +367,11 @@ export function initLib() {
   });
   // si se sale de la página con una nota a medio guardar
   body.addEventListener('focusout', e => { if (e.target.id === 'ddNotes' && notesT) { clearTimeout(notesT); notesT = null; const d = DB.currentDeck(); if (d && !DB.isShared()) DB.writeDeck(d); } });
+  body.addEventListener('keydown', e => { const r = e.target.closest?.('[data-rep]'); if (r && e.target === r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDeckReplay(r.dataset.rep); } });
+  // soltar replays sobre la página de un mazo los guarda en él (en lugar de abrirlos como partida)
+  body.addEventListener('drop', e => {
+    const files = [...(e.dataTransfer?.files || [])].filter(f => /\.json$/i.test(f.name));
+    if (!files.length || !DB.currentDeck() || DB.isShared()) return;
+    e.preventDefault(); addReplays(files);
+  });
 }

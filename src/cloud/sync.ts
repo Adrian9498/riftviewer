@@ -133,20 +133,22 @@ export async function syncNow(): Promise<void> {
     const arows = check(await sb.from('user_assets').select('asset_key, storage_path, content_type, deleted, updated_at'));
     const remoteAssets = (arows || []).map(r => ({ key: r.asset_key as string, ts: toMs(r.updated_at), deleted: !!r.deleted, row: r }));
     const aplan = planSync(await a.listAssets(), remoteAssets);
+    // las repeticiones guardadas en un mazo pesan más: van al bucket de replays (10 MB)
+    const bucket = (key: string) => key.startsWith('rep:') ? 'replays' : 'user-assets';
     for (const x of aplan.push) {
       const path = `${uid}/${storageName(x.key)}`;
       if (x.deleted) {
-        await sb.storage.from('user-assets').remove([path]);
+        await sb.storage.from(bucket(x.key)).remove([path]);
         check(await sb.from('user_assets').upsert({ user_id: uid, asset_key: x.key, storage_path: null, deleted: true, updated_at: toIso(x.ts) }));
         continue;
       }
       const blob = await a.readAsset(x.key); if (!blob) continue;
-      check(await sb.storage.from('user-assets').upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' }));
+      check(await sb.storage.from(bucket(x.key)).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' }));
       check(await sb.from('user_assets').upsert({ user_id: uid, asset_key: x.key, storage_path: path, content_type: blob.type || null, deleted: false, updated_at: toIso(x.ts) }));
     }
     for (const r of aplan.pull) {
       if (!r.row.storage_path) continue;
-      const blob = must(await sb.storage.from('user-assets').download(r.row.storage_path));
+      const blob = must(await sb.storage.from(bucket(r.key)).download(r.row.storage_path));
       await apply(() => a.putAsset(r.key, blob, r.ts)); changed.add('assets');
     }
     for (const r of aplan.removeLocal) { await apply(() => a.removeAsset(r.key, r.ts)); changed.add('assets'); }

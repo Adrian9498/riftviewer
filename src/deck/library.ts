@@ -14,7 +14,19 @@ export interface LibDeck extends Deck {
   record?: Record_;
   history?: Version[];
   createdAt?: number;
+  /** repeticiones guardadas en el mazo; el archivo va aparte (IndexedDB y la nube), aquí solo el resumen */
+  replays?: DeckReplay[];
 }
+
+export interface DeckReplay {
+  id: string;
+  name: string;
+  ts: number;
+  size: number;
+  meta: { players: { name: string; score: number; legendCode: string | null; legendName: string | null; winner: boolean }[]; turns: number | null; finished: boolean } | null;
+}
+/** Clave del archivo de una repetición (en IndexedDB y en la sincronización de archivos). */
+export const replayKey = (deckId: string, id: string) => `rep:${deckId}:${id}`;
 
 export const HISTORY_MAX = 60;
 /** Carpeta especial en los filtros: los mazos que no están en ninguna. */
@@ -137,6 +149,7 @@ export function duplicate(d: LibDeck, id: string, now = Date.now()): LibDeck {
   const c: LibDeck = JSON.parse(JSON.stringify(d));
   c.id = id; c.name = `${d.name || 'Mazo'} (copia)`; c.fav = false; c.updatedAt = now; c.createdAt = now;
   delete c.record; c.history = [];
+  delete c.replays;   // los archivos son del mazo original
   delete (c as { deleted?: boolean }).deleted; delete (c as { ts?: number }).ts;
   return c;
 }
