@@ -377,3 +377,14 @@
   .ddgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:9px}
   .ddwork .credits{padding:0 14px 20px}
 }
+
+/* borrar: mazos y carpetas */
+.btn.danger{color:var(--err);border-color:#ff6b6b55}
+.btn.danger:hover{background:#ff6b6b1a;border-color:var(--err)}
+#modal .mfoot .btn.danger{background:#ff6b6b22}
+.dlfav.dldel{right:52px;opacity:0;transition:opacity .15s}
+.dlc:hover .dldel,.dlc:focus-within .dldel{opacity:1}
+.dlfav.dldel:hover{color:var(--err);border-color:#ff6b6b88}
+@media (hover:none){ .dlfav.dldel{opacity:1} }
+.dlfx{display:flex;flex-wrap:wrap;gap:6px;margin:10px 8px 0;padding-top:10px;border-top:1px solid var(--line)}
+@media (max-width:760px){ .dlfx{flex:none;flex-wrap:nowrap;margin:0;padding:0 0 0 6px;border-top:0;border-left:1px solid var(--line)} .dlfx .btn{white-space:nowrap} }

@@ -158,4 +158,40 @@ describe('mis mazos', () => {
     expect(document.querySelectorAll('#dlGrid .dlc')).toHaveLength(2);
     expect(errors).toEqual([]);
   });
+
+  const live = () => Object.keys(localStorage).filter(k => k.startsWith('rb_proj_deck:')).map(k => JSON.parse(localStorage.getItem(k)!)).filter(d => !d.deleted);
+  const modalBtn = (label: string) => [...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === label) as HTMLButtonElement;
+  const folderBtn = (name: string) => [...document.querySelectorAll('#dlSide [data-folder]')].find(b => b.textContent!.startsWith(name)) as HTMLButtonElement;
+
+  it('las carpetas se renombran y se borran sin perder sus mazos', () => {
+    folderBtn('Torneo').click();
+    ($('#dlSide [data-frename]') as HTMLButtonElement).click();
+    ($('#dlRenF') as HTMLInputElement).value = 'Liga';
+    modalBtn('Guardar').click();
+    expect(live().map(d => d.folder)).toEqual(['Liga', 'Liga']);
+    expect(folderBtn('Liga').classList.contains('on')).toBe(true);
+    ($('#dlSide [data-fdel]') as HTMLButtonElement).click();
+    modalBtn('Solo la carpeta').click();
+    expect(live()).toHaveLength(2);
+    expect(live().every(d => !d.folder)).toBe(true);
+    expect($('#dlSide [data-fdel]')).toBeNull();
+  });
+
+  it('un mazo se borra desde su tarjeta, después de confirmar', () => {
+    ($('#dlGrid [data-del]') as HTMLButtonElement).click();
+    expect($('#modal').classList.contains('show')).toBe(true);
+    modalBtn('Cancelar').click();
+    expect(live()).toHaveLength(2);
+    ($('#dlGrid [data-del]') as HTMLButtonElement).click();
+    modalBtn('Borrar').click();
+    expect(live()).toHaveLength(1);
+    expect(document.querySelectorAll('#dlGrid .dlc')).toHaveLength(1);
+    // y desde su página: vuelve a la galería vacía
+    ($('#dlGrid .dlc') as HTMLElement).click();
+    ($('#ddDel') as HTMLButtonElement).click();
+    modalBtn('Borrar').click();
+    expect($('#deckb').dataset.view).toBe('lib');
+    expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
+    expect(errors).toEqual([]);
+  });
 });

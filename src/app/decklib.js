@@ -53,8 +53,10 @@ export function renderLib() {
   if (F.folder && F.folder !== NO_FOLDER && !fl.some(f => f.name === F.folder)) F.folder = '';
   if (F.folder === NO_FOLDER && !noF) F.folder = '';
   const fbtn = (v, label, n, icon) => `<button class="dlf${F.folder === v ? ' on' : ''}" data-folder="${esc(v)}">${ic(icon)}<span>${esc(label)}</span><small>${n}</small></button>`;
+  const real = F.folder && F.folder !== NO_FOLDER;
   $('#dlSide').innerHTML = `<h4>Carpetas</h4>${fbtn('', 'Todos', all.length, 'cards')}${fl.map(f => fbtn(f.name, f.name, f.n, 'folder')).join('')}`
     + (fl.length && noF ? fbtn(NO_FOLDER, 'Sin carpeta', noF, 'dot') : '')
+    + (real ? `<div class="dlfx"><button class="btn mini" data-frename>${ic('pen')} Renombrar</button><button class="btn mini danger" data-fdel>${ic('trash')} Borrar carpeta</button></div>` : '')
     + (!fl.length && all.length ? '<p class="dlhint">Para crear una carpeta, abre un mazo y pulsa "Mover a carpeta".</p>' : '');
 
   // leyendas y dominios que hay en tus mazos
@@ -79,7 +81,8 @@ function tile(d, i) {
   const miss = i.missN == null ? '' : i.missN ? `<span class="miss" title="Cartas que no tienes en tu colección">faltan ${i.missN}</span>` : `<span class="have">${ic('check')} las tienes</span>`;
   return `<article class="dlc" data-id="${esc(d.id)}" tabindex="0" aria-label="${esc(d.name || 'Sin nombre')}">
     <div class="dlart"${i.img ? ` style="--img:url('${esc(i.img)}')"` : ''}>${statusTag(i)}
-      <button class="dlfav${d.fav ? ' on' : ''}" data-fav="${esc(d.id)}" title="${d.fav ? 'Quitar de favoritos' : 'Marcar como favorito'}" aria-pressed="${!!d.fav}">${ic('star')}</button></div>
+      <button class="dlfav${d.fav ? ' on' : ''}" data-fav="${esc(d.id)}" title="${d.fav ? 'Quitar de favoritos' : 'Marcar como favorito'}" aria-pressed="${!!d.fav}">${ic('star')}</button>
+      <button class="dlfav dldel" data-del="${esc(d.id)}" title="Borrar este mazo" aria-label="Borrar ${esc(d.name || 'este mazo')}">${ic('trash')}</button></div>
     <div class="dlinfo">
       <b class="dlname">${esc(d.name || 'Sin nombre')}</b>
       <span class="dlleg">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}</span></span>
@@ -89,6 +92,31 @@ function tile(d, i) {
 }
 const stored = id => DB.allDecks().find(d => d.id === id);
 function toggleFav(id) { const d = stored(id); if (!d) return; d.fav = !d.fav; DB.writeDeck(d); renderLib(); }
+/** Pregunta antes de borrar un mazo; `then` corre solo si se borró. */
+function askDelete(d, then) {
+  if (!d) return;
+  openModal('Borrar mazo', `<p class="full">¿Borrar <b>${esc(d.name || 'Sin nombre')}</b>? Se borra también su récord, sus notas y su historial, y no se puede deshacer.</p>`,
+    [['Cancelar'], ['Borrar', 'danger', () => { DB.deleteDeck(d.id); toast('Mazo borrado', 'ok'); then?.(); }]]);
+}
+function renameFolder(from) {
+  openModal('Renombrar carpeta', `<label class="full">Nombre<input type="text" id="dlRenF" maxlength="40" value="${esc(from)}"></label>`,
+    [['Cancelar'], ['Guardar', 'primary', () => {
+      const to = cleanFolder($('#dlRenF').value); if (!to) { $('#dlRenF').focus(); return false; }
+      for (const d of DB.allDecks()) if (cleanFolder(d.folder) === from) { d.folder = to; DB.writeDeck(d); }
+      F.folder = to; renderLib(); toast(`Carpeta renombrada a "${to}"`, 'ok');
+    }]]);
+  const inp = $('#dlRenF'); inp.select();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') document.querySelector('#modal .mfoot .btn.primary')?.click(); });
+}
+function deleteFolder(name) {
+  const decks = DB.allDecks().filter(d => cleanFolder(d.folder) === name);
+  const done = msg => { F.folder = ''; renderLib(); toast(msg, 'ok'); };
+  openModal('Borrar carpeta', `<p class="full">¿Qué hacemos con la carpeta <b>${esc(name)}</b> y sus ${plural(decks.length, 'mazo')}?</p>`, [
+    ['Cancelar'],
+    ['Borrar carpeta y mazos', 'danger', () => { for (const d of decks) DB.deleteDeck(d.id); done(`Borrados la carpeta y ${plural(decks.length, 'mazo')}`); }],
+    ['Solo la carpeta', 'primary', () => { for (const d of decks) { delete d.folder; DB.writeDeck(d); } done('Carpeta borrada: sus mazos quedan sin carpeta'); }],
+  ]);
+}
 function openDetail(id) { const d = stored(id); if (!d) return; DB.useDeck(d); DB.setView('detail'); $('#ddBody').scrollTop = 0; }
 
 /* ================= página de un mazo ================= */
@@ -216,9 +244,14 @@ export function initLib() {
   $('#dlLegend').onchange = e => { F.legend = e.target.value; renderLib(); };
   $('#dlSort').onchange = e => { F.sort = e.target.value; renderLib(); };
   $('#dlDom').onclick = e => { const b = e.target.closest('[data-dom]'); if (!b) return; F.dom.has(b.dataset.dom) ? F.dom.delete(b.dataset.dom) : F.dom.add(b.dataset.dom); renderLib(); };
-  $('#dlSide').onclick = e => { const b = e.target.closest('[data-folder]'); if (b) { F.folder = b.dataset.folder; renderLib(); } };
+  $('#dlSide').onclick = e => {
+    if (e.target.closest('[data-frename]')) { renameFolder(F.folder); return; }
+    if (e.target.closest('[data-fdel]')) { deleteFolder(F.folder); return; }
+    const b = e.target.closest('[data-folder]'); if (b) { F.folder = b.dataset.folder; renderLib(); }
+  };
   $('#dlGrid').addEventListener('click', e => {
     const fav = e.target.closest('[data-fav]'); if (fav) { toggleFav(fav.dataset.fav); return; }
+    const del = e.target.closest('[data-del]'); if (del) { askDelete(stored(del.dataset.del), renderLib); return; }
     if (e.target.closest('[data-new]')) { DB.newDeck(); return; }
     if (e.target.closest('[data-import]')) { DB.openImport(); return; }
     if (e.target.closest('[data-clear]')) { Object.assign(F, emptyFilter(), { sort: F.sort }); $('#dlQ').value = ''; renderLib(); return; }
@@ -238,9 +271,7 @@ export function initLib() {
     DB.writeDeck(c); DB.useDeck(c); DB.setView('detail'); toast('Copia creada: ya estás en ella', 'ok');
   };
   $('#ddDel').onclick = () => {
-    const d = DB.currentDeck();
-    if (!confirm(`¿Borrar el mazo "${d.name}"? Esto no se puede deshacer.`)) return;
-    DB.deleteDeck(d.id); DB.setView('lib'); toast('Mazo borrado', 'ok');
+    askDelete(DB.currentDeck(), () => DB.setView('lib'));
   };
   const body = $('#ddBody');
   body.addEventListener('click', e => {
