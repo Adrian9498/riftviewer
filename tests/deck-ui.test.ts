@@ -10,7 +10,11 @@ const item = (id: string, name: string, type: string, supertype: string | null, 
   text: { plain: 'Texto de ' + name, rich: '' }, media: { image_url: `https://img/${id}.png` }, metadata: { alternate_art: false, signature: false, overnumbered: false },
   tags, set: { set_id: id.split('-')[0].toUpperCase() },
 });
+// una promo con el mismo nombre que una carta normal, antes en la lista (como "Flash" OPP-011 y OGS-011)
+const promo = { ...item('opp-004-1', 'Stupefy', 'Spell', null, ['Mind'], [], 1), set: { set_id: 'OPP' } };
+promo.classification = { ...promo.classification, rarity: 'Promo' };
 const items = [
+  promo,
   item('ogn-001-1', 'Diana, Scorn of the Moon', 'Legend', 'Champion', ['Mind', 'Chaos'], ['Diana'], null),
   item('ogn-002-1', 'Diana, Lunari', 'Unit', 'Champion', ['Chaos'], ['Diana'], 4),
   item('ogn-003-1', 'Jinx, Rebel', 'Unit', 'Champion', ['Fury'], ['Jinx'], 5),
@@ -39,7 +43,12 @@ describe('constructor de mazos', () => {
   it('abre desde el inicio con un mazo nuevo y el catálogo cargado', () => {
     ($('#hDecks') as HTMLButtonElement).click();
     expect(($('#deckb') as HTMLElement).hidden).toBe(false);
-    expect(document.querySelectorAll('#dbGrid .dbc').length).toBe(items.length);
+    // sin mazos, la galería invita a crear el primero
+    expect($('#deckb').dataset.view).toBe('lib');
+    expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
+    ($('#dlGrid [data-new]') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('edit');
+    expect(document.querySelectorAll('#dbGrid .dbc').length).toBe(new Set(items.map(i => i.name)).size);   // una por nombre
     expect(errors).toEqual([]);
   });
 
@@ -64,7 +73,11 @@ describe('constructor de mazos', () => {
   });
 
   it('exporta en el formato del simulador y el enlace vuelve a abrir el mismo mazo', async () => {
-    ($('#dbExport') as HTMLButtonElement).click();
+    // "Listo" lleva a la página del mazo, que tiene Exportar; luego se vuelve a editar
+    ($('#dbBack') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('detail');
+    ($('#ddExport') as HTMLButtonElement).click();
+    ($('#ddEdit') as HTMLButtonElement).click();
     const txt = ($('#modal textarea') as HTMLTextAreaElement).value;
     expect(txt).toMatch(/^Legend:\n1 Diana, Scorn of the Moon \[OGN-001\]\n\nChampion:\n1 Diana, Lunari \[OGN-002\]\n\nMainDeck:\n3 Stupefy \[OGN-004\]/);
     const fmt = await import('../src/deck/format');
@@ -94,6 +107,111 @@ describe('constructor de mazos', () => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('rb_proj_deck:'));
     expect(keys.length).toBe(1);
     expect(JSON.parse(localStorage.getItem(keys[0])!).legend).toBe('OGN-001');
+    expect(errors).toEqual([]);
+  });
+});
+
+describe('mis mazos', () => {
+  const stored = () => { const k = Object.keys(localStorage).find(k => k.startsWith('rb_proj_deck:'))!; return JSON.parse(localStorage.getItem(k)!); };
+
+  it('al terminar de editar se guarda la versión con lo que entró', () => {
+    ($('#dbBack') as HTMLButtonElement).click();
+    const h = stored().history;
+    expect(h).toHaveLength(1);
+    expect(h[0].add).toMatchObject({ 'OGN-001': 1, 'OGN-002': 1, 'OGN-004': 3 });
+    expect($('#ddBody').textContent).toContain('Primera versión');
+    // quitar una copia y volver: segunda versión con lo que salió
+    ($('#ddEdit') as HTMLButtonElement).click();
+    ($('#dbPanel [data-rm="OGN-004"][data-sec="main"]') as HTMLButtonElement).click();
+    ($('#dbBack') as HTMLButtonElement).click();
+    expect(stored().history[0].rm).toEqual({ 'OGN-004': 1 });
+    expect($('#ddBody').textContent).toContain('Versión 2');
+    // volver a la primera versión (y eso mismo queda como versión nueva)
+    ($('#ddBody [data-restore="1"]') as HTMLButtonElement).click();
+    ([...document.querySelectorAll('#modal .mfoot .btn')].find(x => x.textContent === 'Volver a esta versión') as HTMLButtonElement).click();
+    expect(stored().main).toEqual({ 'OGN-004': 3 });
+    expect(stored().champion).toBe('OGN-002');
+    expect(stored().history).toHaveLength(3);
+    expect(stored().history[0].add).toEqual({ 'OGN-004': 1 });
+  });
+
+  it('la página del mazo anota partidas, notas, favorito y carpeta', async () => {
+    ($('#ddBody [data-res="w"][data-delta="1"]') as HTMLButtonElement).click();
+    ($('#ddBody [data-res="w"][data-delta="1"]') as HTMLButtonElement).click();
+    ($('#ddBody [data-res="l"][data-delta="1"]') as HTMLButtonElement).click();
+    expect(stored().record).toEqual({ w: 2, l: 1 });
+    expect($('#ddBody').textContent).toContain('67% de victorias');
+    const notes = $('#ddNotes') as HTMLTextAreaElement;
+    notes.value = 'Mulligan agresivo'; notes.dispatchEvent(new Event('input', { bubbles: true }));
+    notes.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(stored().notes).toBe('Mulligan agresivo');
+    ($('#ddBody [data-fav]') as HTMLButtonElement).click();
+    expect(stored().fav).toBe(true);
+    ($('#ddBody [data-move]') as HTMLButtonElement).click();
+    ($('#dlNewF') as HTMLInputElement).value = ' Torneo ';
+    ([...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === 'Crear y mover') as HTMLButtonElement).click();
+    expect(stored().folder).toBe('Torneo');
+  });
+
+  it('la galería muestra la tarjeta del mazo y filtra por carpeta', () => {
+    ($('#ddBack') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('lib');
+    const card = $('#dlGrid .dlc');
+    expect(card.textContent).toContain('Diana, Scorn of the Moon');
+    expect(card.textContent).toContain('2-1');
+    expect(card.querySelector('.dlfav.on')).not.toBeNull();
+    expect([...document.querySelectorAll('#dlSide [data-folder]')].map(b => b.textContent)).toEqual(['Todos1', 'Torneo1']);
+    // duplicar desde su página: la copia empieza sin récord
+    card.click();
+    ($('#ddDup') as HTMLButtonElement).click();
+    expect($('#ddBody h1').textContent).toMatch(/\(copia\)$/);
+    ($('#ddBack') as HTMLButtonElement).click();
+    expect(document.querySelectorAll('#dlGrid .dlc')).toHaveLength(2);
+    expect(errors).toEqual([]);
+  });
+
+  const live = () => Object.keys(localStorage).filter(k => k.startsWith('rb_proj_deck:')).map(k => JSON.parse(localStorage.getItem(k)!)).filter(d => !d.deleted);
+  const modalBtn = (label: string) => [...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === label) as HTMLButtonElement;
+  const folderBtn = (name: string) => [...document.querySelectorAll('#dlSide [data-folder]')].find(b => b.textContent!.startsWith(name)) as HTMLButtonElement;
+
+  it('las carpetas se renombran y se borran sin perder sus mazos', () => {
+    folderBtn('Torneo').click();
+    ($('#dlSide [data-frename]') as HTMLButtonElement).click();
+    ($('#dlRenF') as HTMLInputElement).value = 'Liga';
+    modalBtn('Guardar').click();
+    expect(live().map(d => d.folder)).toEqual(['Liga', 'Liga']);
+    expect(folderBtn('Liga').classList.contains('on')).toBe(true);
+    ($('#dlSide [data-fdel]') as HTMLButtonElement).click();
+    modalBtn('Solo la carpeta').click();
+    expect(live()).toHaveLength(2);
+    expect(live().every(d => !d.folder)).toBe(true);
+    expect($('#dlSide [data-fdel]')).toBeNull();
+  });
+
+  it('un mazo se borra desde su tarjeta, después de confirmar', () => {
+    ($('#dlGrid [data-del]') as HTMLButtonElement).click();
+    expect($('#modal').classList.contains('show')).toBe(true);
+    modalBtn('Cancelar').click();
+    expect(live()).toHaveLength(2);
+    ($('#dlGrid [data-del]') as HTMLButtonElement).click();
+    modalBtn('Borrar').click();
+    expect(live()).toHaveLength(1);
+    expect(document.querySelectorAll('#dlGrid .dlc')).toHaveLength(1);
+    // y desde su página: vuelve a la galería vacía
+    ($('#dlGrid .dlc') as HTMLElement).click();
+    ($('#ddDel') as HTMLButtonElement).click();
+    modalBtn('Borrar').click();
+    expect($('#deckb').dataset.view).toBe('lib');
+    expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
+    expect(errors).toEqual([]);
+  });
+
+  it('al importar una lista sin códigos se elige la impresión normal, no la promo', () => {
+    ($('#dlImport') as HTMLButtonElement).click();
+    ($('#dbImp') as HTMLTextAreaElement).value = ['Legend:', '1 Diana, Scorn of the Moon', '', 'MainDeck:', '3 Stupefy'].join(String.fromCharCode(10));
+    modalBtn('Importar').click();
+    const d = live().find(x => x.name !== undefined)!;
+    expect(d.main).toEqual({ 'OGN-004': 3 });
     expect(errors).toEqual([]);
   });
 });

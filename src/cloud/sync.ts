@@ -78,6 +78,18 @@ function must<T>(r: { data: T | null; error: { message: string } | null }): T {
   return d;
 }
 
+/**
+ * Archivos que fallaron (clave → versión que falló y por qué). Un archivo con problemas no frena al resto:
+ * se salta y no se reintenta hasta que cambie su versión (o se recargue la página).
+ */
+const failed = new Map<string, { ts: number; msg: string }>();
+const touched = new Set<string>();   // los archivos que tocaba sincronizar en esta pasada
+async function eachFile(id: string, ts: number, fn: () => Promise<unknown>): Promise<void> {
+  touched.add(id);
+  if (failed.get(id)?.ts === ts) return;
+  try { await fn(); failed.delete(id); } catch (e) { failed.set(id, { ts, msg: e instanceof Error ? e.message : String(e) }); }
+}
+
 /** Sincroniza todo ahora. Si ya hay una sincronización en curso, se repite al terminar. */
 export async function syncNow(): Promise<void> {
   const sb = supabase(), user = currentUser();
@@ -86,6 +98,7 @@ export async function syncNow(): Promise<void> {
   running = true; setStatus({ state: 'syncing', error: undefined });
   const a = adapter, uid = user.id, changed = new Set<Area>();
   const apply = async (fn: () => unknown) => { applyingRemote = true; try { await fn(); } finally { applyingRemote = false; } };
+  touched.clear();
   try {
     // ---- ajustes
     const srow = check(await sb.from('user_settings').select('data, updated_at').maybeSingle());
@@ -108,51 +121,57 @@ export async function syncNow(): Promise<void> {
     const alive = localDocs.filter(d => !d.deleted), known = new Set(localDocs.map(d => d.key));
     const oldest = alive.length >= MAX_DOCS ? Math.min(...alive.map(d => d.ts)) : 0;
     dplan.pull = dplan.pull.filter(r => known.has(r.key) || r.ts > oldest);
-    for (const d of dplan.push) {
+    for (const d of dplan.push) await eachFile('doc:' + d.key, d.ts, async () => {
       const base = { user_id: uid, doc_key: d.key, kind: d.kind, name: d.name, subtitle: d.sub ?? null, updated_at: toIso(d.ts) };
-      if (d.deleted) { check(await sb.from('documents').upsert({ ...base, deleted: true, content: null })); continue; }
-      const body = await a.readDoc(d.key); if (body == null) continue;
+      if (d.deleted) { check(await sb.from('documents').upsert({ ...base, deleted: true, content: null })); return; }
+      const body = await a.readDoc(d.key); if (body == null) return;
       if (d.kind === 'script') check(await sb.from('documents').upsert({ ...base, deleted: false, content: body, storage_path: null }));
       else {
         const path = `${uid}/${storageName(d.key)}.json`;
         check(await sb.storage.from('replays').upload(path, new Blob([body], { type: 'application/json' }), { upsert: true, contentType: 'application/json' }));
         check(await sb.from('documents').upsert({ ...base, deleted: false, content: null, storage_path: path }));
       }
-    }
-    for (const r of dplan.pull) {
+    });
+    for (const r of dplan.pull) await eachFile('doc:' + r.key, r.ts, async () => {
       const row = r.row;
       let data: string | null = row.content;
       if (row.kind === 'replay' && row.storage_path) data = await must(await sb.storage.from('replays').download(row.storage_path)).text();
-      if (data == null) continue;
+      if (data == null) return;
       await apply(() => a.putDoc({ key: r.key, kind: row.kind, name: row.name, sub: row.subtitle ?? undefined, data, ts: r.ts }));
       changed.add('docs');
-    }
+    });
     for (const r of dplan.removeLocal) { await apply(() => a.removeDoc(r.key, r.ts)); changed.add('docs'); }
 
     // ---- imágenes y sonidos propios
     const arows = check(await sb.from('user_assets').select('asset_key, storage_path, content_type, deleted, updated_at'));
     const remoteAssets = (arows || []).map(r => ({ key: r.asset_key as string, ts: toMs(r.updated_at), deleted: !!r.deleted, row: r }));
     const aplan = planSync(await a.listAssets(), remoteAssets);
-    for (const x of aplan.push) {
+    // las repeticiones guardadas en un mazo pesan más: van al bucket de replays (10 MB)
+    const bucket = (key: string) => key.startsWith('rep:') ? 'replays' : 'user-assets';
+    for (const x of aplan.push) await eachFile('asset:' + x.key, x.ts, async () => {
       const path = `${uid}/${storageName(x.key)}`;
       if (x.deleted) {
-        await sb.storage.from('user-assets').remove([path]);
+        await sb.storage.from(bucket(x.key)).remove([path]);
         check(await sb.from('user_assets').upsert({ user_id: uid, asset_key: x.key, storage_path: null, deleted: true, updated_at: toIso(x.ts) }));
-        continue;
+        return;
       }
-      const blob = await a.readAsset(x.key); if (!blob) continue;
-      check(await sb.storage.from('user-assets').upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' }));
+      const blob = await a.readAsset(x.key); if (!blob) return;
+      check(await sb.storage.from(bucket(x.key)).upload(path, blob, { upsert: true, contentType: blob.type || 'application/octet-stream' }));
       check(await sb.from('user_assets').upsert({ user_id: uid, asset_key: x.key, storage_path: path, content_type: blob.type || null, deleted: false, updated_at: toIso(x.ts) }));
-    }
-    for (const r of aplan.pull) {
-      if (!r.row.storage_path) continue;
-      const blob = must(await sb.storage.from('user-assets').download(r.row.storage_path));
+    });
+    for (const r of aplan.pull) await eachFile('asset:' + r.key, r.ts, async () => {
+      if (!r.row.storage_path) return;
+      const blob = must(await sb.storage.from(bucket(r.key)).download(r.row.storage_path));
       await apply(() => a.putAsset(r.key, blob, r.ts)); changed.add('assets');
-    }
+    });
     for (const r of aplan.removeLocal) { await apply(() => a.removeAsset(r.key, r.ts)); changed.add('assets'); }
 
     if (changed.size) await apply(() => a.refresh(changed));
-    setStatus({ state: 'idle', lastSync: Date.now() });
+    for (const id of failed.keys()) if (!touched.has(id)) failed.delete(id);   // ya no está pendiente (se borró o llegó otra versión)
+    if (failed.size) {
+      const [[id, f]] = [...failed];
+      setStatus({ state: 'error', lastSync: Date.now(), error: `${failed.size === 1 ? 'un archivo no se pudo subir o bajar' : failed.size + ' archivos no se pudieron subir o bajar'} (${id.replace(/^\w+:/, '')}: ${f.msg}). Lo demás sí se sincronizó.` });
+    } else setStatus({ state: 'idle', lastSync: Date.now() });
   } catch (e) {
     setStatus({ state: 'error', error: e instanceof Error ? e.message : String(e) });
   } finally {

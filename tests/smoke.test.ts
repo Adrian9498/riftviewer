@@ -136,8 +136,10 @@ describe('app completa', () => {
       expect($('#pinfo [data-deckof="pb"]')).toBeNull();
       ($('#pinfo [data-deckof="pa"]') as HTMLButtonElement).click();
       expect(($('#deckb') as HTMLElement).hidden).toBe(false);
-      expect(($('#dbName') as HTMLInputElement).value).toMatch(/^Ana · /);
-      expect(($('#dbSaveShared') as HTMLElement).hidden).toBe(false);
+      // se ve en su página, todavía sin guardar
+      expect(($('#deckb') as HTMLElement).dataset.view).toBe('detail');
+      expect($('#ddBody h1')!.textContent).toMatch(/^Ana · /);
+      expect(($('#ddSave') as HTMLElement).hidden).toBe(false);
       ($('#deckb [data-nav]') as HTMLButtonElement).click();
       ($('#navmenu [data-go="partida"]') as HTMLButtonElement).click();
       expect(($('#deckb') as HTMLElement).hidden).toBe(true);

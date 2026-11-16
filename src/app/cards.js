@@ -67,13 +67,18 @@ export function deckCard(code){
   const c=BYCODE.get(code.toUpperCase()) || BYCODE.get(code.toUpperCase().replace(/[A-Z*]+$/,''));
   return c ? {...toDeckCard(c), code} : undefined;
 }
+/**
+ * Qué impresión preferir cuando una lista trae solo el nombre: primero la normal, después las promocionales
+ * (por ejemplo "Flash" existe como OGS-011 y como promo OPP-011) y al final las de arte alterno.
+ */
+export const printRank = c => (c.alt ? 2 : 0) + (c.rar === 'Promo' || c.set === 'OPP' ? 1 : 0);
 /** catálogo del constructor: una impresión por nombre (la normal, del set más antiguo) */
 let CATALOG=null;
 export function deckCatalog(){
   if(CATALOG) return CATALOG;
   const byName=new Map();
   for(const c of CARDS){ if(!c.code || c.sup==='Token') continue; const o=byName.get(c.name);
-    if(!o || (o.alt && !c.alt)) byName.set(c.name,c); }
+    if(!o || printRank(c) < printRank(o)) byName.set(c.name,c); }
   return CATALOG=[...byName.values()];
 }
 export function setStatus(t,c){ const s=$('#status'); s.textContent=t; s.className=c||''; }

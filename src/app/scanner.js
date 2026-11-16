@@ -79,12 +79,14 @@ export function releaseScanner() {
   p?.then(pool => pool.workers.forEach(w => w.terminate().catch?.(() => {}))).catch(() => {});
 }
 
-/** ctx: { cat:{prints,byCode}, add(code,finish,d), count(code), row(code) } */
+/** ctx: { cat:{prints,byCode}, add(code,finish,d), count(code), row(code) }
+ *  o, para solo buscar una carta (en la mesa): { cat, lookup: true, pick(printing) } — al reconocerla se cierra y la entrega. */
 export async function openScanner(ctx) {
   if (S) return;
   S = { ctx, open: true, stream: null, pool: null, inflight: 0, timer: 0, fin: 'normal',
     shown: null, alts: [], sess: [], devices: [], dev: -1, torch: false, mode: 0, gate: new ScanGate(), warned: false, seq: 0, done: 0, rr: 0 };
-  $('#coscan').hidden = false; document.body.classList.add('scanning');
+  S.lookup = !!ctx.lookup;
+  $('#coscan').hidden = false; $('#coscan').classList.toggle('lookup', S.lookup); document.body.classList.add('scanning');
   $('#csQ').value = ''; $('#csHits').innerHTML = '';
   setAuto(readAuto());
   renderRes(); renderSess(); renderStack();
@@ -97,7 +99,7 @@ export function closeScanner() {
   if (!S) return;
   S.open = false; clearTimeout(S.timer); stopStream();
   S = null;
-  $('#coscan').hidden = true; document.body.classList.remove('scanning');
+  $('#coscan').hidden = true; $('#coscan').classList.remove('lookup'); document.body.classList.remove('scanning');
 }
 
 /* ---------- cámara ---------- */
@@ -287,7 +289,7 @@ function read(text, sig) {
   // el arte corrige antes de votar: así la lectura equivocada y la corregida cuentan como la misma carta
   const top = byArt(ocr, hits, sig), fixed = top !== ocr;
   // la regla de cuándo aceptar (y no sumar dos veces la misma carta) está en ScanGate
-  const code = S.gate.feed(top?.code || null, sure && !fixed, Date.now(), $('#csAuto').checked);
+  const code = S.gate.feed(top?.code || null, sure && !fixed, Date.now(), auto());
   if (code) { S.byArt = fixed ? ocr.code : null; found(top, hits); }
 }
 
@@ -297,10 +299,13 @@ function found(p, hits = []) {
   S.shown = p;
   S.alts = [...new Set([...variantsOf(S.ctx.cat.prints, p), ...hits])];
   navigator.vibrate?.(30);
+  if (S.lookup) { lookedUp(p); return; }
   const g = $('#csGuide'); g.classList.remove('hit'); void g.offsetWidth; g.classList.add('hit');
   if ($('#csAuto').checked) add(p, finFor(p));
   else { msg(`Encontré ${p.name}${S.byArt ? ` (por el arte; leí ${S.byArt})` : ''}. Toca "+1" para sumarla.`, 'ok'); renderRes(); }
 }
+/** Buscando una carta: se entrega y se cierra la cámara. */
+function lookedUp(p) { const pick = S.ctx.pick; closeScanner(); pick(p); }
 function add(p, f) {
   S.ctx.add(p.code, f, 1);
   S.sess.push({ code: p.code, f });
@@ -312,7 +317,7 @@ function add(p, f) {
 
 /* ---------- agregar al instante: la carta vuela a una pila en la esquina ---------- */
 const AUTO_KEY = 'rb_scan_auto';
-const auto = () => $('#csAuto').checked;
+const auto = () => !S?.lookup && $('#csAuto').checked;
 function readAuto() { try { return localStorage.getItem(AUTO_KEY) !== '0'; } catch (e) { return true; } }
 function setAuto(on) {
   $('#csAuto').checked = on;
@@ -412,6 +417,7 @@ export function init() {
     const p = S.ctx.cat.byCode.get(b.dataset.cspick); if (!p) return;
     S.shown = p; S.alts = variantsOf(S.ctx.cat.prints, p); S.gate.pick(p.code, Date.now());
     $('#csQ').value = ''; $('#csHits').innerHTML = '';
+    if (S.lookup) { lookedUp(p); return; }
     // agregando al instante, la elegida a mano también se suma de una vez
     if (auto()) { add(p, finFor(p)); return; }
     renderRes(); msg(`Elegiste ${p.name}. Toca "+1" para sumarla.`, 'ok');
