@@ -51,6 +51,7 @@ describe('en el teléfono', () => {
   });
   it('el constructor cambia entre Cartas y Mi mazo, y los filtros se despliegan', () => {
     ($('#hDecks') as HTMLButtonElement).click();
+    ($('#dlNew') as HTMLButtonElement).click();
     expect($('#deckb').dataset.pane).toBe('cat');
     ($('.dbpanes [data-pane="deck"]') as HTMLButtonElement).click();
     expect($('#deckb').dataset.pane).toBe('deck');

@@ -39,6 +39,11 @@ describe('constructor de mazos', () => {
   it('abre desde el inicio con un mazo nuevo y el catálogo cargado', () => {
     ($('#hDecks') as HTMLButtonElement).click();
     expect(($('#deckb') as HTMLElement).hidden).toBe(false);
+    // sin mazos, la galería invita a crear el primero
+    expect($('#deckb').dataset.view).toBe('lib');
+    expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
+    ($('#dlGrid [data-new]') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('edit');
     expect(document.querySelectorAll('#dbGrid .dbc').length).toBe(items.length);
     expect(errors).toEqual([]);
   });
@@ -64,7 +69,11 @@ describe('constructor de mazos', () => {
   });
 
   it('exporta en el formato del simulador y el enlace vuelve a abrir el mismo mazo', async () => {
-    ($('#dbExport') as HTMLButtonElement).click();
+    // "Listo" lleva a la página del mazo, que tiene Exportar; luego se vuelve a editar
+    ($('#dbBack') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('detail');
+    ($('#ddExport') as HTMLButtonElement).click();
+    ($('#ddEdit') as HTMLButtonElement).click();
     const txt = ($('#modal textarea') as HTMLTextAreaElement).value;
     expect(txt).toMatch(/^Legend:\n1 Diana, Scorn of the Moon \[OGN-001\]\n\nChampion:\n1 Diana, Lunari \[OGN-002\]\n\nMainDeck:\n3 Stupefy \[OGN-004\]/);
     const fmt = await import('../src/deck/format');
@@ -94,6 +103,59 @@ describe('constructor de mazos', () => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('rb_proj_deck:'));
     expect(keys.length).toBe(1);
     expect(JSON.parse(localStorage.getItem(keys[0])!).legend).toBe('OGN-001');
+    expect(errors).toEqual([]);
+  });
+});
+
+describe('mis mazos', () => {
+  const stored = () => { const k = Object.keys(localStorage).find(k => k.startsWith('rb_proj_deck:'))!; return JSON.parse(localStorage.getItem(k)!); };
+
+  it('al terminar de editar se guarda la versión con lo que entró', () => {
+    ($('#dbBack') as HTMLButtonElement).click();
+    const h = stored().history;
+    expect(h).toHaveLength(1);
+    expect(h[0].add).toMatchObject({ 'OGN-001': 1, 'OGN-002': 1, 'OGN-004': 3 });
+    expect($('#ddBody').textContent).toContain('Primera versión');
+    // quitar una copia y volver: segunda versión con lo que salió
+    ($('#ddEdit') as HTMLButtonElement).click();
+    ($('#dbPanel [data-rm="OGN-004"][data-sec="main"]') as HTMLButtonElement).click();
+    ($('#dbBack') as HTMLButtonElement).click();
+    expect(stored().history[0].rm).toEqual({ 'OGN-004': 1 });
+    expect($('#ddBody').textContent).toContain('Versión 2');
+  });
+
+  it('la página del mazo anota partidas, notas, favorito y carpeta', async () => {
+    ($('#ddBody [data-res="w"][data-delta="1"]') as HTMLButtonElement).click();
+    ($('#ddBody [data-res="w"][data-delta="1"]') as HTMLButtonElement).click();
+    ($('#ddBody [data-res="l"][data-delta="1"]') as HTMLButtonElement).click();
+    expect(stored().record).toEqual({ w: 2, l: 1 });
+    expect($('#ddBody').textContent).toContain('67% de victorias');
+    const notes = $('#ddNotes') as HTMLTextAreaElement;
+    notes.value = 'Mulligan agresivo'; notes.dispatchEvent(new Event('input', { bubbles: true }));
+    notes.dispatchEvent(new Event('focusout', { bubbles: true }));
+    expect(stored().notes).toBe('Mulligan agresivo');
+    ($('#ddBody [data-fav]') as HTMLButtonElement).click();
+    expect(stored().fav).toBe(true);
+    ($('#ddBody [data-move]') as HTMLButtonElement).click();
+    ($('#dlNewF') as HTMLInputElement).value = ' Torneo ';
+    ([...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === 'Crear y mover') as HTMLButtonElement).click();
+    expect(stored().folder).toBe('Torneo');
+  });
+
+  it('la galería muestra la tarjeta del mazo y filtra por carpeta', () => {
+    ($('#ddBack') as HTMLButtonElement).click();
+    expect($('#deckb').dataset.view).toBe('lib');
+    const card = $('#dlGrid .dlc');
+    expect(card.textContent).toContain('Diana, Scorn of the Moon');
+    expect(card.textContent).toContain('2-1');
+    expect(card.querySelector('.dlfav.on')).not.toBeNull();
+    expect([...document.querySelectorAll('#dlSide [data-folder]')].map(b => b.textContent)).toEqual(['Todos1', 'Torneo1']);
+    // duplicar desde su página: la copia empieza sin récord
+    card.click();
+    ($('#ddDup') as HTMLButtonElement).click();
+    expect($('#ddBody h1').textContent).toMatch(/\(copia\)$/);
+    ($('#ddBack') as HTMLButtonElement).click();
+    expect(document.querySelectorAll('#dlGrid .dlc')).toHaveLength(2);
     expect(errors).toEqual([]);
   });
 });

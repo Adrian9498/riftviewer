@@ -1,0 +1,262 @@
+// Tu colección de mazos:
+// - "Mis mazos": galería con una tarjeta por mazo (arte de la leyenda, si cumple las reglas, precio, lo que te falta, récord),
+//   con favoritos, carpetas y filtros por leyenda y dominio.
+// - La página de un mazo: su lista visual, curva, revisión de reglas, costo, notas, récord de partidas e historial de versiones.
+// El constructor (decks.js) queda para editar.
+import { symbolHTML } from '../data/symbols';
+import { money } from '../cloud/prices';
+import { BATTLEFIELDS, MAIN_MIN, RUNES, validateDeck } from '../deck/rules';
+import { mainWithChampion, total } from '../deck/model';
+import { deckStats } from '../deck/stats';
+import {
+  HISTORY_MAX, NO_FOLDER, addResult, cleanFolder, domainsIn, duplicate, emptyFilter, filterDecks, folders, games, legendsIn, versionSize, winRate,
+} from '../deck/library';
+import { $, ic } from './base';
+import { cardByCode, deckCard } from './cards';
+import { deckCost } from './collection';
+import { ago, toast } from './shell';
+import { closeModal, esc, openModal } from './utils';
+import * as DB from './decks';
+
+const DOMS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
+const DOM_ES = { Fury: 'Furia', Calm: 'Calma', Mind: 'Mente', Body: 'Cuerpo', Chaos: 'Caos', Order: 'Orden' };
+const TYPE_ES = { Unit: 'Unidades', Spell: 'Hechizos', Gear: 'Equipo' };
+const sym = d => symbolHTML('rb_rune_' + d.toLowerCase()) || '';
+const pct = x => Math.round(x * 100) + '%';
+const plural = (n, one, many = one + 's') => `${n} ${n === 1 ? one : many}`;
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const F = emptyFilter();
+
+/** Lo que se muestra de cada mazo (depende del catálogo, los precios y tu colección). */
+function infoOf(d) {
+  const leg = d.legend && deckCard(d.legend);
+  const issues = validateDeck(d, deckCard), errors = issues.filter(i => i.level === 'error').length;
+  const c = deckCost(DB.deckCardsOf(d));
+  return {
+    legendName: leg?.name || '', doms: leg?.dom || [], img: (d.legend && cardByCode(d.legend)?.img) || '',
+    n: total(mainWithChampion(d)), issues, errors,
+    price: c ? c.cost : null, missN: c?.hasCollection ? c.missN : null, missCost: c?.missCost ?? null,
+  };
+}
+const statusTag = (i, cls = 'dlst') => i.errors
+  ? `<span class="${cls} no">${ic('x')} ${i.n < MAIN_MIN ? `Incompleto · ${i.n}/${MAIN_MIN}` : plural(i.errors, 'problema')}</span>`
+  : `<span class="${cls} ok">${ic('check')} Listo para jugar</span>`;
+const recordTag = r => games(r) ? `<span title="Victorias y derrotas">${ic('trophy')} ${r.w}-${r.l} · ${pct(winRate(r))}</span>` : '';
+
+/* ================= galería ================= */
+export function renderLib() {
+  const all = DB.allDecks(), cache = new Map();
+  const info = d => { if (!cache.has(d.id)) cache.set(d.id, infoOf(d)); return cache.get(d.id); };
+
+  // carpetas
+  const fl = folders(all), noF = all.filter(d => !cleanFolder(d.folder)).length;
+  if (F.folder && F.folder !== NO_FOLDER && !fl.some(f => f.name === F.folder)) F.folder = '';
+  if (F.folder === NO_FOLDER && !noF) F.folder = '';
+  const fbtn = (v, label, n, icon) => `<button class="dlf${F.folder === v ? ' on' : ''}" data-folder="${esc(v)}">${ic(icon)}<span>${esc(label)}</span><small>${n}</small></button>`;
+  $('#dlSide').innerHTML = `<h4>Carpetas</h4>${fbtn('', 'Todos', all.length, 'cards')}${fl.map(f => fbtn(f.name, f.name, f.n, 'folder')).join('')}`
+    + (fl.length && noF ? fbtn(NO_FOLDER, 'Sin carpeta', noF, 'dot') : '')
+    + (!fl.length && all.length ? '<p class="dlhint">Para crear una carpeta, abre un mazo y pulsa "Mover a carpeta".</p>' : '');
+
+  // leyendas y dominios que hay en tus mazos
+  const legs = legendsIn(all, info);
+  if (F.legend && !legs.some(l => l.name === F.legend)) F.legend = '';
+  $('#dlLegend').innerHTML = '<option value="">Todas las leyendas</option>' + legs.map(l => `<option value="${esc(l.name)}">${esc(l.name)} (${l.n})</option>`).join('');
+  $('#dlLegend').value = F.legend; $('#dlLegend').hidden = !legs.length;
+  const doms = new Set(domainsIn(all, info));
+  for (const x of [...F.dom]) if (!doms.has(x)) F.dom.delete(x);
+  $('#dlDom').innerHTML = DOMS.filter(x => doms.has(x)).map(x => `<button class="chip${F.dom.has(x) ? ' on' : ''}" data-dom="${x}" title="${DOM_ES[x]}" aria-pressed="${F.dom.has(x)}">${sym(x)}</button>`).join('');
+  $('#dlSort').value = F.sort;
+
+  const list = filterDecks(all, F, info);
+  $('#dlCount').textContent = all.length ? (list.length === all.length ? plural(all.length, 'mazo') : `${list.length} de ${all.length}`) : '';
+  $('#dlGrid').innerHTML = !all.length
+    ? `<div class="dlempty big">${ic('cards')}<b>Todavía no tienes mazos</b><span>Crea uno desde cero o importa una lista del simulador o un enlace de Riftviewer.</span>
+        <div><button class="btn primary" data-new>${ic('plus')} Nuevo mazo</button><button class="btn" data-import>${ic('upload')} Importar</button></div></div>`
+    : list.length ? list.map(d => tile(d, info(d))).join('')
+    : `<div class="dlempty">Ningún mazo coincide con los filtros. <button class="btn mini" data-clear>Quitar filtros</button></div>`;
+}
+function tile(d, i) {
+  const miss = i.missN == null ? '' : i.missN ? `<span class="miss" title="Cartas que no tienes en tu colección">faltan ${i.missN}</span>` : `<span class="have">${ic('check')} las tienes</span>`;
+  return `<article class="dlc" data-id="${esc(d.id)}" tabindex="0" aria-label="${esc(d.name || 'Sin nombre')}">
+    <div class="dlart"${i.img ? ` style="--img:url('${esc(i.img)}')"` : ''}>${statusTag(i)}
+      <button class="dlfav${d.fav ? ' on' : ''}" data-fav="${esc(d.id)}" title="${d.fav ? 'Quitar de favoritos' : 'Marcar como favorito'}" aria-pressed="${!!d.fav}">${ic('star')}</button></div>
+    <div class="dlinfo">
+      <b class="dlname">${esc(d.name || 'Sin nombre')}</b>
+      <span class="dlleg">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}</span></span>
+      <div class="dlmeta"><span>${ic('cards')} ${i.n}/${MAIN_MIN}</span>${i.price != null ? `<span>${money(i.price)}</span>` : ''}${miss}${recordTag(d.record)}</div>
+      <div class="dlfoot">${cleanFolder(d.folder) ? `<span class="dlfold">${ic('folder')}${esc(d.folder)}</span>` : '<span></span>'}<small>${ago(d.updatedAt || Date.now())}</small></div>
+    </div></article>`;
+}
+const stored = id => DB.allDecks().find(d => d.id === id);
+function toggleFav(id) { const d = stored(id); if (!d) return; d.fav = !d.fav; DB.writeDeck(d); renderLib(); }
+function openDetail(id) { const d = stored(id); if (!d) return; DB.useDeck(d); DB.setView('detail'); $('#ddBody').scrollTop = 0; }
+
+/* ================= página de un mazo ================= */
+function cardTile(code, n) {
+  const c = cardByCode(code), dc = deckCard(code);
+  return `<div class="ddc" data-code="${esc(code)}" title="${esc(dc?.name || code)}" tabindex="0"><img src="${esc(c?.img || '')}" loading="lazy" alt="${esc(dc?.name || code)}">${n > 1 ? `<b>×${n}</b>` : ''}</div>`;
+}
+const byCost = (a, b) => (deckCard(a[0])?.e ?? 99) - (deckCard(b[0])?.e ?? 99) || (deckCard(a[0])?.name || '').localeCompare(deckCard(b[0])?.name || '');
+function listHTML(d) {
+  const sec = (title, n, body) => body ? `<section class="ddsec"><h3>${title}${n != null ? ` <small>${n}</small>` : ''}</h3><div class="ddgrid">${body}</div></section>` : '';
+  const top = [d.legend, d.champion].filter(Boolean).map(c => cardTile(c, 1)).join('');
+  const groups = { Unit: [], Spell: [], Gear: [], Otros: [] };
+  Object.entries(d.main).sort(byCost).forEach(e => (groups[deckCard(e[0])?.type] || groups.Otros).push(e));
+  const main = ['Unit', 'Spell', 'Gear', 'Otros'].filter(t => groups[t].length).map(t =>
+    `<div class="ddtype">${TYPE_ES[t] || 'Otras'} <small>${groups[t].reduce((a, [, n]) => a + n, 0)}</small></div>${groups[t].map(([c, n]) => cardTile(c, n)).join('')}`).join('');
+  const html = sec('Leyenda y campeón', null, top)
+    + sec('Mazo principal', `${total(mainWithChampion(d))}/${MAIN_MIN}`, main)
+    + sec('Campos de batalla', `${d.battlefields.length}/${BATTLEFIELDS}`, d.battlefields.map(b => cardTile(b, 1)).join(''))
+    + sec('Runas', `${total(d.runes)}/${RUNES}`, Object.entries(d.runes).map(([c, n]) => cardTile(c, n)).join(''))
+    + sec('Banquillo', total(d.side), Object.entries(d.side).sort(byCost).map(([c, n]) => cardTile(c, n)).join(''));
+  return html || `<div class="dlempty big">${ic('cards')}<b>Este mazo está vacío</b><span>Pulsa <b>Editar</b> para agregar cartas.</span></div>`;
+}
+const kpi = (label, val, sub = '') => `<div class="ddkpi"><small>${label}</small><b>${val}</b>${sub ? `<span>${sub}</span>` : ''}</div>`;
+function recordHTML(d) {
+  const r = d.record || { w: 0, l: 0 }, g = games(r);
+  const side = (k, label) => `<div class="ddres ${k}"><b>${r[k]}</b><small>${label}</small>
+    <span><button class="btn mini ico" data-res="${k}" data-delta="-1" title="Quitar una" ${r[k] ? '' : 'disabled'}>−</button><button class="btn mini" data-res="${k}" data-delta="1">${ic('plus')} ${k === 'w' ? 'Victoria' : 'Derrota'}</button></span></div>`;
+  return `<section class="ddbox"><h4>${ic('trophy')} Récord de partidas</h4>
+    <div class="ddrec">${side('w', 'Victorias')}${side('l', 'Derrotas')}</div>
+    ${g ? `<div class="ddwr" title="${pct(winRate(r))} de victorias"><i style="width:${winRate(r) * 100}%"></i></div><p class="dlhint">${pct(winRate(r))} de victorias en ${plural(g, 'partida')}.</p>`
+      : '<p class="dlhint">Anota cada partida que juegues con este mazo para ver cómo le va.</p>'}</section>`;
+}
+function statsHTML(d) {
+  if (!Object.keys(d.main).length && !d.champion) return '';
+  const s = deckStats(d, deckCard), max = Math.max(1, ...s.curve);
+  const mix = (obj, names) => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<span>${names[k] || k} <b>${n}</b></span>`).join('');
+  return `<section class="ddbox"><h4>${ic('chart')} Curva de energía <small>promedio ${s.avgCost.toFixed(1)}</small></h4>
+    <div class="dbcurve">${s.curve.map((n, k) => `<div><b>${n || ''}</b><i style="height:${(n / max) * 100}%"></i><span>${k === 7 ? '7+' : k}</span></div>`).join('')}</div>
+    <div class="ddmix">${mix(s.types, TYPE_ES)}</div><div class="ddmix">${mix(s.domains, DOM_ES)}</div></section>`;
+}
+function checkHTML(issues) {
+  return `<section class="ddbox"><h4>${ic('shield')} Revisión de reglas</h4>${issues.length
+    ? issues.map(i => `<div class="dbiss ${i.level}">${ic(i.level === 'error' ? 'x' : 'help')}<span>${esc(i.msg)}${i.codes?.length ? `<small>${i.codes.map(c => esc(deckCard(c)?.name || c)).join(', ')}</small>` : ''}</span></div>`).join('')
+    : `<div class="ddok">${ic('check')} Cumple todas las reglas</div>`}</section>`;
+}
+const when = ts => new Date(ts).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+function changes(r, sign) {
+  return Object.entries(r).sort((a, b) => b[1] - a[1]).map(([k, n]) => {
+    const side = k.startsWith('side:'), code = side ? k.slice(5) : k;
+    return `<div class="${sign === '+' ? 'add' : 'rm'}"><b>${sign}${n}</b> ${esc(deckCard(code)?.name || code)}${side ? ' <small>(banquillo)</small>' : ''}</div>`;
+  }).join('');
+}
+function historyHTML(d) {
+  const h = d.history || [];
+  return `<section class="ddbox"><h4>${ic('book')} Historial <small>${plural(h.length, 'versión', 'versiones')}</small></h4>${h.length
+    ? `<ol class="ddhist">${h.map((v, k) => { const s = versionSize(v), first = k === h.length - 1 && h.length < HISTORY_MAX;
+      return `<li><details${k === 0 ? ' open' : ''}><summary><span><b>${first ? 'Primera versión' : `Versión ${h.length - k}`}</b><small>${when(v.ts)}</small></span>
+        ${s.added ? `<em class="add">+${s.added}</em>` : ''}${s.removed ? `<em class="rm">−${s.removed}</em>` : ''}</summary>
+        <div class="ddchg">${changes(v.add, '+')}${changes(v.rm, '−')}</div></details></li>`; }).join('')}</ol>`
+    : '<p class="dlhint">Cada vez que termines de editar este mazo se guardará qué cartas entraron y salieron.</p>'}</section>`;
+}
+export function renderDetail() {
+  const d = DB.currentDeck(), shared = DB.isShared();
+  if (!d) { DB.setView('lib'); return; }
+  const i = infoOf(d), champ = d.champion && deckCard(d.champion), r = d.record;
+  $('#ddSave').hidden = !shared; $('#ddDup').hidden = shared; $('#ddDel').hidden = shared;
+  const own = i.missN == null ? '' : kpi('Te faltan', i.missN ? String(i.missN) : '0',
+    i.missN ? `${i.missCost != null ? money(i.missCost) + ' · ' : ''}<button class="lnk" data-missing>Ver la lista</button>` : 'Tienes todas sus cartas');
+  $('#ddBody').innerHTML = `
+    <section class="ddhero"${i.img ? ` style="--img:url('${esc(i.img)}')"` : ''}>
+      ${i.img ? `<div class="ddleg ddc" data-code="${esc(d.legend)}"><img src="${esc(i.img)}" alt="${esc(i.legendName)}"></div>` : `<div class="ddleg none">${ic('cards')}</div>`}
+      <div class="ddhead">
+        <div class="ddtags">${statusTag(i, 'ddst')}${cleanFolder(d.folder) ? `<span class="dlfold">${ic('folder')}${esc(d.folder)}</span>` : ''}${shared ? '<span class="ddshared">Compartido · todavía no está en tus mazos</span>' : ''}</div>
+        <h1>${esc(d.name || 'Sin nombre')}</h1>
+        <div class="ddsub">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}${champ ? ` · campeón: ${esc(champ.name)}` : ''}</span></div>
+        ${shared ? '' : `<div class="ddacts"><button class="btn mini${d.fav ? ' on' : ''}" data-fav aria-pressed="${!!d.fav}">${ic('star')} ${d.fav ? 'Favorito' : 'Marcar favorito'}</button>
+          <button class="btn mini" data-move>${ic('folder')} ${cleanFolder(d.folder) ? 'Cambiar de carpeta' : 'Mover a carpeta'}</button>
+          ${d.updatedAt ? `<small>Editado ${ago(d.updatedAt)}</small>` : ''}</div>`}
+        <div class="ddkpis">
+          ${kpi('Cartas', `${i.n}/${MAIN_MIN}`, `${total(d.runes)}/${RUNES} runas · ${d.battlefields.length}/${BATTLEFIELDS} campos`)}
+          ${kpi('Precio', i.price != null ? '~' + money(i.price) : '—', i.price != null ? 'TCGplayer, versión más barata' : 'Sin precios todavía')}
+          ${own}
+          ${shared ? '' : kpi('Récord', games(r) ? `${r.w}-${r.l}` : '—', games(r) ? `${pct(winRate(r))} de victorias` : 'Sin partidas anotadas')}
+        </div>
+      </div>
+    </section>
+    <div class="ddcols">
+      <div class="ddmain">${listHTML(d)}</div>
+      <aside class="ddside">
+        ${shared ? '' : recordHTML(d)}
+        ${shared ? (d.notes ? `<section class="ddbox"><h4>${ic('note')} Notas</h4><p class="ddnotes">${esc(d.notes)}</p></section>` : '')
+          : `<section class="ddbox"><h4>${ic('note')} Notas</h4><textarea id="ddNotes" rows="5" maxlength="4000" placeholder="Plan de juego, mulligans, cambios contra ciertos mazos…">${esc(d.notes || '')}</textarea></section>`}
+        ${statsHTML(d)}
+        ${checkHTML(i.issues)}
+        ${shared ? '' : historyHTML(d)}
+      </aside>
+    </div>
+    <p class="credits">Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> · precios: TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.</p>`;
+}
+
+/* ---------- acciones de la página ---------- */
+function openMove(d) {
+  const fl = folders(DB.allDecks()), cur = cleanFolder(d.folder);
+  const set = f => { d.folder = cleanFolder(f) || undefined; DB.writeDeck(d); renderDetail(); toast(d.folder ? `Movido a "${d.folder}"` : 'Sacado de la carpeta', 'ok'); };
+  const body = openModal('Mover a carpeta', `
+    ${fl.length ? `<div class="full dlmove">${fl.map(f => `<button class="btn${f.name === cur ? ' primary' : ''}" data-f="${esc(f.name)}">${ic('folder')} ${esc(f.name)} <small>${f.n}</small></button>`).join('')}
+      ${cur ? `<button class="btn ghost" data-f="">${ic('x')} Sacar de la carpeta</button>` : ''}</div>` : ''}
+    <label class="full">Carpeta nueva<input type="text" id="dlNewF" maxlength="40" placeholder="Por ejemplo: Torneo, Casual, En prueba"></label>`,
+    [['Cancelar'], ['Crear y mover', 'primary', () => { const v = cleanFolder($('#dlNewF').value); if (!v) { $('#dlNewF').focus(); return false; } set(v); }]]);
+  body.querySelector('.dlmove')?.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { closeModal(); set(b.dataset.f); } });
+  $('#dlNewF').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = cleanFolder(e.target.value); if (v) { closeModal(); set(v); } } });
+}
+/** En el teléfono no hay "pasar el ratón": al tocar una carta se ve en grande. */
+function showCard(code) {
+  const c = cardByCode(code); if (!c) return;
+  openModal(c.name, `<div class="full ddbig"><img src="${esc(c.img)}" alt="${esc(c.name)}"></div>`, [['Cerrar', 'primary']]);
+}
+let notesT = null;
+
+export function initLib() {
+  // galería
+  $('#dlNew').onclick = () => DB.newDeck();
+  $('#dlImport').onclick = () => DB.openImport();
+  $('#dlQ').addEventListener('input', e => { F.q = e.target.value; renderLib(); });
+  $('#dlLegend').onchange = e => { F.legend = e.target.value; renderLib(); };
+  $('#dlSort').onchange = e => { F.sort = e.target.value; renderLib(); };
+  $('#dlDom').onclick = e => { const b = e.target.closest('[data-dom]'); if (!b) return; F.dom.has(b.dataset.dom) ? F.dom.delete(b.dataset.dom) : F.dom.add(b.dataset.dom); renderLib(); };
+  $('#dlSide').onclick = e => { const b = e.target.closest('[data-folder]'); if (b) { F.folder = b.dataset.folder; renderLib(); } };
+  $('#dlGrid').addEventListener('click', e => {
+    const fav = e.target.closest('[data-fav]'); if (fav) { toggleFav(fav.dataset.fav); return; }
+    if (e.target.closest('[data-new]')) { DB.newDeck(); return; }
+    if (e.target.closest('[data-import]')) { DB.openImport(); return; }
+    if (e.target.closest('[data-clear]')) { Object.assign(F, emptyFilter(), { sort: F.sort }); $('#dlQ').value = ''; renderLib(); return; }
+    const t = e.target.closest('.dlc'); if (t) openDetail(t.dataset.id);
+  });
+  $('#dlGrid').addEventListener('keydown', e => { const t = e.target.closest('.dlc'); if (t && (e.key === 'Enter' || e.key === ' ') && e.target === t) { e.preventDefault(); openDetail(t.dataset.id); } });
+
+  // página del mazo
+  $('#ddBack').onclick = () => DB.setView('lib');
+  $('#ddEdit').onclick = () => DB.editDeck();
+  $('#ddShare').onclick = () => DB.openShare();
+  $('#ddExport').onclick = () => DB.openExport();
+  $('#ddImage').onclick = () => DB.exportImage();
+  $('#ddSave').onclick = () => DB.saveShared();
+  $('#ddDup').onclick = () => {
+    const c = duplicate(DB.currentDeck(), newId());
+    DB.writeDeck(c); DB.useDeck(c); DB.setView('detail'); toast('Copia creada: ya estás en ella', 'ok');
+  };
+  $('#ddDel').onclick = () => {
+    const d = DB.currentDeck();
+    if (!confirm(`¿Borrar el mazo "${d.name}"? Esto no se puede deshacer.`)) return;
+    DB.deleteDeck(d.id); DB.setView('lib'); toast('Mazo borrado', 'ok');
+  };
+  const body = $('#ddBody');
+  body.addEventListener('click', e => {
+    const d = DB.currentDeck(); if (!d) return;
+    if (e.target.closest('[data-missing]')) { DB.openMissing(); return; }
+    if (e.target.closest('[data-fav]')) { d.fav = !d.fav; DB.writeDeck(d); renderDetail(); return; }
+    if (e.target.closest('[data-move]')) { openMove(d); return; }
+    const res = e.target.closest('[data-res]');
+    if (res) { addResult(d, res.dataset.res, +res.dataset.delta); DB.writeDeck(d); renderDetail(); return; }
+    const c = e.target.closest('.ddc'); if (c && !DB.hasHover()) showCard(c.dataset.code);
+  });
+  body.addEventListener('input', e => {
+    if (e.target.id !== 'ddNotes') return;
+    const d = DB.currentDeck(); if (!d || DB.isShared()) return;
+    d.notes = e.target.value; clearTimeout(notesT); notesT = setTimeout(() => DB.writeDeck(d), 400);
+  });
+  // si se sale de la página con una nota a medio guardar
+  body.addEventListener('focusout', e => { if (e.target.id === 'ddNotes' && notesT) { clearTimeout(notesT); notesT = null; const d = DB.currentDeck(); if (d && !DB.isShared()) DB.writeDeck(d); } });
+}

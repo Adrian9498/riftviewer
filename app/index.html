@@ -55,6 +55,8 @@
   <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></symbol>
   <symbol id="i-cards" viewBox="0 0 24 24"><rect x="7" y="4" width="11" height="15" rx="2"/><path d="M4.5 7.5v11a2 2 0 0 0 2 2h8"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></symbol>
   <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.2"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></symbol>
@@ -280,22 +282,51 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
   </div>
 </div>
 <!-- Constructor de mazos -->
-<div id="deckb" hidden>
-  <header class="dbtop">
+<div id="deckb" hidden data-view="lib">
+  <!-- Mis mazos: la galería -->
+  <header class="dbtop" data-v="lib">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
-    <span class="navsec">Mazos</span>
-    <select id="dbList" title="Tus mazos"></select>
+    <span class="navsec">Mis mazos</span>
+    <span class="dbflex"></span>
+    <button class="btn" id="dlImport"><svg class="i"><use href="#i-upload"/></svg> <span>Importar</span></button>
+    <button class="btn primary" id="dlNew"><svg class="i"><use href="#i-plus"/></svg> <span>Nuevo mazo</span></button>
+  </header>
+  <div class="dlwork" data-v="lib">
+    <aside class="dlside" id="dlSide" aria-label="Carpetas"></aside>
+    <section class="dlmain">
+      <div class="dlbar">
+        <input type="search" id="dlQ" placeholder="Buscar por nombre, leyenda o carpeta…">
+        <select id="dlLegend" title="Leyenda"></select>
+        <select id="dlSort" title="Orden"><option value="recent">Recientes</option><option value="name">Nombre</option><option value="price">Precio</option><option value="winrate">% de victorias</option></select>
+        <div class="dbchips" id="dlDom" aria-label="Dominios"></div>
+        <small id="dlCount"></small>
+      </div>
+      <div class="dlgrid" id="dlGrid"></div>
+    </section>
+  </div>
+  <!-- Un mazo: toda su información -->
+  <header class="dbtop" data-v="detail">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <button class="btn" id="ddBack"><svg class="i flipx"><use href="#i-chevron"/></svg> <span>Mis mazos</span></button>
+    <span class="dbflex"></span>
+    <button class="btn primary" id="ddSave" hidden><svg class="i"><use href="#i-save"/></svg> <span>Guardar en mis mazos</span></button>
+    <button class="btn primary" id="ddEdit"><svg class="i"><use href="#i-pen"/></svg> <span>Editar</span></button>
+    <button class="btn" id="ddShare"><svg class="i"><use href="#i-arrow"/></svg> <span>Compartir</span></button>
+    <button class="btn" id="ddExport"><svg class="i"><use href="#i-save"/></svg> <span>Exportar</span></button>
+    <button class="btn" id="ddImage" title="Imagen del mazo para redes (1920×1080)"><svg class="i"><use href="#i-brand"/></svg> <span>Imagen</span></button>
+    <button class="btn" id="ddDup" title="Hacer una copia de este mazo"><svg class="i"><use href="#i-copy"/></svg> <span>Duplicar</span></button>
+    <button class="btn ico" id="ddDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="ddwork" id="ddBody" data-v="detail"></div>
+  <!-- Constructor -->
+  <header class="dbtop" data-v="edit">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
+    <button class="btn" id="dbBack" title="Terminar de editar y ver el mazo"><svg class="i"><use href="#i-check"/></svg> <span>Listo</span></button>
     <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
     <span class="dbflex"></span>
     <button class="btn primary" id="dbSaveShared" hidden><svg class="i"><use href="#i-save"/></svg> Guardar en mis mazos</button>
-    <button class="btn" id="dbNew"><svg class="i"><use href="#i-plus"/></svg> Nuevo</button>
-    <button class="btn" id="dbImport"><svg class="i"><use href="#i-upload"/></svg> Importar</button>
-    <button class="btn" id="dbExport"><svg class="i"><use href="#i-save"/></svg> Exportar</button>
-    <button class="btn" id="dbImage" title="Imagen del mazo para redes (1920×1080)"><svg class="i"><use href="#i-brand"/></svg> Imagen</button>
-    <button class="btn" id="dbShare"><svg class="i"><use href="#i-arrow"/></svg> Compartir</button>
-    <button class="btn ico" id="dbDel" title="Borrar este mazo"><svg class="i"><use href="#i-x"/></svg></button>
   </header>
-  <div class="dbwork">
+  <div class="dbwork" data-v="edit">
     <section class="dbcat">
       <div class="dbfilters">
         <div class="dbqrow"><input type="search" id="dbQ" placeholder="Buscar por nombre o texto de la carta…"><button class="btn" id="dbFiltBtn" aria-expanded="false"><svg class="i"><use href="#i-sliders"/></svg> Filtros</button></div>
@@ -324,7 +355,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
     </aside>
   </div>
   <!-- teléfono: se cambia entre el catálogo y el mazo -->
-  <nav class="dbpanes" aria-label="Constructor"><button data-pane="cat" class="on"><svg class="i"><use href="#i-cards"/></svg> Cartas</button><button data-pane="deck"><svg class="i"><use href="#i-list"/></svg> Mi mazo <b id="dbPaneN">0/40</b></button></nav>
+  <nav class="dbpanes" data-v="edit" aria-label="Constructor"><button data-pane="cat" class="on"><svg class="i"><use href="#i-cards"/></svg> Cartas</button><button data-pane="deck"><svg class="i"><use href="#i-list"/></svg> Mi mazo <b id="dbPaneN">0/40</b></button></nav>
 </div>
 <!-- Colección -->
 <div id="collb" hidden>

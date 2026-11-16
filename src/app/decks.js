@@ -21,6 +21,8 @@ import { closeModal, esc, openModal } from './utils';
 import { deckCost, deckNeedsFor, hasCollection, ownedOf } from './collection';
 import { missingList, tcgplayerList } from '../collection/needs';
 import { latestPrices, money } from '../cloud/prices';
+import { deckCounts, recordVersion } from '../deck/library';
+import { initLib, renderDetail, renderLib } from './decklib';
 
 const KEY = id => 'rb_proj_deck:' + id;
 const get = code => deckCard(code);
@@ -35,7 +37,7 @@ let TAB = 'list', TO = 'main', LIMIT = 120;
 const F = { q: '', dom: new Set(), type: '', cost: '', set: '', rar: '', fit: true, own: false, sort: 'cost' };
 
 /* ---------- guardado ---------- */
-function allDecks() {
+export function allDecks() {
   const out = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i); if (!k?.startsWith('rb_proj_deck:')) continue;
@@ -43,14 +45,63 @@ function allDecks() {
   }
   return out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
+/** Guarda un mazo ya (y avisa a la sincronización). */
+export function writeDeck(d) {
+  d.updatedAt = Date.now();
+  try { localStorage.setItem(KEY(d.id), JSON.stringify({ ...d, ts: d.updatedAt })); } catch (e) {}
+  noteLocalChange('projects');
+}
+/** Borra un mazo: queda una marca para que el borrado llegue también a otros dispositivos. */
+export function deleteDeck(id) {
+  localStorage.setItem(KEY(id), JSON.stringify({ id, deleted: true, ts: Date.now() }));
+  noteLocalChange('projects');
+}
 let saveT = null;
 function save() {
   if (!D || SHARED) return;
   clearTimeout(saveT);
-  saveT = setTimeout(() => { D.updatedAt = Date.now(); try { localStorage.setItem(KEY(D.id), JSON.stringify({ ...D, ts: D.updatedAt })); } catch (e) {} noteLocalChange('projects'); renderDeckList(); }, 300);
+  saveT = setTimeout(() => { saveT = null; if (D && !SHARED) writeDeck(D); }, 300);
 }
-function openDeck(d, shared = false) { D = d; SHARED = shared; LIMIT = 120; renderAll(); }
-function newDeck() { openDeck(emptyDeck(newId())); save(); $('#dbName').select(); }
+function openDeck(d, shared = false) { D = d; SHARED = shared; LIMIT = 120; }
+/** Mazo nuevo, directo al constructor. */
+export function newDeck() {
+  const d = emptyDeck(newId()); d.createdAt = Date.now(); writeDeck(d);
+  openDeck(d); editDeck(true); $('#dbName').select();
+}
+/** Guarda un mazo recién creado (importado o compartido): su primera versión trae todas sus cartas. */
+function adopt(d) {
+  d.id = newId(); d.createdAt = Date.now(); d.history = []; recordVersion(d, {}); writeDeck(d);
+}
+
+/* ---------- vistas: galería, detalle y constructor ---------- */
+let VIEW = 'lib';
+let BASE = null;    // las cartas que tenía el mazo al empezar a editarlo: al terminar se guarda la versión
+export const currentDeck = () => D;
+export const isShared = () => SHARED;
+/** Abre un mazo (sin mostrarlo todavía). */
+export function useDeck(d, shared = false) { openDeck(d, shared); }
+export function setView(v) {
+  if (VIEW === 'edit' && v !== 'edit') leaveEdit();
+  VIEW = v; $('#deckb').dataset.view = v;
+  $('#hoverprev').classList.remove('show');
+  if (v === 'lib') { D = null; SHARED = false; renderLib(); }
+  else if (v === 'detail') renderDetail();
+  else renderAll();
+}
+/** Al constructor con el mazo abierto. `fresh`: un mazo nuevo, todas sus cartas cuentan como su primera versión. */
+export function editDeck(fresh = false) {
+  BASE = SHARED ? null : fresh ? {} : deckCounts(D);
+  setView('edit');
+}
+function leaveEdit() {
+  const pending = saveT; clearTimeout(saveT); saveT = null;
+  if (!D || SHARED) { BASE = null; return; }
+  // un mazo nuevo que se dejó vacío no se queda en la galería
+  if (!Object.keys(deckCounts(D)).length && D.name === 'Mazo nuevo' && !D.history?.length && !D.notes) { deleteDeck(D.id); D = null; BASE = null; return; }
+  const changed = BASE && recordVersion(D, BASE);
+  if (pending || changed) writeDeck(D);
+  BASE = null;
+}
 
 /* ---------- reglas de agregar y quitar ---------- */
 const copiesOf = name => Object.entries(mainWithChampion(D)).reduce((n, [code, k]) => n + (get(code)?.name === name ? k : 0), 0);
@@ -121,7 +172,7 @@ function renderCatalog() {
 }
 
 /* ---------- panel del mazo ---------- */
-const domIcons = doms => doms.map(d => symbolHTML('rb_rune_' + d.toLowerCase()) || '').join('');
+export const domIcons = doms => doms.map(d => symbolHTML('rb_rune_' + d.toLowerCase()) || '').join('');
 let NEEDS = null;   // por código: lo que tienes de cada carta del mazo (se arma en renderList)
 function ownTag(code) {
   const x = NEEDS?.get(code); if (!x) return '';
@@ -137,11 +188,12 @@ function row(code, n, sec, bad) {
 const countTag = (n, goal, exact) => `<span class="dbcnt ${exact ? (n === goal ? 'ok' : 'no') : (n >= goal ? 'ok' : 'no')}">${n}/${goal}</span>`;
 /** "Cuesta ~$X · te faltan N ($Y)" con precios de TCGplayer y tu colección. */
 /** Las cartas del mazo (sin el banquillo), una entrada por código: { code, name, n }. */
-function deckCards() {
+export function deckCardsOf(d) {
   // el campeón elegido ya va dentro de mainWithChampion
-  return [[D.legend, 1], ...Object.entries(mainWithChampion(D)), ...Object.entries(D.runes), ...D.battlefields.map(b => [b, 1])]
+  return [[d.legend, 1], ...Object.entries(mainWithChampion(d)), ...Object.entries(d.runes), ...d.battlefields.map(b => [b, 1])]
     .filter(([c, n]) => c && n).map(([code, n]) => ({ code, name: get(code)?.name || code, n }));
 }
+const deckCards = () => deckCardsOf(D);
 function costLine() {
   const cards = deckCards();
   if (!cards.length) return '';
@@ -221,12 +273,6 @@ function renderCheck(issues) {
     ? `<div class="dbsec">${issues.map(i => `<div class="dbiss ${i.level}">${ic(i.level === 'error' ? 'x' : 'help')}<span>${esc(i.msg)}${i.codes?.length ? `<small>${i.codes.map(c => esc(get(c)?.name || c)).join(', ')}</small>` : ''}</span></div>`).join('')}</div>`
     : `<div class="dbok">${ic('check')}<b>Tu mazo cumple todas las reglas</b><small>Leyenda, campeón, ${MAIN_MIN}+ cartas, copias, firmas, ${RUNES} runas, ${BATTLEFIELDS} campos y dominios.</small></div>`;
 }
-function renderDeckList() {
-  const list = allDecks();
-  $('#dbList').innerHTML = (SHARED ? `<option value="">${esc(D.name)} (compartido)</option>` : '')
-    + list.map(d => `<option value="${esc(d.id)}">${esc(d.name || 'Sin nombre')}</option>`).join('');
-  if (!SHARED) $('#dbList').value = D.id;
-}
 function renderAll() {
   if (!D) return;
   const issues = validateDeck(D, get), errors = issues.filter(i => i.level === 'error').length;
@@ -235,7 +281,7 @@ function renderAll() {
   $('#dbIssues').textContent = errors || ''; $('#dbIssues').classList.toggle('ok', !errors);
   document.querySelectorAll('.dbtabs button').forEach(b => b.classList.toggle('on', b.dataset.dt === TAB));
   if (TAB === 'list') renderList(issues); else if (TAB === 'stats') renderStats(); else if (TAB === 'test') renderTest(); else renderCheck(issues);
-  renderCatalog(); renderDeckList();
+  renderCatalog();
   $('#dbPaneN').textContent = `${total(mainWithChampion(D))}/${MAIN_MIN}`;
 }
 
@@ -245,23 +291,24 @@ function resolve(name, code) {
   const k = norm(name), c = CARDS.find(x => x.n === k && !x.alt) || CARDS.find(x => x.n === k);
   return c?.code || null;
 }
-function openImport() {
+/** Guarda el mazo importado y lo muestra. */
+function imported(d, msg, err) { adopt(d); openDeck(d); setView('detail'); toast(msg, err ? 'err' : 'ok'); }
+export function openImport() {
   const body = openModal('Importar mazo', `
     <div class="full hint">Pega la lista del simulador (por ejemplo "3 Stupefy [OGN-095]", con sus secciones Legend, Champion, MainDeck…) o un enlace de Riftviewer.</div>
     <textarea class="full chtxt" id="dbImp" rows="12" placeholder="Legend:&#10;1 Diana, Scorn of the Moon [UNL-234]&#10;&#10;MainDeck:&#10;3 Stupefy [OGN-095]"></textarea>`,
     [['Cancelar'], ['Importar', 'primary', () => {
       const raw = $('#dbImp').value.trim(); if (!raw) { alert('Pega una lista o un enlace.'); return false; }
       const link = raw.match(/#deck=([\w-]+)/);
-      if (link) { const d = decodeDeck(link[1], newId()); if (!d) { alert('El enlace no es válido.'); return false; } openDeck(d); save(); toast('Mazo importado', 'ok'); return; }
+      if (link) { const d = decodeDeck(link[1], newId()); if (!d) { alert('El enlace no es válido.'); return false; } imported(d, 'Mazo importado'); return; }
       const { deck, missing } = fromText(raw, newId(), resolve);
       deck.name = (deck.legend && get(deck.legend)?.name.split(',')[0]) || 'Mazo importado';
-      openDeck(deck); save();
-      toast(missing.length ? `Importado. No se reconocieron: ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}` : 'Mazo importado', missing.length ? 'err' : 'ok');
+      imported(deck, missing.length ? `Importado. No se reconocieron: ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}` : 'Mazo importado', missing.length);
     }]]);
   setTimeout(() => body.querySelector('textarea')?.focus(), 50);
 }
 /** Las cartas del mazo que no tienes, con precio, para copiarlas a la compra masiva de TCGplayer. */
-function openMissing() {
+export function openMissing() {
   const miss = missingList(deckNeedsFor(deckCards()));
   if (!miss.length) { toast('Tienes todas las cartas de este mazo.', 'ok'); return; }
   const n = miss.reduce((a, x) => a + x.miss, 0), priced = miss.filter(x => x.price != null), cost = priced.reduce((a, x) => a + x.price * x.miss, 0);
@@ -278,7 +325,7 @@ function openMissing() {
   body.querySelector('textarea').onclick = e => e.target.select();
 }
 function copy(text, msg) { navigator.clipboard?.writeText(text).then(() => toast(msg, 'ok')).catch(() => {}); }
-function openExport() {
+export function openExport() {
   const txt = toText(D, get);
   const body = openModal('Exportar mazo', `
     <div class="full hint">Formato del simulador: puedes pegarlo directamente al registrar tu mazo.</div>
@@ -287,7 +334,7 @@ function openExport() {
      ['Cerrar'], ['Copiar lista', 'primary', () => { copy(txt, 'Lista copiada'); return false; }]]);
   body.querySelector('textarea').onclick = e => e.target.select();
 }
-function openShare() {
+export function openShare() {
   const url = `${location.origin}${location.pathname}#deck=${encodeDeck(D)}`;
   const local = /^(localhost|127\.|\[::1\])/.test(location.hostname);
   const body = openModal('Compartir mazo', `
@@ -322,7 +369,7 @@ function sheetHTML() {
     <div class="ds-mark">Hecho con <b>Riftviewer</b> · cartas: Riftcodex y OpenRift</div>`;
 }
 const fitSheet = () => $('#dsheet').style.setProperty('--k', Math.min(innerWidth / 1920, innerHeight / 1080));
-function exportImage() {
+export function exportImage() {
   if (!Object.keys(D.main).length) { toast('Agrega cartas al mazo primero.', 'err'); return; }
   const wrap = $('#dsheetw'), sheet = $('#dsheet');
   captureToPng({
@@ -346,13 +393,24 @@ function preview(code, x, y) {
 }
 
 /* ---------- abrir y cerrar la sección ---------- */
+/** Vuelve a dibujar la vista que se ve (llegaron precios, cartas, tu colección…). */
+export function refresh() {
+  if ($('#deckb').hidden) return;
+  if (VIEW === 'lib') renderLib(); else if (VIEW === 'detail') renderDetail(); else if (D) renderAll();
+}
+/** Abre la sección: un mazo compartido (`d`) va a su página; si no, a donde te quedaste o a la galería. */
 export function showDecks(d) {
   $('#dbOwnW').hidden = !hasCollection();
-  latestPrices().then(p => { if (p && !$('#deckb').hidden && D) renderAll(); }).catch(() => {});
+  latestPrices().then(p => { if (p) refresh(); }).catch(() => {});
   $('#home').classList.remove('show'); $('#deckb').hidden = false; document.body.classList.add('indecks');
-  if (d) openDeck(d, true);
-  else if (!D) { const last = allDecks()[0]; if (last) openDeck(last); else newDeck(); }
-  else renderAll();
+  if (d) { openDeck(d, true); setView('detail'); }
+  else setView(VIEW === 'detail' && D ? 'detail' : 'lib');
+}
+/** "Guardar en mis mazos" de un mazo compartido. */
+export function saveShared() {
+  SHARED = false; adopt(D);
+  if (VIEW === 'edit') BASE = deckCounts(D);
+  refresh(); toast('Guardado en tus mazos', 'ok');
 }
 /** abre en el constructor el mazo con el que jugó alguien en el replay abierto (sin guardarlo todavía) */
 export function openReplayDeck(pid) {
@@ -363,11 +421,15 @@ export function openReplayDeck(pid) {
   showDecks(deck);
   if (missing.length) toast(`No se reconocieron: ${missing.slice(0, 4).join(', ')}${missing.length > 4 ? '…' : ''}`, 'err');
 }
-export function hideDecks() { $('#deckb').hidden = true; document.body.classList.remove('indecks'); $('#hoverprev').classList.remove('show'); }
+export function hideDecks() {
+  // si estabas editando, se guarda la versión; al volver ves la página del mazo
+  if (VIEW === 'edit') { leaveEdit(); VIEW = D ? 'detail' : 'lib'; $('#deckb').dataset.view = VIEW; }
+  $('#deckb').hidden = true; document.body.classList.remove('indecks'); $('#hoverprev').classList.remove('show');
+}
 
 /* ---------- teléfono: catálogo o mazo, y filtros plegados ---------- */
 // ¿hay ratón? (sin matchMedia, como en las pruebas, se asume que sí)
-const hasHover = () => typeof matchMedia !== 'function' || matchMedia('(hover: hover)').matches;
+export const hasHover = () => typeof matchMedia !== 'function' || matchMedia('(hover: hover)').matches;
 function setPane(p) {
   $('#deckb').dataset.pane = p;
   document.querySelectorAll('.dbpanes [data-pane]').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
@@ -384,25 +446,29 @@ export function init() {
     $('#dbRar').innerHTML = '<option value="">Todas las rarezas</option>' + rars.map(r => `<option>${r}</option>`).join('');
   };
   fillSelects();
-  document.addEventListener('rb:cards', () => { fillSelects(); if (!$('#deckb').hidden) renderAll(); });
+  document.addEventListener('rb:cards', () => { fillSelects(); refresh(); });
   // tu colección cambió (escáner, otra PC): se actualizan las marcas de lo que tienes
-  document.addEventListener('rb:collection', () => { $('#dbOwnW').hidden = !hasCollection(); if (!$('#deckb').hidden && D) renderAll(); });
+  document.addEventListener('rb:collection', () => { $('#dbOwnW').hidden = !hasCollection(); refresh(); });
+  // llegaron mazos de otro dispositivo
+  document.addEventListener('rb:projects', () => {
+    if ($('#deckb').hidden || VIEW === 'edit') return;
+    if (VIEW === 'detail' && D && !SHARED) { const fresh = allDecks().find(x => x.id === D.id); if (!fresh) { setView('lib'); return; } D = fresh; }
+    refresh();
+  });
+  // al cerrar o recargar mientras editas, también se guarda la versión
+  addEventListener('pagehide', () => {
+    if (VIEW !== 'edit' || !D || SHARED) return;
+    const changed = BASE && recordVersion(D, BASE);
+    if (changed || saveT) { clearTimeout(saveT); saveT = null; writeDeck(D); }
+    if (BASE) BASE = deckCounts(D);
+  });
 
   $('#hDecks').onclick = () => showDecks();
   $('#pinfo').addEventListener('click', e => { const b = e.target.closest('[data-deckof]'); if (b) openReplayDeck(b.dataset.deckof); });
-  $('#dbNew').onclick = newDeck;
-  $('#dbImport').onclick = openImport;
-  $('#dbExport').onclick = openExport;
-  $('#dbShare').onclick = openShare;
-  $('#dbImage').onclick = exportImage;
-  $('#dbSaveShared').onclick = () => { SHARED = false; D.id = newId(); save(); renderAll(); toast('Guardado en tus mazos', 'ok'); };
-  $('#dbDel').onclick = () => {
-    if (!confirm(`¿Borrar el mazo "${D.name}"? Esto no se puede deshacer.`)) return;
-    if (!SHARED) { localStorage.setItem(KEY(D.id), JSON.stringify({ id: D.id, deleted: true, ts: Date.now() })); noteLocalChange('projects'); }
-    D = null; SHARED = false; const next = allDecks()[0]; if (next) openDeck(next); else newDeck();
-  };
-  $('#dbList').onchange = e => { const d = allDecks().find(x => x.id === e.target.value); if (d) openDeck(d); };
+  $('#dbBack').onclick = () => setView('detail');
+  $('#dbSaveShared').onclick = saveShared;
   $('#dbName').oninput = e => { D.name = e.target.value; save(); };
+  initLib();
 
   const fbar = $('#deckb .dbfilters');
   fbar.addEventListener('input', e => {
@@ -433,8 +499,8 @@ export function init() {
   });
   document.querySelector('.dbtabs').onclick = e => { const b = e.target.closest('[data-dt]'); if (b) { TAB = b.dataset.dt; renderAll(); } };
   // vista ampliada en el catálogo y en la lista
-  $('#deckb').addEventListener('mouseover', e => { if (!hasHover()) return; const t = e.target.closest('.dbc,.dbr'); if (!t) return; clearTimeout(hpT); hpT = setTimeout(() => preview(t.dataset.code, e.clientX, e.clientY), 250); });
-  $('#deckb').addEventListener('mouseout', e => { if (e.target.closest('.dbc,.dbr') && !e.relatedTarget?.closest?.('.dbc,.dbr')) { clearTimeout(hpT); $('#hoverprev').classList.remove('show'); } });
+  $('#deckb').addEventListener('mouseover', e => { if (!hasHover()) return; const t = e.target.closest('.dbc,.dbr,.ddc'); if (!t) return; clearTimeout(hpT); hpT = setTimeout(() => preview(t.dataset.code, e.clientX, e.clientY), 250); });
+  $('#deckb').addEventListener('mouseout', e => { if (e.target.closest('.dbc,.dbr,.ddc') && !e.relatedTarget?.closest?.('.dbc,.dbr,.ddc')) { clearTimeout(hpT); $('#hoverprev').classList.remove('show'); } });
 
   // abrir un mazo compartido (#deck=…)
   const m = location.hash.match(/^#deck=([\w-]+)/);

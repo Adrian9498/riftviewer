@@ -44,6 +44,7 @@ beforeAll(async () => {
 describe('tu colección en el constructor', () => {
   it('cada carta del catálogo dice cuántas tienes, de cualquier versión', () => {
     ($('#hDecks') as HTMLButtonElement).click();
+    ($('#dlNew') as HTMLButtonElement).click();
     expect($('#dbOwnW').hidden).toBe(false);
     expect(tile('Stupefy').querySelector('.dbown')!.textContent).toBe('2');
     expect(tile('Flash').querySelector('.dbown')).toBeNull();
