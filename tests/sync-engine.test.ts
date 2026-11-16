@@ -110,6 +110,30 @@ describe('sincronización entre dos PCs', () => {
     expect([...files.keys()].some(k => k.includes('snd_battle'))).toBe(false);
   });
 
+  it('un archivo que la nube rechaza no frena al resto, ni se reintenta en cada sincronización', async () => {
+    const A = device(), B = device();
+    A.s.assets.set('card:MALA', { blob: new Blob(['x']), ts: 100 });
+    A.s.assets.set('card:BUENA', { blob: new Blob(['ok']), ts: 101 });
+    A.s.docs.set('script:Y', { kind: 'script', name: 'Y', data: 'y', ts: 100 });
+    const st = fake.storage as any, up = st.from;
+    let tries = 0;
+    st.from = (b: string) => ({ ...up(b), upload: async (p: string, blob: Blob) => (p.includes('MALA') ? (tries++, { data: null, error: { message: 'Object not found' } }) : up(b).upload(p, blob)) });
+    try {
+      sync.configureSync(A.adapter); await sync.syncNow();
+      expect(sync.syncStatus().state).toBe('error');
+      expect(sync.syncStatus().error).toContain('card:MALA: Object not found');
+      await sync.syncNow();
+      expect(tries).toBe(1);
+      await syncAs(B);
+      expect(await B.s.assets.get('card:BUENA')?.blob.text()).toBe('ok');
+      expect(B.s.docs.get('script:Y')?.data).toBe('y');
+      // con una versión nueva sí se vuelve a intentar
+      A.s.assets.set('card:MALA', { blob: new Blob(['x2']), ts: 300 });
+      st.from = up;
+      await syncAs(A);
+    } finally { st.from = up; }
+  });
+
   it('no baja recientes viejos si la lista local ya está llena', async () => {
     const A = device(), B = device();
     for (let i = 0; i < 10; i++) A.s.docs.set('d' + i, { kind: 'script', name: 'd' + i, data: '', ts: 100 + i });
