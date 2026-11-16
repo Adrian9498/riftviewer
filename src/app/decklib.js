@@ -24,6 +24,7 @@ import * as DB from './decks';
 import { drawCard, handHTML, mulligan, newHand, pickHandCard } from './deckinsights';
 import { analyzeText, backfill, insightsHTML, matchupsHTML, openCompare, recordHTML, restoreVersion, setSeen, showInsightsTab, swapCard } from './deckinsights';
 import { fullRecord } from '../deck/analysis';
+import { openTable } from './table';
 
 const DOMS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
 const DOM_ES = { Fury: 'Furia', Calm: 'Calma', Mind: 'Mente', Body: 'Cuerpo', Chaos: 'Caos', Order: 'Orden' };
@@ -272,6 +273,7 @@ export function renderDetail() {
         <div class="ddsub">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}${champ ? ` · campeón: ${esc(champ.name)}` : ''}</span></div>
         ${shared ? '' : `<div class="ddacts"><button class="btn mini${d.fav ? ' on' : ''}" data-fav aria-pressed="${!!d.fav}">${ic('star')} ${d.fav ? 'Favorito' : 'Marcar favorito'}</button>
           <button class="btn mini" data-move>${ic('folder')} ${cleanFolder(d.folder) ? 'Cambiar de carpeta' : 'Mover a carpeta'}</button>
+          <button class="btn mini" data-mesa>${ic('camera')} En la mesa</button>
           <button class="btn mini" data-compare>${ic('flip')} Comparar con otro mazo</button>
           ${d.updatedAt ? `<small>Editado ${ago(d.updatedAt)}</small>` : ''}</div>`}
         <div class="ddkpis">
@@ -363,6 +365,7 @@ export function initLib() {
     if (e.target.closest('[data-move]')) { openMove(d); return; }
     if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
     if (e.target.closest('[data-compare]')) { openCompare(d); return; }
+    if (e.target.closest('[data-mesa]')) { openTable(d.name || ''); return; }
     const tab = e.target.closest('[data-instab]'); if (tab) { showInsightsTab(body, tab.dataset.instab); return; }
     if (e.target.closest('[data-rename]')) { renameDeck(d); return; }
     // mano de prueba: se redibuja solo su panel

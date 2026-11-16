@@ -276,6 +276,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       </div>
     </div>
     <button class="hdeck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span><b>Construir un mazo</b><small>Busca cartas, valida las reglas, revisa la curva y comparte tu lista.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
+    <button class="hdeck hmesa" id="hMesa"><span class="hic"><svg class="i"><use href="#i-camera"/></svg></span><span><b>En la mesa</b><small>¿Tu rival juega en chino o en otro idioma? Escanea su carta y léela en inglés.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
     <button class="hdeck hcoll" id="hColl"><span class="hic"><svg class="i"><use href="#i-binder"/></svg></span><span><b>Mi colección</b><small>Escanea tus cartas con la cámara y mira cuánto te falta de cada set.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
     <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
     <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
@@ -386,6 +387,19 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       <p class="credits">Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> · precios: TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.</p>
       <div class="dbtip">Clic: abrir la carta · <b>+</b> / <b>−</b>: sumar o quitar una copia normal · Clic derecho: quitar una</div>
     </section>
+  </div>
+</div>
+<!-- en la mesa: leer en inglés la carta del rival (src/app/table.js) -->
+<div id="mesa" hidden>
+  <header class="mstop">
+    <button class="btn ico" id="msClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    <div><b>En la mesa</b><small id="msDeck"></small></div>
+  </header>
+  <div class="msbody">
+    <button class="btn primary msscan" id="msScan"><svg class="i"><use href="#i-camera"/></svg> Escanear carta del rival</button>
+    <div class="msman"><input type="search" id="msQ" placeholder="O escribe el número (OGN 251) o el nombre en inglés" autocomplete="off"><div id="msHits"></div></div>
+    <div id="msView"></div>
+    <div id="msSeen"></div>
   </div>
 </div>
 <div id="coscan" hidden>
