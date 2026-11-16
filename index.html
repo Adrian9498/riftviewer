@@ -3,17 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Riftviewer · Replays, mazos y colección para Riftbound</title>
-<meta name="description" content="Convierte tus partidas de Riftbound en videos, construye y comparte mazos, y lleva tu colección con el escáner de la cámara y precios diarios.">
-<meta property="og:title" content="Riftviewer">
-<meta property="og:description" content="Replays a video, constructor de mazos y tu colección de Riftbound con escáner y precios.">
-<meta property="og:type" content="website">
+<title>Riftviewer · Replays, mazos y colección de Riftbound</title>
+<meta name="description" content="Convierte tus partidas de Riftbound en videos para YouTube y Shorts, arma mazos que cumplen las reglas y lleva tu colección con escáner de cartas y precios diarios.">
+<link rel="canonical" href="https://riftviewer.com/">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#070b14">
+<!-- vista previa al compartir (Facebook, WhatsApp, Discord, X…) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Riftviewer">
+<meta property="og:locale" content="es_MX">
+<meta property="og:url" content="https://riftviewer.com/">
+<meta property="og:title" content="Riftviewer · Replays, mazos y colección de Riftbound">
+<meta property="og:description" content="Convierte tus partidas de Riftbound en videos para YouTube y Shorts, arma mazos que cumplen las reglas y lleva tu colección con escáner de cartas y precios diarios.">
+<meta property="og:image" content="https://riftviewer.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Riftviewer: replays, mazos y colección para Riftbound">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Riftviewer · Replays, mazos y colección de Riftbound">
+<meta name="twitter:description" content="Convierte tus partidas de Riftbound en videos para YouTube y Shorts, arma mazos que cumplen las reglas y lleva tu colección con escáner de cartas y precios diarios.">
+<meta name="twitter:image" content="https://riftviewer.com/og-image.png">
+<!-- ícono y app instalable -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<!-- datos para buscadores: qué es la app y sus preguntas frecuentes -->
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://riftviewer.com/#sitio","url":"https://riftviewer.com/","name":"Riftviewer","inLanguage":"es"},{"@type":"WebApplication","@id":"https://riftviewer.com/#app","name":"Riftviewer","url":"https://riftviewer.com/","description":"Convierte tus partidas de Riftbound en videos para YouTube y Shorts, arma mazos que cumplen las reglas y lleva tu colección con escáner de cartas y precios diarios.","inLanguage":"es","applicationCategory":"GameApplication","operatingSystem":"Web","image":"https://riftviewer.com/og-image.png","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Replays de Riftbound animados y exportados a video (16:9 y 9:16)","Guiones para animar partidas jugadas en físico","Constructor de mazos con revisión de reglas, curva y manos de prueba","Colección por set y versión con escáner de cartas","Precios de mercado diarios e historial de valor"]},{"@type":"FAQPage","@id":"https://riftviewer.com/#preguntas","mainEntity":[{"@type":"Question","name":"¿Qué es Riftviewer?","acceptedAnswer":{"@type":"Answer","text":"Una herramienta para jugadores y creadores de contenido de Riftbound: reproduce tus replays en una mesa animada y los exporta como video, te ayuda a construir mazos que cumplen las reglas y lleva tu colección de cartas con su valor."}},{"@type":"Question","name":"¿Cuánto cuesta?","acceptedAnswer":{"@type":"Answer","text":"Durante la beta, Riftviewer es gratis y tiene todas sus funciones desbloqueadas."}},{"@type":"Question","name":"¿Cómo entro a la beta?","acceptedAnswer":{"@type":"Answer","text":"La beta es por invitación. Si ya te invitamos, entra a la app y crea tu cuenta con el mismo correo de la invitación."}},{"@type":"Question","name":"¿Funciona en el teléfono?","acceptedAnswer":{"@type":"Answer","text":"Sí. Puedes ver tus partidas en formato vertical 9:16, armar mazos y escanear tus cartas con la cámara del teléfono."}},{"@type":"Question","name":"¿Cómo funciona el escáner de cartas?","acceptedAnswer":{"@type":"Answer","text":"Apuntas la cámara al número de la carta y Riftviewer lo lee y compara el arte para reconocer la versión exacta (normal, arte alterno, sobrenumerada o firmada), y la suma a tu colección."}},{"@type":"Question","name":"¿De dónde salen los datos de las cartas y los precios?","acceptedAnswer":{"@type":"Answer","text":"Los datos e imágenes de las cartas vienen de las APIs públicas de Riftcodex y OpenRift. Los precios son los de mercado de TCGplayer, a través de TCGCSV, y se actualizan cada día."}},{"@type":"Question","name":"¿Riftviewer es oficial de Riot Games?","acceptedAnswer":{"@type":"Answer","text":"No. Riftviewer es un proyecto de fans y no está afiliado, respaldado ni patrocinado por Riot Games."}}]}]}</script>
 <script>
   // enlaces viejos de la app (riftviewer.com/#deck=… o #/mazos): la app ahora vive en /app/
   if (/^#(deck=|\/)/.test(location.hash)) location.replace('app/' + location.hash);
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/src/landing/landing.css">
 </head>
@@ -34,7 +56,7 @@
 <header class="lnav" id="lnav">
   <a class="lbrand" href="#top" aria-label="Riftviewer, inicio"><span class="lmark"></span><span>Riftviewer</span></a>
   <nav class="llinks" aria-label="Secciones">
-    <a href="#funciones">Funciones</a><a href="#como">Cómo funciona</a><a href="#beta">Beta</a>
+    <a href="#funciones">Funciones</a><a href="#como">Cómo funciona</a><a href="#preguntas">Preguntas</a><a href="#beta">Beta</a>
   </nav>
   <a class="lbtn lbtn-gold sm" href="app/">Entrar <svg class="i"><use href="#l-arrow"/></svg></a>
 </header>
@@ -149,6 +171,20 @@
       <li class="reveal"><span class="sn">2</span><h3>Abre o arma</h3><p>Sube un replay, escribe una partida, construye un mazo o escanea tus cartas.</p></li>
       <li class="reveal"><span class="sn">3</span><h3>Comparte</h3><p>Exporta el video, la imagen del mazo o el enlace, y publícalo donde quieras.</p></li>
     </ol>
+  </section>
+
+  <!-- ---------- preguntas frecuentes (también van como datos estructurados en el <head>) ---------- -->
+  <section class="sec" id="preguntas">
+    <div class="shead reveal"><span class="eyebrow">Preguntas frecuentes</span><h2>Lo que más nos preguntan</h2></div>
+    <div class="faq reveal">
+      <details open><summary>¿Qué es Riftviewer?</summary><p>Una herramienta para jugadores y creadores de contenido de Riftbound: reproduce tus replays en una mesa animada y los exporta como video, te ayuda a construir mazos que cumplen las reglas y lleva tu colección de cartas con su valor.</p></details>
+      <details><summary>¿Cuánto cuesta?</summary><p>Durante la beta, Riftviewer es gratis y tiene todas sus funciones desbloqueadas.</p></details>
+      <details><summary>¿Cómo entro a la beta?</summary><p>La beta es por invitación. Si ya te invitamos, entra a la app y crea tu cuenta con el mismo correo de la invitación.</p></details>
+      <details><summary>¿Funciona en el teléfono?</summary><p>Sí. Puedes ver tus partidas en formato vertical 9:16, armar mazos y escanear tus cartas con la cámara del teléfono.</p></details>
+      <details><summary>¿Cómo funciona el escáner de cartas?</summary><p>Apuntas la cámara al número de la carta y Riftviewer lo lee y compara el arte para reconocer la versión exacta (normal, arte alterno, sobrenumerada o firmada), y la suma a tu colección.</p></details>
+      <details><summary>¿De dónde salen los datos de las cartas y los precios?</summary><p>Los datos e imágenes de las cartas vienen de las APIs públicas de Riftcodex y OpenRift. Los precios son los de mercado de TCGplayer, a través de TCGCSV, y se actualizan cada día.</p></details>
+      <details><summary>¿Riftviewer es oficial de Riot Games?</summary><p>No. Riftviewer es un proyecto de fans y no está afiliado, respaldado ni patrocinado por Riot Games.</p></details>
+    </div>
   </section>
 
   <!-- ---------- beta ---------- -->
