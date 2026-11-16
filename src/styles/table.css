@@ -57,18 +57,6 @@
 
 /* la partida: mazo, leyenda rival, notas */
 #msGame{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-.msdeck{display:flex;align-items:center;gap:8px;padding:0 0 0 12px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2);color:var(--muted)}
-.msdeck select{flex:1;min-width:0;padding:11px 10px 11px 0;background:none;border:0;color:var(--text);font-size:15px}
-.msopp{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:left;color:var(--text)}
-.msopp img{width:54px;aspect-ratio:744/1039;object-fit:cover;border-radius:6px;flex:none}
-.msopp>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.msopp small{color:var(--muted);font-size:12px}
-.msopp b{font-size:16px}
-.msopp em{font-style:normal;color:var(--muted);font-size:13px}
-.msopp em b{font-size:13px;color:var(--acc2)}
-.msopp.none{cursor:pointer;border-style:dashed;border-color:var(--line2);width:100%}
-.msopp.none:hover{border-color:var(--acc)}
-.msopp.none>.i{width:24px;height:24px;color:var(--acc);flex:none}
 .msnotes{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 12px}
 .msnotes summary{display:flex;align-items:center;gap:8px;padding:10px 0;cursor:pointer;color:var(--muted);font-weight:600}
 .msnotes p{margin:0 0 12px;white-space:pre-wrap;line-height:1.5}
@@ -177,8 +165,57 @@
   .msph .i{width:17px;height:17px}
   #msp-game .msh{margin-top:18px}
   .mstool{background:var(--panel2)}
-  .msopp,.msnotes{background:var(--panel2)}
+  .msnotes{background:var(--panel2)}
   .msempty{padding:60px 24px}
   .mscard{grid-template-columns:minmax(0,320px) minmax(0,1fr)}
   .mstitle small{font-size:13px}
 }
+
+/* tú contra tu rival: dos tarjetas que abren la lista para elegir */
+.msvs{display:flex;flex-direction:column;gap:6px}
+.msvsx{align-self:center;font-family:Cinzel,serif;font-weight:900;font-size:13px;letter-spacing:2px;color:var(--acc);opacity:.8}
+.msslot{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:1px solid var(--line2);border-radius:14px;background:var(--panel2);color:var(--text);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.msslot:hover{border-color:var(--acc);background:#16223a}
+.msslot .mspimg{width:52px;flex:none}
+.mssl{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.mssl small{color:var(--acc);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.mssl b{font-size:16.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mssl em{font-style:normal;color:var(--muted);font-size:13px}
+.mssl em b{font-size:13px;color:var(--acc2)}
+.mschg{flex:none;color:var(--muted);font-size:12.5px;font-weight:600}
+.msslot:hover .mschg{color:var(--acc2)}
+.msslot.none{border-style:dashed;background:none}
+.msslot.none .mspimg{display:grid;place-items:center;background:#c8aa6e14;border:1px dashed #c8aa6e55;color:var(--acc)}
+.msslot.none b{color:var(--acc2)}
+
+/* imagen de leyenda recortada al retrato */
+.mspimg{position:relative;display:block;aspect-ratio:3/4;border-radius:9px;background:#111b2e center 18%/cover no-repeat;box-shadow:0 3px 10px #0008}
+.mspimg>.i{width:22px;height:22px;color:var(--muted)}
+.mspfav{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#0a1221d9;color:var(--acc2)}
+.mspfav .i{width:12px;height:12px}
+
+/* la lista para elegir: hoja que sube desde abajo en el teléfono, ventana al centro en pantalla grande */
+#msPick{position:absolute;inset:0;z-index:5;display:flex;align-items:flex-end;justify-content:center;background:#000b;animation:mspFade .15s ease-out}
+#msPick[hidden]{display:none}
+.mspk{display:flex;flex-direction:column;gap:12px;width:100%;max-width:820px;max-height:88%;padding:14px 16px max(16px,env(safe-area-inset-bottom));box-sizing:border-box;
+  border:1px solid var(--line2);border-bottom:0;border-radius:18px 18px 0 0;background:#0d1628;box-shadow:0 -10px 40px #000a;animation:mspUp .22s cubic-bezier(.2,.8,.3,1)}
+.mspk header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mspk h2{margin:0;font-family:Cinzel,serif;font-size:17px;color:var(--acc)}
+#mspQ{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--text);font-size:15px}
+.mspgrid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:12px;padding:2px 2px 6px}
+.mspi{display:flex;flex-direction:column;gap:3px;padding:6px;border:1px solid transparent;border-radius:12px;background:none;color:var(--text);text-align:left;cursor:pointer;transition:background .15s,border-color .15s}
+.mspi:hover{background:var(--panel2);border-color:var(--line2)}
+.mspi.on{border-color:var(--acc);background:#c8aa6e14}
+.mspi .mspimg{width:100%;margin-bottom:4px}
+.mspi b{font-size:13.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mspi small{color:var(--muted);font-size:11.5px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mspi em{align-self:flex-start;margin-top:2px;padding:1px 7px;border-radius:7px;background:#c8aa6e22;color:var(--acc2);font-style:normal;font-size:11.5px;font-weight:600}
+.mspnone{align-self:center}
+@keyframes mspFade{from{opacity:0}}
+@keyframes mspUp{from{transform:translateY(40px);opacity:.4}}
+@media (min-width:761px){
+  #msPick{align-items:center;padding:24px}
+  .mspk{border-bottom:1px solid var(--line2);border-radius:18px;max-height:84%}
+}
+@media (max-width:480px){ .mspgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px} .mspi{padding:4px} }
+@media (prefers-reduced-motion:reduce){ #msPick,.mspk{animation:none} }

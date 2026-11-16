@@ -103,21 +103,26 @@ describe('en la mesa', () => {
     expect(errors).toEqual([]);
   });
 
-  it('elige el mazo, escanea la leyenda rival y anota el resultado contra ella', async () => {
+  it('elige el mazo y la leyenda rival de una lista y anota el resultado contra ella', async () => {
     const deck = () => JSON.parse(localStorage.getItem('rb_proj_deck:m1')!);
     // sin mazo elegido no se anota
     ($('#msEnd [data-msres="w"]') as HTMLButtonElement).click();
     expect(deck().games).toBeUndefined();
-    const sel = $('#msDeckSel') as HTMLSelectElement; sel.value = 'm1'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    // en vez de anotar, abre la lista de tus mazos
+    expect($('#msPick').hidden).toBe(false);
+    expect($('#mspGrid').textContent).toContain('Diana');
+    ($('#mspGrid [data-mspi="m1"]') as HTMLButtonElement).click();
+    expect($('#msPick').hidden).toBe(true);
+    expect($('#msGame [data-mspickdeck]').textContent).toContain('Diana');
     expect($('#msDeck').textContent).toContain('Diana');
     expect($('#msGame .msnotes').textContent).toContain('busca unidades de 2');
-    // la leyenda del rival, con el escáner
-    ($('#msGame [data-msopp]') as HTMLButtonElement).click();
-    await new Promise(r => setTimeout(r, 10));
-    search('#csQ', 'RAD 200');
-    ($('#csHits [data-cspick="RAD-200"]') as HTMLButtonElement).click();
-    expect($('#msGame .msopp b').textContent).toBe('Rengar');
-    expect($('#msGame .msopp').textContent).toContain('Primera vez');
+    // la leyenda del rival, de la lista (con buscador)
+    ($('#msGame [data-mspickopp]') as HTMLButtonElement).click();
+    const q = $('#mspQ') as HTMLInputElement; q.value = 'reng'; q.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(document.querySelectorAll('#mspGrid [data-mspi]')).toHaveLength(1);
+    ($('#mspGrid [data-mspi="RAD-200"]') as HTMLButtonElement).click();
+    expect($('#msGame [data-mspickopp] .mssl b').textContent).toBe('Rengar');
+    expect($('#msGame [data-mspickopp]').textContent).toContain('Primera vez');
     // una carta normal escaneada va a la tira; gané: se anota y la tira se limpia, la leyenda se queda
     search('#msQ', 'RAD 004'); ($('#msHits [data-mspick="RAD-004"]') as HTMLButtonElement).click();
     ($('#msEnd [data-msres="w"]') as HTMLButtonElement).click();
@@ -126,13 +131,13 @@ describe('en la mesa', () => {
     expect(g[0]).toMatchObject({ result: 'w', opp: { legendCode: 'RAD-200', legendName: 'Rengar' }, seen: ['RAD-004'] });
     expect($('#msSeen').textContent).toBe('');
     expect($('#msEnd .mslast').textContent).toContain('2-0');
-    expect($('#msGame .msopp').textContent).toContain('1-0');
+    expect($('#msGame [data-mspickopp]').textContent).toContain('1-0');
     ($('#msEnd [data-msres="l"]') as HTMLButtonElement).click();
-    expect($('#msGame .msopp').textContent).toContain('1-1');
+    expect($('#msGame [data-mspickopp]').textContent).toContain('1-1');
     // deshacer quita la última
     ($('#msEnd [data-msundo]') as HTMLButtonElement).click();
     expect(deck().games).toHaveLength(1);
-    expect($('#msGame .msopp').textContent).toContain('1-0');
+    expect($('#msGame [data-mspickopp]').textContent).toContain('1-0');
   });
 
   it('en la página del mazo cuenta en el récord y contra cada leyenda', async () => {
@@ -144,7 +149,14 @@ describe('en la mesa', () => {
     expect($('#ddBody').textContent).toContain('1 en la mesa');
     // desde el mazo, la mesa abre con ese mazo elegido
     ($('#ddBody [data-mesa]') as HTMLButtonElement).click();
-    expect(($('#msDeckSel') as HTMLSelectElement).value).toBe('m1');
+    expect($('#msGame [data-mspickdeck]').textContent).toContain('Diana');
+    // en la lista de leyendas, primero las que ya enfrentaste, con tu récord
+    ($('#msGame [data-mspickopp]') as HTMLButtonElement).click();
+    expect(($('#mspGrid .mspi') as HTMLElement).dataset.mspi).toBe('RAD-200');
+    expect($('#mspGrid .mspi em').textContent).toContain('1-0');
+    esc();
+    expect($('#msPick').hidden).toBe(true);
+    expect($('#mesa').hidden).toBe(false);
   });
 
   it('todo va en tres pestañas; la leyenda rival y el reloj quedan siempre arriba', () => {

@@ -9,7 +9,7 @@ import { baseCode, fullRecord, matchups } from '../deck/analysis';
 import { cardTextHTML } from '../data/symbols';
 import { norm } from '../data/text';
 import { $, ic } from './base';
-import { cardByCode } from './cards';
+import { cardByCode, deckCatalog } from './cards';
 import { catalog } from './collection';
 import { openScanner, releaseScanner, warmScanner } from './scanner';
 import { toast } from './shell';
@@ -78,22 +78,63 @@ async function keepAwake() {
 }
 
 /* ---------- cartas del rival ---------- */
-/** Una carta vista: va al principio de la tira y se muestra. Si es una leyenda y todavía no hay, es la del rival. */
+/** Una carta vista: va al principio de la tira y se muestra. */
 export function showCard(code) {
   if (!M) return;
-  if (!M.opp && info(code).type === 'Legend') { setOpp(code); return; }
   M.seen = [code, ...M.seen.filter(c => c !== code)].slice(0, 40);
   M.cur = code; M.tab = 'cards'; save(); render();
   $('#msCard')?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
 }
-function setOpp(code) {
-  const c = info(code);
-  M.opp = { code, name: c.name }; save(); render();
-  toast(`Rival: ${c.name}`, 'ok');
-}
-function scan(forLegend = false) {
+function scan() {
   const cat = catalog(); if (!cat) { toast('Espera a que cargue el catálogo de cartas.'); return; }
-  openScanner({ cat, lookup: true, pick: p => (forLegend ? setOpp(p.code) : showCard(p.code)) });
+  openScanner({ cat, lookup: true, pick: p => showCard(p.code) });
+}
+
+/* ---------- elegir tu mazo y la leyenda rival: una lista con imágenes, con buscador ---------- */
+let P = null;   // { kind: 'deck'|'opp', items }
+const short = n => (n || '').split(',')[0];
+const recTxt = r => (r.w + r.l ? `${r.w}-${r.l}` : '');
+function deckItems() {
+  return DB.allDecks().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0)).map(d => {
+    const leg = d.legend && cardByCode(d.legend), r = fullRecord(d);
+    return { id: d.id, img: leg?.img || '', name: d.name || 'Sin nombre', sub: leg ? short(leg.name) : 'Sin leyenda', badge: recTxt(r), fav: !!d.fav, q: norm(`${d.name} ${leg?.name || ''}`) };
+  });
+}
+function legendItems() {
+  const d = deckById(M.deckId), ms = d ? matchups(d.replays || [], d.games || []) : [];
+  const vs = new Map(ms.map(m => [baseCode(m.legendCode), m]));
+  return deckCatalog().filter(c => c.type === 'Legend').map(c => {
+    const m = vs.get(baseCode(c.code));
+    return { id: c.code, img: c.img || '', name: short(c.name), sub: c.name.split(',').slice(1).join(',').trim(), badge: m ? `${m.w}-${m.l}` : '', games: m ? m.w + m.l : 0, q: norm(c.name) };
+  }).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name));
+}
+function openPick(kind) {
+  P = { kind, items: kind === 'deck' ? deckItems() : legendItems() };
+  const el = $('#msPick');
+  el.innerHTML = `<div class="mspk" role="dialog" aria-modal="true" aria-labelledby="mspkT">
+    <header><h2 id="mspkT">${kind === 'deck' ? '¿Con qué mazo juegas?' : '¿Contra qué leyenda juegas?'}</h2><button class="btn ico" data-mspclose aria-label="Cerrar">${ic('x')}</button></header>
+    <input type="search" id="mspQ" placeholder="${kind === 'deck' ? 'Buscar mazo o leyenda' : 'Buscar leyenda (Jinx, Ahri…)'}" autocomplete="off">
+    <div class="mspgrid" id="mspGrid"></div>
+    ${kind === 'deck' && M.deckId ? '<button class="btn ghost mspnone" data-mspi="">Jugar sin mazo</button>' : ''}
+    ${kind === 'opp' && M.opp ? '<button class="btn ghost mspnone" data-mspi="">Quitar la leyenda rival</button>' : ''}
+  </div>`;
+  el.hidden = false;
+  pickList('');
+  if (window.matchMedia?.('(hover: hover)')?.matches) $('#mspQ').focus();
+}
+function pickList(q) {
+  const s = norm(q.trim()), cur = P.kind === 'deck' ? M.deckId : M.opp?.code;
+  const list = P.items.filter(x => !s || x.q.includes(s));
+  $('#mspGrid').innerHTML = list.length ? list.map(x => `<button class="mspi${x.id === cur ? ' on' : ''}" data-mspi="${esc(x.id)}">
+      <span class="mspimg"${x.img ? ` style="background-image:url('${esc(x.img)}')"` : ''}>${x.img ? '' : ic('cards')}${x.fav ? `<i class="mspfav">${ic('star')}</i>` : ''}</span>
+      <b>${esc(x.name)}</b><small>${esc(x.sub)}</small>${x.badge ? `<em>${P.kind === 'opp' ? 'contra ella ' : ''}${x.badge}</em>` : ''}</button>`).join('')
+    : `<p class="dlhint">${P.items.length ? 'Nada coincide con la búsqueda.' : P.kind === 'deck' ? 'Todavía no tienes mazos. Créalos en la sección Mazos.' : 'Las cartas todavía se están cargando.'}</p>`;
+}
+function closePick() { P = null; const el = $('#msPick'); el.hidden = true; el.innerHTML = ''; }
+function picked(id) {
+  if (P.kind === 'deck') { M.deckId = id; M.last = null; }
+  else M.opp = id ? { code: id, name: deckCatalog().find(c => c.code === id)?.name || info(id).name } : null;
+  closePick(); save(); render();
 }
 /** Lo que se sabe de la carta: el catálogo de impresiones (nombre, imagen) y el de Riftcodex (texto, energía, poder). */
 function info(code) {
@@ -108,7 +149,7 @@ function vsLegend(d, code) {
 }
 function record(result) {
   const d = deckById(M.deckId);
-  if (!d) { toast('Elige arriba con qué mazo jugaste.'); $('#msDeckSel').focus(); return; }
+  if (!d) { toast('Primero elige con qué mazo jugaste.'); openPick('deck'); return; }
   const g = { id: newId(), ts: Date.now(), result, opp: M.opp ? { legendCode: M.opp.code, legendName: M.opp.name } : null, seen: [...M.seen] };
   (d.games ||= []).push(g);
   DB.writeDeck(d);
@@ -222,24 +263,24 @@ function cardHTML(code) {
     </div></article>`;
 }
 function gameHTML() {
-  const d = deckById(M.deckId), decks = DB.allDecks();
-  const sel = `<label class="msdeck">${ic('cards')}<select id="msDeckSel" aria-label="Mazo con el que juegas">
-    <option value="">${decks.length ? 'Elige tu mazo…' : 'Todavía no tienes mazos'}</option>
-    ${decks.map(x => `<option value="${esc(x.id)}"${x.id === M.deckId ? ' selected' : ''}>${esc(x.name || 'Sin nombre')}</option>`).join('')}</select></label>`;
-  let opp;
-  if (M.opp) {
-    const c = info(M.opp.code), m = vsLegend(d, M.opp.code), g = m ? m.w + m.l : 0;
-    opp = `<div class="msopp"><img src="${esc(c.img)}" alt="">
-      <span><small>Leyenda rival</small><b>${esc(M.opp.name)}</b>
-        <em>${!d ? 'Elige tu mazo para ver tu récord contra ella' : g ? `Contra ella: <b>${m.w}-${m.l}</b> · ${pct(m.w / g)} de victorias` : 'Primera vez contra ella con este mazo'}</em></span>
-      <button class="btn mini" data-msopp>${ic('camera')} Cambiar</button></div>`;
-  } else {
-    opp = `<button class="msopp none" data-msopp>${ic('camera')}<span><b>Escanea la leyenda del rival</b><small>Para ver tu récord contra ella y anotar contra quién jugaste</small></span></button>`;
-  }
+  const d = deckById(M.deckId);
+  // dos tarjetas iguales: tú y tu rival; tocarlas abre la lista para elegir
+  const slot = (attr, label, img, title, sub, empty, emptySub) => title
+    ? `<button class="msslot" ${attr}><span class="mspimg"${img ? ` style="background-image:url('${esc(img)}')"` : ''}>${img ? '' : ic('cards')}</span>
+        <span class="mssl"><small>${label}</small><b>${esc(title)}</b><em>${sub}</em></span><span class="mschg">Cambiar</span></button>`
+    : `<button class="msslot none" ${attr}><span class="mspimg">${ic('plus')}</span><span class="mssl"><small>${label}</small><b>${empty}</b><em>${emptySub}</em></span></button>`;
+  const leg = d?.legend && cardByCode(d.legend), r = d && fullRecord(d);
+  const mine = slot('data-mspickdeck', 'Tu mazo', leg?.img, d && (d.name || 'Sin nombre'),
+    d ? `${esc(leg ? short(leg.name) : 'Sin leyenda')}${r.w + r.l ? ` · <b>${r.w}-${r.l}</b>` : ''}` : '', 'Elige tu mazo', 'Para anotar el resultado en su récord');
+  const oc = M.opp && info(M.opp.code), m = M.opp && vsLegend(d, M.opp.code), g = m ? m.w + m.l : 0;
+  const opp = slot('data-mspickopp', 'Leyenda rival', oc?.img, M.opp && short(M.opp.name),
+    M.opp ? (!d ? 'Elige tu mazo para ver tu récord' : g ? `Contra ella: <b>${m.w}-${m.l}</b> · ${pct(m.w / g)}` : 'Primera vez con este mazo') : '',
+    'Elige su leyenda', 'Para ver tu récord contra ella');
+  const sel = `<div class="msvs">${mine}<span class="msvsx">VS</span>${opp}</div>`;
   const notes = d?.notes ? `<details class="msnotes"><summary>${ic('note')} Tus notas del mazo</summary><p>${esc(d.notes)}</p></details>` : '';
   const last = M.last && M.last.deckId === M.deckId
     ? `<div class="mslast ${M.last.result}">${ic(M.last.result === 'w' ? 'trophy' : 'x')}<span>Anotada: <b>${M.last.result === 'w' ? 'victoria' : 'derrota'}</b>${d ? ` · el mazo va ${fullRecord(d).w}-${fullRecord(d).l}` : ''}</span><button class="btn mini" data-msundo>Deshacer</button></div>` : '';
-  return [`${sel}${opp}${notes}`, `<h3 class="msh">¿Cómo terminó?</h3><div class="msres"><button class="btn msw" data-msres="w">${ic('trophy')} Gané</button><button class="btn msl" data-msres="l">${ic('x')} Perdí</button></div>${last}`];
+  return [`${sel}${notes}`, `<h3 class="msh">¿Cómo terminó?</h3><div class="msres"><button class="btn msw" data-msres="w">${ic('trophy')} Gané</button><button class="btn msl" data-msres="l">${ic('x')} Perdí</button></div>${last}`];
 }
 function renderTools() {
   if (!M) return;
@@ -278,7 +319,10 @@ export function init() {
     if (!M) return;
     const tb = e.target.closest('[data-mstab]'); if (tb) { showTab(tb.dataset.mstab); return; }
     const t = e.target.closest('[data-mscard]'); if (t) { showCard(t.dataset.mscard); return; }
-    if (e.target.closest('[data-msopp]')) { scan(true); return; }
+    if (e.target.closest('[data-mspickdeck]')) { openPick('deck'); return; }
+    if (e.target.closest('[data-mspickopp]')) { openPick('opp'); return; }
+    if (e.target.closest('[data-mspclose]') || e.target.id === 'msPick') { closePick(); return; }
+    const pi = e.target.closest('[data-mspi]'); if (pi && P) { picked(pi.dataset.mspi); return; }
     const res = e.target.closest('[data-msres]'); if (res) { record(res.dataset.msres); return; }
     if (e.target.closest('[data-msundo]')) { undo(); return; }
     if (e.target.closest('[data-msnew]')) { M.seen = []; M.cur = null; save(); render(); return; }
@@ -289,7 +333,6 @@ export function init() {
   });
   $('#mesa').addEventListener('change', e => {
     if (!M) return;
-    if (e.target.id === 'msDeckSel') { M.deckId = e.target.value; M.last = null; save(); render(); }
     if (e.target.id === 'msMin') clockReset(+e.target.value);
   });
   $('#msQ').oninput = e => {
@@ -303,7 +346,8 @@ export function init() {
     showCard(b.dataset.mspick);
   };
   // en captura: corre antes que el del escáner, así Esc con la cámara abierta solo cierra la cámara
-  addEventListener('keydown', e => { if (e.key === 'Escape' && M && $('#coscan').hidden) closeTable(); }, true);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && M && $('#coscan').hidden) { if (P) closePick(); else closeTable(); } }, true);
+  $('#mesa').addEventListener('input', e => { if (e.target.id === 'mspQ' && P) pickList(e.target.value); });
   document.addEventListener('visibilitychange', () => { if (M) { keepAwake(); clockTick(); } });
   // flechas entre las pestañas
   $('#mesa .mstabs').addEventListener('keydown', e => {
