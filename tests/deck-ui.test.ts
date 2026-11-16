@@ -122,6 +122,13 @@ describe('mis mazos', () => {
     ($('#dbBack') as HTMLButtonElement).click();
     expect(stored().history[0].rm).toEqual({ 'OGN-004': 1 });
     expect($('#ddBody').textContent).toContain('Versión 2');
+    // volver a la primera versión (y eso mismo queda como versión nueva)
+    ($('#ddBody [data-restore="1"]') as HTMLButtonElement).click();
+    ([...document.querySelectorAll('#modal .mfoot .btn')].find(x => x.textContent === 'Volver a esta versión') as HTMLButtonElement).click();
+    expect(stored().main).toEqual({ 'OGN-004': 3 });
+    expect(stored().champion).toBe('OGN-002');
+    expect(stored().history).toHaveLength(3);
+    expect(stored().history[0].add).toEqual({ 'OGN-004': 1 });
   });
 
   it('la página del mazo anota partidas, notas, favorito y carpeta', async () => {

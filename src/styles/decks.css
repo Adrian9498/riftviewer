@@ -400,3 +400,58 @@
 .ddreps .rx{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
 .ddreps .rx .i{width:17px;height:17px}
 .ddreps .rx:hover{color:var(--err);background:#ff6b6b14}
+
+/* aprender del mazo: resultado de cada repetición, contra cada leyenda, rendimiento, probabilidades, reemplazos, comparar */
+.ddrt{align-self:flex-start;margin-top:3px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid}
+.ddrt.w{color:var(--ok);background:#45d48314;border-color:#45d48355}
+.ddrt.l{color:var(--err);background:#ff6b6b14;border-color:#ff6b6b55}
+.ddrt.off{color:var(--muted);background:none;border-color:var(--line2);text-decoration:line-through}
+.ddth{display:inline-block;flex:none;width:28px;height:39px;border-radius:4px;background:#132036 center/cover no-repeat;border:1px solid var(--line2)}
+.ddth.leg{width:36px;height:36px;border-radius:50%;background-position:center 22%}
+.ddmu{display:flex;flex-direction:column;gap:8px}
+.ddmur{display:grid;grid-template-columns:36px minmax(0,1fr) 70px 40px;gap:10px;align-items:center}
+.ddmun{display:flex;flex-direction:column;min-width:0}
+.ddmun b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ddmun small{color:var(--muted);font-size:12px}
+.ddmub{height:6px;border-radius:3px;background:#ffffff12;overflow:hidden}
+.ddmub i{display:block;height:100%;background:var(--err)}
+.ddmub.up i{background:var(--ok)}
+.ddmur em{font-style:normal;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.ddwide{margin-top:8px}
+.ddtbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.ddtbl table{width:100%;border-collapse:collapse;font-size:13.5px}
+.ddtbl th{position:sticky;top:0;padding:9px 10px;text-align:left;font-weight:600;font-size:12px;color:var(--muted);background:var(--panel);border-bottom:1px solid var(--line);white-space:nowrap}
+.ddtbl th select{margin-left:4px;padding:2px 4px;font-size:12px}
+.ddtbl td{padding:6px 10px;border-bottom:1px solid #ffffff0a;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ddtbl tr:last-child td{border-bottom:0}
+.ddtbl td small{color:var(--muted)}
+.ddtbl td.up{color:var(--ok)}
+.ddtbl td.down{color:var(--err)}
+.ddtbl tr.grp td{background:#c8aa6e0d;font-weight:600}
+.ddcn{display:flex;align-items:center;gap:9px;white-space:normal;min-width:150px}
+.ddcn .i{width:18px;height:18px;color:var(--acc)}
+.ddtbl .ddth{width:22px;height:31px}
+.ddalts{display:flex;flex-direction:column;gap:10px}
+.ddalt{display:grid;grid-template-columns:minmax(160px,220px) minmax(0,1fr);gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:#0b1527aa}
+.ddalt-from,.ddalt-c{display:flex;align-items:center;gap:9px;min-width:0}
+.ddalt-from span,.ddalt-c span{display:flex;flex-direction:column;min-width:0}
+.ddalt b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ddalt small{color:var(--muted);font-size:12px}
+.ddalt small .i{width:12px;height:12px;color:var(--ok);vertical-align:-1px}
+.ddalt-to{display:flex;flex-wrap:wrap;gap:8px}
+.ddalt-c{padding:6px 10px 6px 6px;border:1px solid var(--line2);border-radius:9px;background:none;color:var(--text);cursor:pointer;text-align:left;max-width:240px}
+.ddalt-c:hover{border-color:var(--acc);background:#c8aa6e14}
+.ddhist [data-restore]{margin:8px 0 2px}
+.ddcmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.ddcmpc h5{margin:0 0 8px;font-size:13px;color:var(--acc)}
+.ddcmpc h5 small{color:var(--muted)}
+.ddcmpc>div{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px}
+.ddcmpc>div span{flex:1;min-width:0}
+.ddcmpc>div b{font-variant-numeric:tabular-nums}
+.ddcmpc .ddth{width:20px;height:28px}
+#ddCmpSel{display:block;width:100%;margin-top:6px}
+@media (max-width:760px){
+  .ddalt{grid-template-columns:1fr}
+  .ddcmp{grid-template-columns:1fr}
+  .ddtbl td,.ddtbl th{padding:6px 8px}
+}

@@ -1,6 +1,7 @@
 // Tu colección de mazos: favoritos, carpetas, filtros por leyenda y dominio, récord de partidas e historial de versiones.
 // Todo va dentro del mismo mazo guardado (campos opcionales), así se sincroniza con la nube sin tablas nuevas
 // y los mazos de antes siguen funcionando.
+import { fullRecord, type ReplayAnalysis } from './analysis';
 import type { Deck } from './model';
 
 export interface Record_ { w: number; l: number }
@@ -24,6 +25,10 @@ export interface DeckReplay {
   ts: number;
   size: number;
   meta: { players: { name: string; score: number; legendCode: string | null; legendName: string | null; winner: boolean }[]; turns: number | null; finished: boolean } | null;
+  /** quién eras, el resultado, los rivales y las cartas que jugaste */
+  analysis?: ReplayAnalysis;
+  /** false = no se suma al récord */
+  count?: boolean;
 }
 /** Clave del archivo de una repetición (en IndexedDB y en la sincronización de archivos). */
 export const replayKey = (deckId: string, id: string) => `rep:${deckId}:${id}`;
@@ -139,7 +144,7 @@ export function filterDecks(decks: LibDeck[], f: LibFilter, info: InfoOf): LibDe
     name: (a, b) => (a.name || '').localeCompare(b.name || '', 'es'),
     // los que no tienen precio, al final
     price: (a, b) => (info(b).price ?? -1) - (info(a).price ?? -1),
-    winrate: (a, b) => (winRate(b.record) ?? -1) - (winRate(a.record) ?? -1) || games(b.record) - games(a.record),
+    winrate: (a, b) => (winRate(fullRecord(b)) ?? -1) - (winRate(fullRecord(a)) ?? -1) || games(fullRecord(b)) - games(fullRecord(a)),
   };
   return out.sort((a, b) => Number(!!b.fav) - Number(!!a.fav) || by[f.sort](a, b) || (b.updatedAt || 0) - (a.updatedAt || 0));
 }

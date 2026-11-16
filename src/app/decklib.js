@@ -21,6 +21,8 @@ import { deckCost } from './collection';
 import { ago, openReplay, toast } from './shell';
 import { closeModal, esc, openModal } from './utils';
 import * as DB from './decks';
+import { altHTML, analyzeText, backfill, matchupsHTML, openCompare, perfHTML, probHTML, recordHTML, restoreVersion, setSeen, swapCard } from './deckinsights';
+import { fullRecord } from '../deck/analysis';
 
 const DOMS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
 const DOM_ES = { Fury: 'Furia', Calm: 'Calma', Mind: 'Mente', Body: 'Cuerpo', Chaos: 'Caos', Order: 'Orden' };
@@ -90,7 +92,7 @@ function tile(d, i) {
     <div class="dlinfo">
       <b class="dlname">${esc(d.name || 'Sin nombre')}</b>
       <span class="dlleg">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}</span></span>
-      <div class="dlmeta"><span>${ic('cards')} ${i.n}/${MAIN_MIN}</span>${i.price != null ? `<span>${money(i.price)}</span>` : ''}${miss}${recordTag(d.record)}</div>
+      <div class="dlmeta"><span>${ic('cards')} ${i.n}/${MAIN_MIN}</span>${i.price != null ? `<span>${money(i.price)}</span>` : ''}${miss}${recordTag(fullRecord(d))}</div>
       <div class="dlfoot">${cleanFolder(d.folder) ? `<span class="dlfold">${ic('folder')}${esc(d.folder)}</span>` : '<span></span>'}<small>${ago(d.updatedAt || Date.now())}</small></div>
     </div></article>`;
 }
@@ -144,15 +146,6 @@ function listHTML(d) {
   return html || `<div class="dlempty big">${ic('cards')}<b>Este mazo está vacío</b><span>Pulsa <b>Editar</b> para agregar cartas.</span></div>`;
 }
 const kpi = (label, val, sub = '') => `<div class="ddkpi"><small>${label}</small><b>${val}</b>${sub ? `<span>${sub}</span>` : ''}</div>`;
-function recordHTML(d) {
-  const r = d.record || { w: 0, l: 0 }, g = games(r);
-  const side = (k, label) => `<div class="ddres ${k}"><b>${r[k]}</b><small>${label}</small>
-    <span><button class="btn mini ico" data-res="${k}" data-delta="-1" title="Quitar una" ${r[k] ? '' : 'disabled'}>−</button><button class="btn mini" data-res="${k}" data-delta="1">${ic('plus')} ${k === 'w' ? 'Victoria' : 'Derrota'}</button></span></div>`;
-  return `<section class="ddbox"><h4>${ic('trophy')} Récord de partidas</h4>
-    <div class="ddrec">${side('w', 'Victorias')}${side('l', 'Derrotas')}</div>
-    ${g ? `<div class="ddwr" title="${pct(winRate(r))} de victorias"><i style="width:${winRate(r) * 100}%"></i></div><p class="dlhint">${pct(winRate(r))} de victorias en ${plural(g, 'partida')}.</p>`
-      : '<p class="dlhint">Anota cada partida que juegues con este mazo para ver cómo le va.</p>'}</section>`;
-}
 function statsHTML(d) {
   if (!Object.keys(d.main).length && !d.champion) return '';
   const s = deckStats(d, deckCard), max = Math.max(1, ...s.curve);
@@ -174,9 +167,10 @@ function repTile(r) {
     ? `<div class="rart legs">${ps.slice(0, 2).map(p => { const u = (p.legendCode || p.legendName) ? cardByCode(p.legendCode, p.legendName)?.img || '' : ''; return `<span${u ? ` style="background-image:url('${esc(u)}')"` : ''}></span>`; }).join('')}</div>`
     : `<div class="rart">${ic('replay')}</div>`;
   const score = ps.length ? `<div class="rvs">${ps.map(p => `<span class="${p.winner ? 'win' : ''}">${p.winner ? ic('crown') : ''}${esc(p.name)} <b>${p.score}</b></span>`).join('<i>vs</i>')}</div>` : '';
-  const sub = [r.meta?.turns ? plural(r.meta.turns, 'turno') : '', when(r.ts)].filter(Boolean).join(' · ');
+  const a = r.analysis, sub = [a?.meName ? `jugaste como ${a.meName}` : '', r.meta?.turns ? plural(r.meta.turns, 'turno') : '', when(r.ts)].filter(Boolean).join(' · ');
+  const res = a?.result ? `<button class="ddrt ${a.result}${r.count === false ? ' off' : ''}" data-repcount="${esc(r.id)}" aria-pressed="${r.count !== false}" title="${r.count === false ? 'No se cuenta en el récord: pulsa para contarla' : 'Se cuenta en el récord: pulsa para no contarla'}">${a.result === 'w' ? 'Victoria' : 'Derrota'}</button>` : '';
   return `<div class="rtile ddrep" data-rep="${esc(r.id)}" tabindex="0" title="Ver esta repetición">${art}
-    <div class="rinfo"><b>${esc(ps.length ? ps.map(p => p.name).join(' vs ') : r.name)}</b>${score}<small>${esc(sub)}</small></div>
+    <div class="rinfo"><b>${esc(ps.length ? ps.map(p => p.name).join(' vs ') : r.name)}</b>${score}<small>${esc(sub)}</small>${res}</div>
     <button class="rx" data-repdel="${esc(r.id)}" title="Quitar del mazo" aria-label="Quitar esta repetición del mazo">${ic('trash')}</button></div>`;
 }
 function replaysHTML(d) {
@@ -198,10 +192,11 @@ export async function addReplays(files) {
     const name = f.name.replace(/\.json$/i, '').replace(REPLAY_FILE_PREFIX, 'Replay ');
     if ((d.replays || []).some(r => r.name === name && r.size === text.length)) { toast(`"${name}" ya está en este mazo`); continue; }
     let meta = null; try { meta = replayMeta(j); } catch (e) {}
+    const analysis = analyzeText(text, d.legend);
     const id = newId(), key = replayKey(d.id, id);
     try { await IDB.set(key, text); } catch (e) { toast('No hay espacio para guardar la repetición', 'err'); continue; }
     touchAsset(key);
-    d.replays = [{ id, name, ts: Date.now(), size: text.length, meta }, ...(d.replays || [])];
+    d.replays = [{ id, name, ts: Date.now(), size: text.length, meta, ...(analysis ? { analysis } : {}) }, ...(d.replays || [])];
     ok++;
   }
   if (ok) {
@@ -248,13 +243,13 @@ function historyHTML(d) {
     ? `<ol class="ddhist">${h.map((v, k) => { const s = versionSize(v), first = k === h.length - 1 && h.length < HISTORY_MAX;
       return `<li><details${k === 0 ? ' open' : ''}><summary><span><b>${first ? 'Primera versión' : `Versión ${h.length - k}`}</b><small>${when(v.ts)}</small></span>
         ${s.added ? `<em class="add">+${s.added}</em>` : ''}${s.removed ? `<em class="rm">−${s.removed}</em>` : ''}</summary>
-        <div class="ddchg">${changes(v.add, '+')}${changes(v.rm, '−')}</div></details></li>`; }).join('')}</ol>`
+        <div class="ddchg">${changes(v.add, '+')}${changes(v.rm, '−')}</div>${k > 0 ? `<button class="btn mini" data-restore="${k}">${ic('replay')} Volver a esta versión</button>` : ''}</details></li>`; }).join('')}</ol>`
     : '<p class="dlhint">Cada vez que termines de editar este mazo se guardará qué cartas entraron y salieron.</p>'}</section>`;
 }
 export function renderDetail() {
   const d = DB.currentDeck(), shared = DB.isShared();
   if (!d) { DB.setView('lib'); return; }
-  const i = infoOf(d), champ = d.champion && deckCard(d.champion), r = d.record;
+  const i = infoOf(d), champ = d.champion && deckCard(d.champion), r = fullRecord(d);
   $('#ddSave').hidden = !shared; $('#ddDup').hidden = shared; $('#ddDel').hidden = shared;
   const own = i.missN == null ? '' : kpi('Te faltan', i.missN ? String(i.missN) : '0',
     i.missN ? `${i.missCost != null ? money(i.missCost) + ' · ' : ''}<button class="lnk" data-missing>Ver la lista</button>` : 'Tienes todas sus cartas');
@@ -267,6 +262,7 @@ export function renderDetail() {
         <div class="ddsub">${i.doms.map(sym).join('')}<span>${esc(i.legendName || 'Sin leyenda')}${champ ? ` · campeón: ${esc(champ.name)}` : ''}</span></div>
         ${shared ? '' : `<div class="ddacts"><button class="btn mini${d.fav ? ' on' : ''}" data-fav aria-pressed="${!!d.fav}">${ic('star')} ${d.fav ? 'Favorito' : 'Marcar favorito'}</button>
           <button class="btn mini" data-move>${ic('folder')} ${cleanFolder(d.folder) ? 'Cambiar de carpeta' : 'Mover a carpeta'}</button>
+          <button class="btn mini" data-compare>${ic('flip')} Comparar con otro mazo</button>
           ${d.updatedAt ? `<small>Editado ${ago(d.updatedAt)}</small>` : ''}</div>`}
         <div class="ddkpis">
           ${kpi('Cartas', `${i.n}/${MAIN_MIN}`, `${total(d.runes)}/${RUNES} runas · ${d.battlefields.length}/${BATTLEFIELDS} campos`)}
@@ -277,10 +273,11 @@ export function renderDetail() {
       </div>
     </section>
     <div class="ddcols">
-      <div class="ddmain">${listHTML(d)}</div>
+      <div class="ddmain">${listHTML(d)}${shared ? '' : perfHTML(d)}${probHTML(d)}${shared ? '' : altHTML(d)}</div>
       <aside class="ddside">
         ${shared ? '' : recordHTML(d)}
         ${shared ? '' : replaysHTML(d)}
+        ${shared ? '' : matchupsHTML(d)}
         ${shared ? (d.notes ? `<section class="ddbox"><h4>${ic('note')} Notas</h4><p class="ddnotes">${esc(d.notes)}</p></section>` : '')
           : `<section class="ddbox"><h4>${ic('note')} Notas</h4><textarea id="ddNotes" rows="5" maxlength="4000" placeholder="Plan de juego, mulligans, cambios contra ciertos mazos…">${esc(d.notes || '')}</textarea></section>`}
         ${statsHTML(d)}
@@ -289,6 +286,7 @@ export function renderDetail() {
       </aside>
     </div>
     <p class="credits">Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> · precios: TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.</p>`;
+  if (!shared) backfill(d, renderDetail);
 }
 
 /* ---------- acciones de la página ---------- */
@@ -354,6 +352,11 @@ export function initLib() {
     if (e.target.closest('[data-fav]')) { d.fav = !d.fav; DB.writeDeck(d); renderDetail(); return; }
     if (e.target.closest('[data-move]')) { openMove(d); return; }
     if (e.target.closest('[data-repadd]')) { pickReplays(); return; }
+    if (e.target.closest('[data-compare]')) { openCompare(d); return; }
+    const cnt = e.target.closest('[data-repcount]');
+    if (cnt) { const r = d.replays?.find(x => x.id === cnt.dataset.repcount); if (r) { r.count = r.count === false; DB.writeDeck(d); renderDetail(); } return; }
+    const sw = e.target.closest('[data-swap]'); if (sw) { swapCard(d, sw.dataset.swap, sw.dataset.to); renderDetail(); return; }
+    const rs = e.target.closest('[data-restore]'); if (rs) { restoreVersion(d, +rs.dataset.restore, renderDetail); return; }
     const rdel = e.target.closest('[data-repdel]'); if (rdel) { removeReplay(rdel.dataset.repdel); return; }
     const rep = e.target.closest('[data-rep]'); if (rep) { openDeckReplay(rep.dataset.rep); return; }
     const res = e.target.closest('[data-res]');
@@ -367,6 +370,7 @@ export function initLib() {
   });
   // si se sale de la página con una nota a medio guardar
   body.addEventListener('focusout', e => { if (e.target.id === 'ddNotes' && notesT) { clearTimeout(notesT); notesT = null; const d = DB.currentDeck(); if (d && !DB.isShared()) DB.writeDeck(d); } });
+  body.addEventListener('change', e => { if (e.target.id === 'ddSeen') { setSeen(+e.target.value); renderDetail(); } });
   body.addEventListener('keydown', e => { const r = e.target.closest?.('[data-rep]'); if (r && e.target === r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDeckReplay(r.dataset.rep); } });
   // soltar replays sobre la página de un mazo los guarda en él (en lugar de abrirlos como partida)
   body.addEventListener('drop', e => {

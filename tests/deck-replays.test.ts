@@ -74,6 +74,18 @@ describe('repeticiones en un mazo', () => {
     expect(r[0].meta.players.map((p: any) => p.name)).toEqual(['Ana', 'Beto']);
     expect(files.get(`rep:m1:${r[0].id}`)).toBe(replayText);
     expect($('#ddBody .ddrep').textContent).toContain('Ana vs Beto');
+    // ganó Ana, que descargó el replay: cuenta como victoria en el récord y contra la leyenda de Beto
+    expect(r[0].analysis).toMatchObject({ me: 'pa', result: 'w', opp: [{ name: 'Beto', legendName: 'Leyenda B' }] });
+    expect($('#ddBody .ddrt.w').textContent).toBe('Victoria');
+    expect($('#ddBody .ddkpis').textContent).toContain('1-0');
+    expect($('#ddBody .ddmu').textContent).toContain('Leyenda B');
+    // se puede dejar fuera del récord
+    ($('#ddBody [data-repcount]') as HTMLButtonElement).click();
+    expect(deck().replays[0].count).toBe(false);
+    expect($('#ddBody .ddkpis').textContent).not.toContain('1-0');
+    expect($('#ddBody .ddmu')).toBeNull();
+    ($('#ddBody [data-repcount]') as HTMLButtonElement).click();
+    expect($('#ddBody .ddkpis').textContent).toContain('1-0');
     // el mismo archivo otra vez no se duplica
     expect(await lib.addReplays([file('rb-replay-final.json', replayText)])).toBe(0);
     expect(deck().replays).toHaveLength(1);
@@ -85,7 +97,7 @@ describe('repeticiones en un mazo', () => {
     expect(($('#deckb') as HTMLElement).hidden).toBe(true);
     expect($('#docname').textContent).toContain('Replay');
     expect(document.body.classList.contains('replay')).toBe(true);
-    nav.go('mazos');
+    nav.go('mazos'); lib.renderLib();
     expect($('#deckb').dataset.view).toBe('detail');
   });
 
@@ -102,6 +114,25 @@ describe('repeticiones en un mazo', () => {
     ([...document.querySelectorAll('#modal .mfoot .btn')].find(b => b.textContent === 'Borrar') as HTMLButtonElement).click();
     await tick();
     expect([...files.keys()].filter(k => k.startsWith('rep:'))).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+  it('probabilidades de robo y comparar con otro mazo', () => {
+    localStorage.setItem('rb_proj_deck:m2', JSON.stringify({ id: 'm2', name: 'Grande', legend: null, champion: null, main: { 'OGN-001': 3, 'OGN-002': 3, 'OGN-003': 3, 'OGN-004': 3 }, runes: {}, battlefields: [], side: {}, updatedAt: 2 }));
+    localStorage.setItem('rb_proj_deck:m3', JSON.stringify({ id: 'm3', name: 'Chico', legend: null, champion: null, main: { 'OGN-001': 2, 'OGN-009': 1 }, runes: {}, battlefields: [], side: {}, updatedAt: 1 }));
+    nav.go('mazos'); lib.renderLib();
+    ([...document.querySelectorAll('#dlGrid .dlc')].find(t => t.textContent!.includes('Grande')) as HTMLElement).click();
+    const rows = () => [...document.querySelectorAll('#ddBody .ddtbl tbody tr')].map(r => [...r.querySelectorAll('td')].map(td => td.textContent!.trim()));
+    // 12 cartas, 3 copias: 1 − (9·8·7·6)/(12·11·10·9) = 75% en la mano inicial
+    const row = rows().find(r => r[0] === 'OGN-001')!;
+    expect(row.slice(1, 3)).toEqual(['3', '75%']);
+    const sel = $('#ddSeen') as HTMLSelectElement; sel.value = '10'; sel.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(($('#ddSeen') as HTMLSelectElement).value).toBe('10');
+    expect(rows().find(r => r[0] === 'OGN-001')![4]).toBe('100%');
+    ($('#ddBody [data-compare]') as HTMLButtonElement).click();
+    const out = $('#ddCmpOut').textContent!;
+    expect(out).toContain('Solo en este');
+    expect(out).toContain('3 → 2');
+    expect(out).toContain('OGN-009');
     expect(errors).toEqual([]);
   });
 });
