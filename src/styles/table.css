@@ -219,3 +219,10 @@
 }
 @media (max-width:480px){ .mspgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px} .mspi{padding:4px} }
 @media (prefers-reduced-motion:reduce){ #msPick,.mspk{animation:none} }
+
+/* reiniciar la mesa */
+.msreset{flex:none;gap:6px}
+.msask{max-width:440px}
+.msask p{margin:0;color:var(--muted);line-height:1.5}
+.msaskb{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+@media (max-width:760px){ .msreset span{display:none} .msreset{padding:7px} }

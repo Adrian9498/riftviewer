@@ -137,6 +137,25 @@ function pickList(q) {
       <b>${esc(x.name)}</b><small>${esc(x.sub)}</small>${x.badge ? `<em>${P.kind === 'opp' ? 'contra ella ' : ''}${x.badge}</em>` : ''}</button>`).join('')
     : `<p class="dlhint">${P.items.length ? 'Nada coincide con la búsqueda.' : P.kind === 'deck' ? 'Todavía no tienes mazos. Créalos en la sección Mazos.' : 'Las cartas todavía se están cargando.'}</p>`;
 }
+/** Empezar de cero en la mesa. Las partidas ya anotadas en los mazos no se tocan. */
+function askReset() {
+  P = { kind: 'reset', items: [] };
+  const el = $('#msPick');
+  el.innerHTML = `<div class="mspk msask" role="alertdialog" aria-modal="true" aria-labelledby="mspkT" aria-describedby="mspkD">
+    <header><h2 id="mspkT">¿Reiniciar todo?</h2><button class="btn ico" data-mspclose aria-label="Cerrar">${ic('x')}</button></header>
+    <p id="mspkD">Se quitan el mazo y la leyenda rival elegidos, las cartas escaneadas, el reloj, la moneda y el dado. Las partidas que ya anotaste en tus mazos se quedan.</p>
+    <div class="msaskb"><button class="btn" data-mspclose>Cancelar</button><button class="btn primary" data-msresetok>${ic('replay')} Reiniciar todo</button></div>
+  </div>`;
+  el.hidden = false;
+  el.querySelector('[data-msresetok]').focus();
+}
+export function resetTable() {
+  if (!M) return;
+  M = { seen: [], cur: null, opp: null, deckId: '', tab: 'game', clock: newClock(M.clock?.min || 50) };
+  save(); closePick(); render();
+  $('#msQ').value = ''; $('#msHits').innerHTML = '';
+  toast('Mesa reiniciada', 'ok');
+}
 function closePick() { P = null; const el = $('#msPick'); el.hidden = true; el.innerHTML = ''; }
 function picked(id) {
   if (P.kind === 'deck') { M.deckId = id; M.last = null; }
@@ -326,6 +345,8 @@ export function init() {
     if (!M) return;
     const tb = e.target.closest('[data-mstab]'); if (tb) { showTab(tb.dataset.mstab); return; }
     const t = e.target.closest('[data-mscard]'); if (t) { showCard(t.dataset.mscard); return; }
+    if (e.target.closest('#msReset')) { askReset(); return; }
+    if (e.target.closest('[data-msresetok]')) { resetTable(); return; }
     if (e.target.closest('[data-mspickdeck]')) { openPick('deck'); return; }
     if (e.target.closest('[data-mspickopp]')) { openPick('opp'); return; }
     if (e.target.closest('[data-mspclose]') || e.target.id === 'msPick') { closePick(); return; }

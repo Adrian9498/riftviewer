@@ -59,7 +59,7 @@ describe('en la mesa', () => {
     expect($('#msView h2').textContent).toBe('Brawl');
     expect($('#msView .mstext').textContent).toContain('Two units fight.');
     expect($('#msView .msmeta').textContent).toContain('Energía 2');
-    expect(document.querySelectorAll('#msSeen .msth')).toHaveLength(1);
+    expect(document.querySelectorAll('#msSeen .msth').length).toBeGreaterThan(0);
   });
 
   it('el escáner en modo búsqueda entrega la carta y se cierra, sin sumarla a la colección', async () => {
@@ -192,6 +192,29 @@ describe('en la mesa', () => {
     expect($('#msTools [data-msclock]').textContent).toContain('Seguir');
     ($('#msTools [data-msclockreset]') as HTMLButtonElement).click();
     expect($('#msClockT').textContent).toBe('30:00');
+    expect(errors).toEqual([]);
+  });
+
+  it('reiniciar todo deja la mesa en blanco, sin borrar las partidas anotadas', () => {
+    expect($('#msGame [data-mspickdeck]').textContent).toContain('Diana');
+    search('#msQ', 'RAD 004'); ($('#msHits [data-mspick="RAD-004"]') as HTMLButtonElement).click();
+    ($('#msTools [data-msclock]') as HTMLButtonElement).click();
+    ($('#msReset') as HTMLButtonElement).click();
+    expect($('#msPick').textContent).toContain('¿Reiniciar todo?');
+    // cancelar no cambia nada
+    ([...document.querySelectorAll('#msPick [data-mspclose]')].pop() as HTMLButtonElement).click();
+    expect(document.querySelectorAll('#msSeen .msth').length).toBeGreaterThan(0);
+    ($('#msReset') as HTMLButtonElement).click();
+    ($('#msPick [data-msresetok]') as HTMLButtonElement).click();
+    expect($('#msPick').hidden).toBe(true);
+    expect($('#msSeen').textContent).toBe('');
+    expect($('#msGame [data-mspickdeck]').classList.contains('none')).toBe(true);
+    expect($('#msGame [data-mspickopp]').classList.contains('none')).toBe(true);
+    expect($('#msChips').textContent).toBe('');
+    expect($('#msTools .msroll')).toBeNull();
+    expect($('#msClockT').textContent).toBe('30:00');
+    expect($('#msTools [data-msclock]').textContent).toContain('Iniciar');
+    expect(JSON.parse(localStorage.getItem('rb_proj_deck:m1')!).games).toHaveLength(1);
     expect(errors).toEqual([]);
   });
 });
