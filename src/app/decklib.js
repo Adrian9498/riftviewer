@@ -273,7 +273,7 @@ export function renderDetail() {
       </div>
     </section>
     <div class="ddcols">
-      <div class="ddmain">${listHTML(d)}${insightsHTML(d, shared)}</div>
+      <div class="ddmain">${insightsHTML(d, shared, listHTML(d), total(mainWithChampion(d)) || '')}</div>
       <aside class="ddside">
         ${shared ? '' : recordHTML(d)}
         ${shared ? '' : replaysHTML(d)}

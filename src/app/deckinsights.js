@@ -120,19 +120,21 @@ export function probHTML(d) {
 }
 export function setSeen(n) { SEEN = n; }
 
-/* ---------- pestañas bajo la lista: rendimiento, probabilidades, reemplazos ---------- */
-let TAB = null;   // null: rendimiento si ya hay partidas, si no probabilidades
-export function insightsHTML(d, shared) {
+/* ---------- pestañas de la página: la lista, rendimiento, probabilidades, reemplazos ---------- */
+let TAB = 'deck', TAB_DECK = null;   // al abrir otro mazo se empieza por la lista
+export function insightsHTML(d, shared, list, count) {
+  if (d.id !== TAB_DECK) { TAB_DECK = d.id; TAB = 'deck'; }
   const reps = (d.replays || []).filter(r => r.analysis?.result).length;
   const tabs = [
+    { id: 'deck', icon: 'cards', label: 'Mazo', badge: count, html: list },
     !shared && { id: 'perf', icon: 'chart', label: 'Rendimiento', badge: reps || '', html: perfHTML(d) },
     { id: 'prob', icon: 'sparkle', label: 'Probabilidades', html: probHTML(d) },
     !shared && { id: 'alt', icon: 'bulb', label: 'Reemplazos', html: altHTML(d) },
   ].filter(t => t && t.html);
   if (tabs.length < 2) return tabs[0]?.html || '';
-  const on = tabs.find(t => t.id === (TAB || (reps ? 'perf' : 'prob')))?.id || tabs[0].id;
+  const on = tabs.find(t => t.id === TAB)?.id || tabs[0].id;
   return `<div class="ddins">
-    <div class="ddtabs" role="tablist" aria-label="Análisis del mazo">${tabs.map(t => `<button role="tab" id="ddtab-${t.id}" data-instab="${t.id}" aria-controls="ddpan-${t.id}" aria-selected="${t.id === on}" tabindex="${t.id === on ? 0 : -1}" class="${t.id === on ? 'on' : ''}">
+    <div class="ddtabs" role="tablist" aria-label="Secciones del mazo">${tabs.map(t => `<button role="tab" id="ddtab-${t.id}" data-instab="${t.id}" aria-controls="ddpan-${t.id}" aria-selected="${t.id === on}" tabindex="${t.id === on ? 0 : -1}" class="${t.id === on ? 'on' : ''}">
       ${ic(t.icon)} ${t.label}${t.badge ? ` <small>${t.badge}</small>` : ''}</button>`).join('')}</div>
     ${tabs.map(t => `<div class="ddpan" role="tabpanel" id="ddpan-${t.id}" aria-labelledby="ddtab-${t.id}"${t.id === on ? '' : ' hidden'}>${t.html}</div>`).join('')}
   </div>`;

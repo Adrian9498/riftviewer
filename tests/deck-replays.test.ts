@@ -121,16 +121,18 @@ describe('repeticiones en un mazo', () => {
     localStorage.setItem('rb_proj_deck:m3', JSON.stringify({ id: 'm3', name: 'Chico', legend: null, champion: null, main: { 'OGN-001': 2, 'OGN-009': 1 }, runes: {}, battlefields: [], side: {}, updatedAt: 1 }));
     nav.go('mazos'); lib.renderLib();
     ([...document.querySelectorAll('#dlGrid .dlc')].find(t => t.textContent!.includes('Grande')) as HTMLElement).click();
-    // el análisis va en pestañas debajo de la lista; sin partidas abre en probabilidades
+    // la lista y el análisis van en pestañas; se abre en la lista
     const tabs = [...document.querySelectorAll('#ddBody [data-instab]')] as HTMLButtonElement[];
-    expect(tabs.map(t => t.dataset.instab)).toEqual(['perf', 'prob']);
-    expect($('#ddpan-prob').hidden).toBe(false);
-    expect($('#ddpan-perf').hidden).toBe(true);
-    tabs[0].click();
-    expect($('#ddpan-perf').hidden).toBe(false);
+    expect(tabs.map(t => t.dataset.instab)).toEqual(['deck', 'perf', 'prob']);
+    expect(tabs[0].textContent).toContain('12');
+    expect($('#ddpan-deck').hidden).toBe(false);
+    expect($('#ddpan-deck').textContent).toContain('Mazo principal');
     expect($('#ddpan-prob').hidden).toBe(true);
-    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
     tabs[1].click();
+    expect($('#ddpan-perf').hidden).toBe(false);
+    expect($('#ddpan-deck').hidden).toBe(true);
+    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
+    tabs[2].click();
     const rows = () => [...document.querySelectorAll('#ddBody .ddtbl tbody tr')].map(r => [...r.querySelectorAll('td')].map(td => td.textContent!.trim()));
     // 12 cartas, 3 copias: 1 − (9·8·7·6)/(12·11·10·9) = 75% en la mano inicial
     const row = rows().find(r => r[0] === 'OGN-001')!;
