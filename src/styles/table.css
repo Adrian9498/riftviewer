@@ -158,3 +158,27 @@
   .mstitle small{display:none}
   .mschip span{max-width:80px}
 }
+
+/* títulos de cada parte: solo en el tablero de pantalla grande (en pestañas, la pestaña ya lo dice) */
+.msph{display:none}
+
+/* pantalla grande: todo a la vista en un tablero, sin pestañas.
+   Izquierda: la partida y las herramientas; derecha (lo más grande): la carta del rival. */
+@media (min-width:1000px){
+  .mstabs{display:none}
+  .msbody{max-width:1320px;padding:22px 26px 30px;display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-areas:"game cards" "tools cards";
+    grid-template-rows:auto 1fr;gap:20px 26px;align-items:start}
+  .mspan[hidden]{display:block}
+  #msp-game{grid-area:game}
+  #msp-tools{grid-area:tools}
+  #msp-cards{grid-area:cards;position:sticky;top:0;padding:18px 20px 22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#0f1a2e,#0b1324)}
+  #msp-game,#msp-tools{padding:16px;border:1px solid var(--line);border-radius:16px;background:#0d1628}
+  .msph{display:flex;align-items:center;gap:9px;margin:0 0 14px;font-family:Cinzel,serif;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+  .msph .i{width:17px;height:17px}
+  #msp-game .msh{margin-top:18px}
+  .mstool{background:var(--panel2)}
+  .msopp,.msnotes{background:var(--panel2)}
+  .msempty{padding:60px 24px}
+  .mscard{grid-template-columns:minmax(0,320px) minmax(0,1fr)}
+  .mstitle small{font-size:13px}
+}
