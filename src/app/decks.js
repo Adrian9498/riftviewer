@@ -10,7 +10,7 @@ import { emptyDeck, mainWithChampion, slotFor, total } from '../deck/model';
 import { BATTLEFIELDS, MAIN_MIN, MAX_COPIES, RUNES, inIdentity, validateDeck } from '../deck/rules';
 import { OPENING_HAND, atLeastOne, deckStats, mainSize, seenByTurn } from '../deck/stats';
 import { $, ic } from './base';
-import { CARDS, cardByCode, deckCard, deckCatalog } from './cards';
+import { CARDS, cardByCode, deckCard, deckCatalog, printRank } from './cards';
 import { deckRawOf } from './replay';
 import { BR, BRIMG } from './brand';
 import { captureToPng } from './capture';
@@ -288,7 +288,8 @@ function renderAll() {
 /* ---------- importar, exportar y compartir ---------- */
 function resolve(name, code) {
   if (code && get(code)) return code.toUpperCase();
-  const k = norm(name), c = CARDS.find(x => x.n === k && !x.alt) || CARDS.find(x => x.n === k);
+  // con solo el nombre, la impresión normal (no la promo ni el arte alterno)
+  const k = norm(name), c = CARDS.filter(x => x.n === k).sort((a, b) => printRank(a) - printRank(b))[0];
   return c?.code || null;
 }
 /** Guarda el mazo importado y lo muestra. */

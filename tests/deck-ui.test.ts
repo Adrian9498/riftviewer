@@ -10,7 +10,11 @@ const item = (id: string, name: string, type: string, supertype: string | null, 
   text: { plain: 'Texto de ' + name, rich: '' }, media: { image_url: `https://img/${id}.png` }, metadata: { alternate_art: false, signature: false, overnumbered: false },
   tags, set: { set_id: id.split('-')[0].toUpperCase() },
 });
+// una promo con el mismo nombre que una carta normal, antes en la lista (como "Flash" OPP-011 y OGS-011)
+const promo = { ...item('opp-004-1', 'Stupefy', 'Spell', null, ['Mind'], [], 1), set: { set_id: 'OPP' } };
+promo.classification = { ...promo.classification, rarity: 'Promo' };
 const items = [
+  promo,
   item('ogn-001-1', 'Diana, Scorn of the Moon', 'Legend', 'Champion', ['Mind', 'Chaos'], ['Diana'], null),
   item('ogn-002-1', 'Diana, Lunari', 'Unit', 'Champion', ['Chaos'], ['Diana'], 4),
   item('ogn-003-1', 'Jinx, Rebel', 'Unit', 'Champion', ['Fury'], ['Jinx'], 5),
@@ -44,7 +48,7 @@ describe('constructor de mazos', () => {
     expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
     ($('#dlGrid [data-new]') as HTMLButtonElement).click();
     expect($('#deckb').dataset.view).toBe('edit');
-    expect(document.querySelectorAll('#dbGrid .dbc').length).toBe(items.length);
+    expect(document.querySelectorAll('#dbGrid .dbc').length).toBe(new Set(items.map(i => i.name)).size);   // una por nombre
     expect(errors).toEqual([]);
   });
 
@@ -199,6 +203,15 @@ describe('mis mazos', () => {
     modalBtn('Borrar').click();
     expect($('#deckb').dataset.view).toBe('lib');
     expect($('#dlGrid').textContent).toContain('Todavía no tienes mazos');
+    expect(errors).toEqual([]);
+  });
+
+  it('al importar una lista sin códigos se elige la impresión normal, no la promo', () => {
+    ($('#dlImport') as HTMLButtonElement).click();
+    ($('#dbImp') as HTMLTextAreaElement).value = ['Legend:', '1 Diana, Scorn of the Moon', '', 'MainDeck:', '3 Stupefy'].join(String.fromCharCode(10));
+    modalBtn('Importar').click();
+    const d = live().find(x => x.name !== undefined)!;
+    expect(d.main).toEqual({ 'OGN-004': 3 });
     expect(errors).toEqual([]);
   });
 });
