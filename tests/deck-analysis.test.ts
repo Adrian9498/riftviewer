@@ -37,8 +37,8 @@ describe('análisis de una repetición', () => {
     expect(a.result).toBe('l');
     expect(a.opp).toEqual([{ name: 'Él', legendCode: 'UNL-183', legendName: 'Rengar' }]);
   });
-  it('cuenta las cartas robadas y jugadas por código base', () => {
-    expect(a.cards).toEqual({ 'OGN-010': [1, 1], 'OGN-020': [1, 0], 'OGN-030': [1, 1], 'OGN-040': [1, 0], 'UNL-079': [1, 1] });
+  it('cuenta por código base las cartas robadas, las jugadas y las que quedaron en la mano al decidirse la partida', () => {
+    expect(a.cards).toEqual({ 'OGN-010': [1, 1, 0], 'OGN-020': [1, 0, 1], 'OGN-030': [1, 1, 0], 'OGN-040': [1, 0, 0], 'UNL-079': [1, 1, 0] });
   });
   it('sin leyenda que coincida usa al que descargó el replay; sin ganador no hay resultado', () => {
     const b = analyzeReplay({ viewerPlayerId: 'el', frames: frames.slice(0, 3) }, 'OGN-999');
@@ -52,12 +52,12 @@ describe('análisis de una repetición', () => {
 });
 
 describe('récord, leyendas rivales y rendimiento', () => {
-  const rep = (id: string, result: 'w' | 'l', opp: string, cards: Record<string, [number, number]>, count?: boolean) =>
+  const rep = (id: string, result: 'w' | 'l', opp: string, cards: Record<string, [number, number, number?]>, count?: boolean) =>
     ({ id, name: id, ts: 1, size: 1, meta: null, count, analysis: { v: 1 as const, me: 'yo', meName: 'Yo', result, opp: [{ name: 'x', legendCode: opp, legendName: opp }], cards } });
   const reps = [
-    rep('1', 'w', 'UNL-183', { A: [1, 1], B: [1, 0] }),
+    rep('1', 'w', 'UNL-183', { A: [1, 1, 0], B: [1, 0, 1] }),
     rep('2', 'w', 'UNL-183', { A: [1, 1] }),
-    rep('3', 'l', 'OGS-019', { B: [2, 1] }),
+    rep('3', 'l', 'OGS-019', { B: [2, 1, 1] }),
     rep('4', 'l', 'OGS-019', { A: [1, 1] }, false),   // no cuenta en el récord
   ];
   it('el récord suma lo anotado a mano y las repeticiones que cuentan', () => {
@@ -67,10 +67,15 @@ describe('récord, leyendas rivales y rendimiento', () => {
     // primero las leyendas contra las que más has jugado
     expect(matchups(reps).map(m => [m.legendName, m.w, m.l])).toEqual([['UNL-183', 2, 0], ['OGS-019', 0, 1]]);
   });
-  it('cada carta: en cuántas partidas la jugaste, cómo te fue y cuántas veces se quedó en la mano', () => {
+  it('cada carta: en cuántas partidas la jugaste, cómo te fue y cuántas copias te quedaron en la mano al terminar', () => {
     const p = cardPerformance(reps);
     expect(p.find(x => x.code === 'A')).toMatchObject({ games: 4, playedIn: 3, w: 2, l: 1, stuck: 0 });
-    expect(p.find(x => x.code === 'B')).toMatchObject({ drawnIn: 2, playedIn: 1, w: 0, l: 1, stuck: 1 });
+    expect(p.find(x => x.code === 'B')).toMatchObject({ drawnIn: 2, playedIn: 1, w: 0, l: 1, stuck: 2 });
+  });
+  it('junta impresiones distintas de la misma carta', () => {
+    const p = cardPerformance([rep('5', 'w', 'X', { 'OGN-1': [1, 1, 0], 'SFD-9': [1, 0, 1] })], c => (c === 'SFD-9' ? 'OGN-1' : c));
+    expect(p).toHaveLength(1);
+    expect(p[0]).toMatchObject({ drawnIn: 1, playedIn: 1, w: 1, stuck: 1 });
   });
 });
 

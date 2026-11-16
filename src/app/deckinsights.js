@@ -75,21 +75,29 @@ export function perfHTML(d) {
   const head = `<section class="ddsec ddwide"><h3>${ic('chart')} Rendimiento de las cartas${reps.length ? ` <small>en ${plural(reps.length, 'partida')}</small>` : ''}</h3>`;
   if (!reps.length) return `${head}<p class="dlhint">Sube repeticiones de partidas terminadas con este mazo y aquí verás qué cartas jugaste más, con cuáles ganas más y cuáles se te quedan en la mano.</p></section>`;
   const r = fullRecord({ replays: reps }), base = winRate(r);
+  // se junta por nombre: la misma carta puede venir con otro código (otra impresión) en el replay y en el mazo
+  const key = code => (deckCard(code)?.name || baseCode(code)).toLowerCase();
   const inDeck = new Map();
-  for (const [c] of Object.entries({ ...d.main, ...(d.champion ? { [d.champion]: 1 } : {}) })) inDeck.set(baseCode(c), c);
-  const perf = cardPerformance(reps).filter(p => inDeck.has(p.code));
-  // las del mazo que nunca aparecieron
-  for (const [b] of inDeck) if (!perf.some(p => p.code === b)) perf.push({ code: b, games: reps.length, drawnIn: 0, playedIn: 0, w: 0, l: 0, stuck: 0 });
-  const rows = perf.map(p => {
-    const code = inDeck.get(p.code), wr = p.playedIn ? p.w / p.playedIn : null;
+  for (const c of [...Object.keys(d.main), ...(d.champion ? [d.champion] : [])]) if (!inDeck.has(key(c))) inDeck.set(key(c), c);
+  const perf = cardPerformance(reps, key);
+  const byKey = new Map(perf.map(p => [key(p.code), p]));
+  const empty = code => ({ code, games: reps.length, drawnIn: 0, playedIn: 0, w: 0, l: 0, stuck: 0 });
+  const mine = [...inDeck].map(([k, code]) => ({ ...(byKey.get(k) || empty(code)), code }))
+    .sort((a, b) => b.playedIn - a.playedIn || b.drawnIn - a.drawnIn || nameOf(a.code).localeCompare(nameOf(b.code)));
+  // las que aparecieron en tus partidas pero ya no están en el mazo (cambiaste la lista, o jugaste otra versión)
+  const gone = perf.filter(p => !inDeck.has(key(p.code)) && (p.playedIn || p.drawnIn));
+  const row = p => {
+    const wr = p.playedIn ? p.w / p.playedIn : null;
     const tag = wr == null || p.playedIn < 2 || base == null ? '' : wr >= base + 0.15 ? 'up' : wr <= base - 0.15 ? 'down' : '';
-    return `<tr data-code="${esc(code)}"><td><span class="ddcn">${thumb(code)}${esc(nameOf(code))}</span></td>
+    return `<tr data-code="${esc(p.code)}"><td><span class="ddcn">${thumb(p.code)}${esc(nameOf(p.code))}</span></td>
       <td>${p.playedIn ? `${p.playedIn} <small>de ${p.games}</small>` : '<small>nunca</small>'}</td>
       <td class="${tag}">${wr == null ? '—' : `${pct(wr)} <small>${p.w}-${p.l}</small>`}</td>
-      <td class="${p.stuck >= 2 && p.stuck >= p.playedIn ? 'down' : ''}">${p.stuck ? plural(p.stuck, 'vez', 'veces') : '—'}</td></tr>`;
-  }).join('');
-  return `${head}<p class="dlhint">Tu porcentaje general en estas partidas: <b>${pct(base)}</b>. En verde, las cartas con las que ganas bastante más; en rojo, las que van peor o se te quedan en la mano.</p>
-    <div class="ddtbl"><table><thead><tr><th>Carta</th><th>La jugaste</th><th>Ganaste al jugarla</th><th>Se quedó en la mano</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+      <td class="${p.stuck >= 2 && p.stuck >= p.playedIn ? 'down' : ''}">${p.stuck ? plural(p.stuck, 'copia') : '—'}</td></tr>`;
+  };
+  const rows = mine.map(row).join('')
+    + (gone.length ? `<tr class="grp"><td colspan="4">Jugaste o robaste, pero ya no están en este mazo</td></tr>${gone.map(row).join('')}` : '');
+  return `${head}<p class="dlhint">Tu porcentaje general en estas partidas: <b>${pct(base)}</b>. En verde, las cartas con las que ganas bastante más; en rojo, las que van peor o que se te quedan en la mano al final de la partida.</p>
+    <div class="ddtbl"><table><thead><tr><th>Carta</th><th>La jugaste</th><th>Ganaste al jugarla</th><th>En la mano al terminar</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
 }
 
 /* ---------- probabilidades ---------- */

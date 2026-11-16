@@ -21,16 +21,19 @@ export interface RRoot { viewerPlayerId?: string; frames?: RFrame[] }
 export interface ReplayOpp { name: string; legendCode: string | null; legendName: string | null }
 /** Lo que se guarda de cada repetición para las estadísticas (el archivo no se vuelve a leer). */
 export interface ReplayAnalysis {
-  v: 1;
+  v: number;
   /** id del jugador que eras tú */
   me: string | null;
   meName: string | null;
   result: 'w' | 'l' | null;
   opp: ReplayOpp[];
-  /** por código base: [veces que la robaste (o la tuviste disponible), veces que la jugaste] */
-  cards: Record<string, [number, number]>;
+  /**
+   * por código base: [copias que llegaron a tu mano (o tu campeón), copias que jugaste,
+   * copias que tenías en la mano al terminar la partida]
+   */
+  cards: Record<string, [number, number, number?]>;
 }
-export const ANALYSIS_V = 1;
+export const ANALYSIS_V = 2;
 
 const cardsIn = (x: unknown): RCard[] => !x ? [] : Array.isArray(x) ? x.filter(c => c && c.id) : (x as RCard).id ? [x as RCard] : [];
 const legendOf = (p?: RPlayer) => cardsIn(p?.board?.legend)[0];
@@ -61,9 +64,11 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
 
   // cada carta (por su id) desde que empieza la partida: si llegó a la mano y si salió de ahí a la mesa
   const seen = new Map<string, { code: string; drawn: boolean; played: boolean; at: string }>();
+  let lastHand: RCard[] = [];
   for (const f of frames) {
     if (f.state.phase !== 'in_game') continue;
     const p = f.state.players.find(x => x.id === me.id); if (!p?.board) continue;
+    lastHand = cardsIn(p.board.hand);
     for (const [zone, v] of Object.entries(p.board)) {
       for (const c of cardsIn(v)) {
         if (!c.cardCode || !countable(c)) continue;
@@ -77,8 +82,14 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
   }
   for (const s of seen.values()) {
     if (!s.drawn && !s.played) continue;
-    const r = out.cards[s.code] || (out.cards[s.code] = [0, 0]);
+    const r = out.cards[s.code] || (out.cards[s.code] = [0, 0, 0]);
     if (s.drawn) r[0]++; if (s.played) r[1]++;
+  }
+  // lo que te quedó en la mano cuando se decidió la partida
+  for (const c of lastHand) {
+    if (!c.cardCode || !countable(c)) continue;
+    const r = out.cards[baseCode(c.cardCode)] || (out.cards[baseCode(c.cardCode)] = [1, 0, 0]);
+    r[2] = (r[2] || 0) + 1;
   }
   return out;
 }
@@ -115,19 +126,29 @@ export interface CardPerf {
   playedIn: number;
   /** victorias y derrotas en las partidas en que la jugaste */
   w: number; l: number;
-  /** partidas en que la robaste y no la jugaste */
+  /** copias que tenías en la mano al terminar, sumando todas las partidas */
   stuck: number;
 }
-/** Rendimiento de cada carta en las repeticiones analizadas (las que tienen resultado). */
-export function cardPerformance(reps: DeckReplay[]): CardPerf[] {
+/**
+ * Rendimiento de cada carta en las repeticiones analizadas (las que tienen resultado).
+ * `keyOf` junta códigos de la misma carta (por ejemplo, por nombre); por defecto, el código base.
+ */
+export function cardPerformance(reps: DeckReplay[], keyOf: (code: string) => string = c => c): CardPerf[] {
   const done = reps.filter(r => r.analysis?.result);
   const by = new Map<string, CardPerf>();
   for (const r of done) {
-    for (const [code, [drawn, played]] of Object.entries(r.analysis!.cards)) {
-      const p = by.get(code) || { code, games: done.length, drawnIn: 0, playedIn: 0, w: 0, l: 0, stuck: 0 };
-      if (drawn) p.drawnIn++;
-      if (played) { p.playedIn++; p[r.analysis!.result!]++; } else if (drawn) p.stuck++;
-      by.set(code, p);
+    // primero se junta lo de esta partida por carta, para contar partidas (no copias)
+    const game = new Map<string, { code: string; drawn: number; played: number; end: number }>();
+    for (const [code, [drawn, played, end = 0]] of Object.entries(r.analysis!.cards)) {
+      const k = keyOf(code), g = game.get(k) || { code, drawn: 0, played: 0, end: 0 };
+      g.drawn += drawn; g.played += played; g.end += end; game.set(k, g);
+    }
+    for (const [k, g] of game) {
+      const p = by.get(k) || { code: g.code, games: done.length, drawnIn: 0, playedIn: 0, w: 0, l: 0, stuck: 0 };
+      if (g.drawn) p.drawnIn++;
+      if (g.played) { p.playedIn++; p[r.analysis!.result!]++; }
+      p.stuck += g.end;
+      by.set(k, p);
     }
   }
   return [...by.values()].sort((a, b) => b.playedIn - a.playedIn || b.drawnIn - a.drawnIn || a.code.localeCompare(b.code));
