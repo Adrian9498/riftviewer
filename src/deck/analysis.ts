@@ -10,6 +10,20 @@ import { inIdentity } from './rules';
 /** Código sin la letra de la variante ("UNL-079A" → "UNL-079"), para comparar impresiones. */
 export const baseCode = (c: string | null | undefined) => (c || '').toUpperCase().replace(/[A-Z*]+$/, '');
 
+/** Nombre de la leyenda sin la versión: "Jinx, Loose Cannon (Signature)" → "Jinx, Loose Cannon". */
+export const legendName = (n: string | null | undefined) => (n || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+/**
+ * La misma leyenda en cualquier impresión cuenta como una sola (por nombre; sin nombre, por código base).
+ * Se ignoran signos: Riftcodex escribe "Jinx - Loose Cannon" y los replays "Jinx, Loose Cannon".
+ */
+export const legendKey = (code: string | null | undefined, name: string | null | undefined) =>
+  legendName(name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() || baseCode(code);
+/** Campeón y título de una leyenda: "Jinx - Loose Cannon" o "Jinx, Loose Cannon" → ["Jinx", "Loose Cannon"]. */
+export function legendParts(n: string | null | undefined): [string, string] {
+  const s = legendName(n), m = s.match(/^(.*?)\s+-\s+(.*)$/) || s.match(/^(.*?),\s*(.*)$/);
+  return m ? [m[1], m[2]] : [s, ''];
+}
+
 /* =============== repeticiones =============== */
 
 interface RCard { id: string; cardCode?: string; name?: string; type?: string; source?: string }
@@ -108,7 +122,7 @@ export interface Matchup { key: string; legendCode: string | null; legendName: s
 export function matchups(reps: DeckReplay[], games: TableGame[] = []): Matchup[] {
   const by = new Map<string, Matchup>();
   const add = (o: { legendCode: string | null; legendName: string | null }, res: 'w' | 'l') => {
-    const name = o.legendName || 'Leyenda desconocida', key = baseCode(o.legendCode) || name;
+    const name = legendName(o.legendName) || 'Leyenda desconocida', key = legendKey(o.legendCode, o.legendName) || name;
     const m = by.get(key) || { key, legendCode: o.legendCode, legendName: name, w: 0, l: 0 };
     m[res]++; by.set(key, m);
   };

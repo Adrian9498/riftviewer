@@ -5,11 +5,11 @@
 // - Al terminar, Gané / Perdí lo anota en el récord del mazo y contra esa leyenda.
 // - Moneda, dado y reloj de ronda.
 import { searchPrintings } from '../collection/model';
-import { baseCode, fullRecord, matchups } from '../deck/analysis';
+import { fullRecord, legendKey, legendName, legendParts, matchups } from '../deck/analysis';
 import { cardTextHTML } from '../data/symbols';
 import { norm } from '../data/text';
 import { $, ic } from './base';
-import { cardByCode, deckCatalog } from './cards';
+import { cardByCode, deckCatalog, printRank } from './cards';
 import { catalog } from './collection';
 import { openScanner, releaseScanner, warmScanner } from './scanner';
 import { toast } from './shell';
@@ -92,7 +92,7 @@ function scan() {
 
 /* ---------- elegir tu mazo y la leyenda rival: una lista con imágenes, con buscador ---------- */
 let P = null;   // { kind: 'deck'|'opp', items }
-const short = n => (n || '').split(',')[0];
+const short = n => legendParts(n)[0];
 const recTxt = r => (r.w + r.l ? `${r.w}-${r.l}` : '');
 function deckItems() {
   return DB.allDecks().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0)).map(d => {
@@ -102,11 +102,18 @@ function deckItems() {
 }
 function legendItems() {
   const d = deckById(M.deckId), ms = d ? matchups(d.replays || [], d.games || []) : [];
-  const vs = new Map(ms.map(m => [baseCode(m.legendCode), m]));
-  return deckCatalog().filter(c => c.type === 'Legend').map(c => {
-    const m = vs.get(baseCode(c.code));
-    return { id: c.code, img: c.img || '', name: short(c.name), sub: c.name.split(',').slice(1).join(',').trim(), badge: m ? `${m.w}-${m.l}` : '', games: m ? m.w + m.l : 0, q: norm(c.name) };
-  }).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name));
+  const vs = new Map(ms.map(m => [m.key, m]));
+  // una sola entrada por leyenda: de sus impresiones (normal, arte alterno, firmada…) se queda la normal
+  const one = new Map();
+  for (const c of deckCatalog()) {
+    if (c.type !== 'Legend') continue;
+    const k = legendKey(c.code, c.name), o = one.get(k);
+    if (!o || printRank(c) < printRank(o) || (printRank(c) === printRank(o) && c.name.length < o.name.length)) one.set(k, c);
+  }
+  return [...one].map(([k, c]) => {
+    const m = vs.get(k), n = legendName(c.name), [who, title] = legendParts(n);
+    return { id: c.code, img: c.img || '', name: who, sub: title, badge: m ? `${m.w}-${m.l}` : '', games: m ? m.w + m.l : 0, q: norm(n) };
+  }).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name) || a.sub.localeCompare(b.sub));
 }
 function openPick(kind) {
   P = { kind, items: kind === 'deck' ? deckItems() : legendItems() };
@@ -133,7 +140,7 @@ function pickList(q) {
 function closePick() { P = null; const el = $('#msPick'); el.hidden = true; el.innerHTML = ''; }
 function picked(id) {
   if (P.kind === 'deck') { M.deckId = id; M.last = null; }
-  else M.opp = id ? { code: id, name: deckCatalog().find(c => c.code === id)?.name || info(id).name } : null;
+  else M.opp = id ? { code: id, name: legendName(deckCatalog().find(c => c.code === id)?.name || info(id).name) } : null;
   closePick(); save(); render();
 }
 /** Lo que se sabe de la carta: el catálogo de impresiones (nombre, imagen) y el de Riftcodex (texto, energía, poder). */
@@ -145,7 +152,7 @@ function info(code) {
 /* ---------- resultado ---------- */
 function vsLegend(d, code) {
   if (!d || !code) return null;
-  return matchups(d.replays || [], d.games || []).find(m => baseCode(m.legendCode) === baseCode(code)) || null;
+  return matchups(d.replays || [], d.games || []).find(m => m.key === legendKey(code, M.opp?.name || info(code).name)) || null;
 }
 function record(result) {
   const d = deckById(M.deckId);
@@ -246,7 +253,7 @@ function renderTabs() {
 function renderChips() {
   const c = M.clock, left = clockLeft(c), used = c.end || left < c.min * 60000;
   const opp = M.opp ? info(M.opp.code) : null;
-  $('#msChips').innerHTML = (opp ? `<button class="mschip" data-mstab="game" title="Leyenda rival: ${esc(opp.name)}"><img src="${esc(opp.img)}" alt=""><span>${esc(opp.name.split(',')[0])}</span></button>` : '')
+  $('#msChips').innerHTML = (opp ? `<button class="mschip" data-mstab="game" title="Leyenda rival: ${esc(opp.name)}"><img src="${esc(opp.img)}" alt=""><span>${esc(short(opp.name))}</span></button>` : '')
     + (used ? `<button class="mschip clock${left <= WARN_MS ? ' warn' : ''}${c.end ? '' : ' paused'}" data-mstab="tools" title="Reloj de ronda">${ic(c.end ? 'play' : 'pause')}<span id="msClockMini">${fmt(left)}</span></button>` : '');
 }
 

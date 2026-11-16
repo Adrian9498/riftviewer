@@ -18,7 +18,7 @@ const rc = (id: string, name: string, type: string, text: string, energy: number
   name, classification: { type, supertype: null, domain: ['Fury'], rarity: 'Common' }, media: { image_url: 'https://x/' + id + '.png' },
   text: { plain: text, rich: text }, attributes: { energy, might, power: null }, metadata: {}, tags: [], collector_number: 1, riftbound_id: id + '-1', set: { set_id: 'RAD' },
 });
-const items = [rc('rad-001', 'Amateur Demolitionist', 'Unit', 'When you play me, deal 2 to a unit.', 3, 2), rc('rad-004', 'Brawl', 'Spell', 'Two units fight.', 2, null), rc('rad-200', 'Rengar', 'Legend', 'Hunt.', 0, null)];
+const items = [rc('rad-001', 'Amateur Demolitionist', 'Unit', 'When you play me, deal 2 to a unit.', 3, 2), rc('rad-004', 'Brawl', 'Spell', 'Two units fight.', 2, null), rc('rad-200', 'Rengar', 'Legend', 'Hunt.', 0, null), { ...rc('rad-299', 'Rengar (Signature)', 'Legend', 'Hunt.', 0, null), metadata: { signature: true } }];
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const errors: unknown[] = [];
