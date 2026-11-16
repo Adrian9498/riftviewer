@@ -118,14 +118,14 @@
 .msd20 .o{fill:#1d2b4a;stroke:#c8aa6e;stroke-width:2.5;stroke-linejoin:round}
 .msd20 .t{fill:#26385f;stroke:#c8aa6e;stroke-width:2;stroke-linejoin:round}
 .msd20 .l{fill:none;stroke:#c8aa6e88;stroke-width:1.5}
-.msd20 b{position:relative;top:4px;font-family:Cinzel,serif;font-weight:900;font-size:20px;line-height:1;color:var(--ivory,#f0e6d2);font-variant-numeric:tabular-nums}
+.msd20 b{position:relative;top:2px;font-family:Cinzel,serif;font-weight:900;font-size:16px;line-height:1;color:var(--ivory,#f0e6d2);font-variant-numeric:tabular-nums}
 .msd20.rolling b{color:var(--muted)}
 .msd20.crit .o,.msd20.crit .t{stroke:#9be3b8;fill:#183a2c}
 .msd20.crit b{color:#9be3b8}
 .msd20.fail .o,.msd20.fail .t{stroke:#f2a5a3;fill:#3a1c22}
 .msd20.fail b{color:#f2a5a3}
 @media (prefers-reduced-motion:reduce){ .msroll.done b{animation:none} .msroll:not(.done) b{opacity:1} }
-@media (max-width:480px){ .msstage{min-height:84px} .mscoin{width:64px;height:64px} .msd20{width:72px;height:72px} .msd20 b{font-size:17px;top:3px} }
+@media (max-width:480px){ .msstage{min-height:84px} .mscoin{width:64px;height:64px} .msd20{width:72px;height:72px} .msd20 b{font-size:14px;top:2px} }
 
 /* pestañas: arriba en pantallas grandes, abajo (al alcance del pulgar) en el teléfono */
 .mstabs{display:flex;justify-content:center;gap:4px;border-bottom:1px solid var(--line);background:#0a1221}

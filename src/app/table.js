@@ -158,8 +158,8 @@ function land() {
   const o = $('#msTools .msroll'); if (!o) return;
   o.classList.add('done'); navigator.vibrate?.(25);
 }
-const D20 = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="o" points="50,3 91,27 91,73 50,97 9,73 9,27"/><polygon class="t" points="50,16 84,70 16,70"/>'
-  + '<path class="l" d="M50,3 50,16 M91,27 84,70 M91,27 50,16 M9,27 50,16 M9,27 16,70 M91,73 84,70 M9,73 16,70 M50,97 84,70 M50,97 16,70"/></svg>';
+const D20 = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="o" points="50,3 91,27 91,73 50,97 9,73 9,27"/><polygon class="t" points="50,22 78,68 22,68"/>'
+  + '<path class="l" d="M50,3 50,22 M91,27 78,68 M91,27 50,22 M9,27 50,22 M9,27 22,68 M91,73 78,68 M9,73 22,68 M50,97 78,68 M50,97 22,68"/></svg>';
 function rollHTML(r) {
   if (!r) return '<div class="msstage"><small>¿Quién empieza?</small></div>';
   if (r.kind === 'coin') return `<div class="msstage"><div class="mscoin" aria-hidden="true"><div class="mscoin-in" style="transform:rotateX(${r.v === 'Cruz' ? 180 : 0}deg)">
