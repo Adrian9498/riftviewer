@@ -40,6 +40,11 @@ beforeAll(async () => {
 });
 
 describe('en la mesa', () => {
+  it('cerrada no tapa la página: su display:flex no le gana a hidden', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/styles/table.css'), 'utf8');
+    expect(css).toMatch(/#mesa\[hidden\]\{display:none\}/);
+    expect($('#mesa').hidden).toBe(true);
+  });
   it('se abre desde el inicio, lista para escanear', () => {
     ($('#hMesa') as HTMLButtonElement).click();
     expect($('#mesa').hidden).toBe(false);
