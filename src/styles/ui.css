@@ -525,3 +525,12 @@ body.gated{overflow:hidden}
 body.gated #app,body.gated #home,body.gated #deckb,body.gated #collb,body.gated #mesa,body.gated #coscan{visibility:hidden}
 /* el desenfoque de fondo de las ventanas pesa mucho en el teléfono */
 @media (pointer:coarse){ #modal,#startrec{-webkit-backdrop-filter:none;backdrop-filter:none;background:#000d} }
+
+/* barras de desplazamiento: delgadas, doradas y discretas, iguales en toda la app */
+html{scrollbar-color:#c8aa6e55 transparent}
+*{scrollbar-width:thin;scrollbar-color:#c8aa6e55 transparent}
+*:hover{scrollbar-color:#c8aa6e99 transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:#c8aa6e55;border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:#c8aa6eaa;border:3px solid transparent;background-clip:padding-box}
