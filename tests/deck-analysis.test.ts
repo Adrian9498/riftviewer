@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts, fullRecord, matchups,
-  pAny, pAnyMulligan, pNone,
+  legendKey, legendParts, pAny, pAnyMulligan, pNone,
 } from '../src/deck/analysis';
 import { deckCounts, recordVersion, type LibDeck } from '../src/deck/library';
 import type { DCard } from '../src/deck/model';
@@ -76,6 +76,20 @@ describe('récord, leyendas rivales y rendimiento', () => {
     const p = cardPerformance([rep('5', 'w', 'X', { 'OGN-1': [1, 1, 0], 'SFD-9': [1, 0, 1] })], c => (c === 'SFD-9' ? 'OGN-1' : c));
     expect(p).toHaveLength(1);
     expect(p[0]).toMatchObject({ drawnIn: 1, playedIn: 1, w: 1, stuck: 1 });
+  });
+});
+
+describe('leyendas: una sola por nombre, en cualquier impresión', () => {
+  it('ignora la versión y si el nombre va con coma o con guion', () => {
+    expect(legendKey('OGN-251', 'Jinx, Loose Cannon')).toBe(legendKey('OGN-301', 'Jinx - Loose Cannon (Signature)'));
+    expect(legendKey('X', 'Master Yi - Wuju Master')).not.toBe(legendKey('Y', 'Master Yi - Wuju Bladesman'));
+    expect(legendParts('Jinx - Loose Cannon (Metal)')).toEqual(['Jinx', 'Loose Cannon']);
+    expect(legendParts('Diana, Scorn of the Moon')).toEqual(['Diana', 'Scorn of the Moon']);
+  });
+  it('el récord contra una leyenda junta replays y partidas en la mesa con otra impresión', () => {
+    const rep = { id: '1', name: '1', ts: 1, size: 1, meta: null, analysis: { v: 2, me: 'yo', meName: 'Yo', result: 'w' as const, opp: [{ name: 'x', legendCode: 'OGN-251', legendName: 'Jinx, Loose Cannon' }], cards: {} } };
+    const game = { id: 'g', ts: 2, result: 'l' as const, opp: { legendCode: 'OGN-301', legendName: 'Jinx - Loose Cannon (Signature)' } };
+    expect(matchups([rep], [game]).map(m => [m.legendName, m.w, m.l])).toEqual([['Jinx, Loose Cannon', 1, 1]]);
   });
 });
 

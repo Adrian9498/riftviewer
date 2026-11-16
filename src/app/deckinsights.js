@@ -47,19 +47,19 @@ export async function backfill(d, rerender) {
 /* ---------- récord ---------- */
 export function recordHTML(d) {
   const r = fullRecord(d), g = r.w + r.l, man = d.record || { w: 0, l: 0 };
-  const fromRep = (d.replays || []).filter(x => x.analysis?.result && x.count !== false).length;
+  const fromRep = (d.replays || []).filter(x => x.analysis?.result && x.count !== false).length, atTable = (d.games || []).length;
   const side = (k, label) => `<div class="ddres ${k}"><b>${r[k]}</b><small>${label}</small>
     <span><button class="btn mini ico" data-res="${k}" data-delta="-1" title="Quitar una anotada a mano" ${man[k] ? '' : 'disabled'}>−</button><button class="btn mini" data-res="${k}" data-delta="1">${ic('plus')} ${k === 'w' ? 'Victoria' : 'Derrota'}</button></span></div>`;
   return `<section class="ddbox"><h4>${ic('trophy')} Récord de partidas</h4>
     <div class="ddrec">${side('w', 'Victorias')}${side('l', 'Derrotas')}</div>
     ${g ? `<div class="ddwr" title="${pct(winRate(r))} de victorias"><i style="width:${winRate(r) * 100}%"></i></div>
-      <p class="dlhint">${pct(winRate(r))} de victorias en ${plural(g, 'partida')}${fromRep ? ` · ${fromRep} de ${fromRep === 1 ? 'una repetición' : 'repeticiones'}` : ''}.</p>`
+      <p class="dlhint">${pct(winRate(r))} de victorias en ${plural(g, 'partida')}${fromRep ? ` · ${fromRep} de ${fromRep === 1 ? 'una repetición' : 'repeticiones'}` : ''}${atTable ? ` · ${atTable} en la mesa` : ''}.</p>`
       : '<p class="dlhint">Sube las repeticiones de tus partidas y se cuentan solas, o anótalas aquí a mano.</p>'}</section>`;
 }
 
 /* ---------- contra cada leyenda ---------- */
 export function matchupsHTML(d) {
-  const ms = matchups(d.replays || []);
+  const ms = matchups(d.replays || [], d.games || []);
   if (!ms.length) return '';
   return `<section class="ddbox"><h4>${ic('target')} Contra cada leyenda</h4><div class="ddmu">${ms.map(m => {
     const g = m.w + m.l, wr = m.w / g, img = cardByCode(m.legendCode, m.legendName)?.img;
