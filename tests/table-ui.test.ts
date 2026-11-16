@@ -147,6 +147,23 @@ describe('en la mesa', () => {
     expect(($('#msDeckSel') as HTMLSelectElement).value).toBe('m1');
   });
 
+  it('todo va en tres pestañas; la leyenda rival y el reloj quedan siempre arriba', () => {
+    const tab = () => ($('#mesa .mstabs [aria-selected="true"]') as HTMLElement).dataset.mstab;
+    const shown = () => [...document.querySelectorAll('#mesa .mspan')].filter(p => !(p as HTMLElement).hidden).map(p => p.id);
+    ($('#mstab-tools') as HTMLButtonElement).click();
+    expect(tab()).toBe('tools');
+    expect(shown()).toEqual(['msp-tools']);
+    // al buscar una carta del rival se pasa sola a su pestaña
+    search('#msQ', 'RAD 001'); ($('#msHits [data-mspick="RAD-001"]') as HTMLButtonElement).click();
+    expect(shown()).toEqual(['msp-cards']);
+    expect($('#msSeenN').textContent).toBe('1');
+    // la leyenda rival en la barra de arriba lleva a la partida
+    ($('#msChips .mschip') as HTMLButtonElement).click();
+    expect(shown()).toEqual(['msp-game']);
+    expect($('#msChips .mschip.clock')).toBeNull();   // el reloj aparece cuando se usa
+    ($('#mstab-tools') as HTMLButtonElement).click();
+  });
+
   it('moneda, dado y reloj de ronda', () => {
     ($('#msTools [data-mscoin]') as HTMLButtonElement).click();
     expect(['Cara', 'Cruz']).toContain($('#msTools .msroll b').textContent);
@@ -158,6 +175,7 @@ describe('en la mesa', () => {
     expect($('#msClockT').textContent).toBe('30:00');
     ($('#msTools [data-msclock]') as HTMLButtonElement).click();
     expect($('#msTools [data-msclock]').textContent).toContain('Pausar');
+    expect($('#msChips .mschip.clock').textContent).toContain('30:00');
     ($('#msTools [data-msclock]') as HTMLButtonElement).click();
     expect($('#msTools [data-msclock]').textContent).toContain('Seguir');
     ($('#msTools [data-msclockreset]') as HTMLButtonElement).click();

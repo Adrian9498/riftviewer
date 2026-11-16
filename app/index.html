@@ -393,17 +393,28 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
 <div id="mesa" hidden>
   <header class="mstop">
     <button class="btn ico" id="msClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
-    <div><b>En la mesa</b><small id="msDeck"></small></div>
+    <div class="mstitle"><b>En la mesa</b><small id="msDeck"></small></div>
+    <div class="mschips" id="msChips"></div>
   </header>
+  <nav class="mstabs" role="tablist" aria-label="En la mesa">
+    <button role="tab" id="mstab-game" data-mstab="game" aria-controls="msp-game"><svg class="i"><use href="#i-trophy"/></svg><span>Partida</span></button>
+    <button role="tab" id="mstab-cards" data-mstab="cards" aria-controls="msp-cards"><svg class="i"><use href="#i-camera"/></svg><span>Cartas del rival</span><small id="msSeenN"></small></button>
+    <button role="tab" id="mstab-tools" data-mstab="tools" aria-controls="msp-tools"><svg class="i"><use href="#i-sparkle"/></svg><span>Herramientas</span></button>
+  </nav>
   <div class="msbody">
-    <div id="msGame"></div>
+    <section class="mspan" role="tabpanel" id="msp-game" aria-labelledby="mstab-game">
+      <div id="msGame"></div>
+      <div id="msEnd"></div>
+    </section>
+    <section class="mspan" role="tabpanel" id="msp-cards" aria-labelledby="mstab-cards">
     <button class="btn primary msscan" id="msScan"><svg class="i"><use href="#i-camera"/></svg> Escanear carta del rival</button>
     <div class="msman"><input type="search" id="msQ" placeholder="O escribe el número (OGN 251) o el nombre en inglés" autocomplete="off"><div id="msHits"></div></div>
     <div id="msView"></div>
     <div id="msSeen"></div>
-    <div id="msEnd"></div>
-    <h3 class="msh">Herramientas</h3>
-    <div id="msTools"></div>
+    </section>
+    <section class="mspan" role="tabpanel" id="msp-tools" aria-labelledby="mstab-tools">
+      <div id="msTools"></div>
+    </section>
   </div>
 </div>
 <div id="coscan" hidden>

@@ -83,7 +83,7 @@ export function showCard(code) {
   if (!M) return;
   if (!M.opp && info(code).type === 'Legend') { setOpp(code); return; }
   M.seen = [code, ...M.seen.filter(c => c !== code)].slice(0, 40);
-  M.cur = code; save(); render();
+  M.cur = code; M.tab = 'cards'; save(); render();
   $('#msCard')?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
 }
 function setOpp(code) {
@@ -174,18 +174,40 @@ function clockToggle() {
   const c = M.clock;
   if (c.end) { c.left = clockLeft(c); c.end = null; }
   else { if (c.left <= 0) Object.assign(c, newClock(c.min)); c.end = Date.now() + c.left; }
-  save(); renderTools();
+  save(); renderTools(); renderChips();
 }
-function clockReset(min = M.clock.min) { M.clock = newClock(min); save(); renderTools(); }
+function clockReset(min = M.clock.min) { M.clock = newClock(min); save(); renderTools(); renderChips(); }
 function clockTick() {
   if (!M?.clock?.end) return;
   const c = M.clock, left = clockLeft(c);
   if (!c.warned && left <= WARN_MS) { c.warned = true; save(); navigator.vibrate?.([200, 100, 200]); toast('Quedan 5 minutos de ronda'); }
   if (left <= 0) { c.left = 0; c.end = null; save(); navigator.vibrate?.([400, 150, 400, 150, 400]); toast('Se acabó el tiempo de la ronda'); }
   const el = $('#msClockT'); if (el) { el.textContent = fmt(left); el.classList.toggle('warn', left <= WARN_MS); }
-  if (!c.end) renderTools();
+  const mini = $('#msClockMini'); if (mini) { mini.textContent = fmt(left); mini.parentElement.classList.toggle('warn', left <= WARN_MS); }
+  if (!c.end) { renderTools(); renderChips(); }
 }
 const fmt = ms => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+/* ---------- pestañas y la barra de arriba ---------- */
+const TABS = ['game', 'cards', 'tools'];
+export function showTab(t) {
+  if (!M || !TABS.includes(t)) return;
+  M.tab = t; save(); renderTabs();
+  $('#mesa .msbody').scrollTop = 0;
+}
+function renderTabs() {
+  const on = TABS.includes(M.tab) ? M.tab : 'game';
+  for (const b of document.querySelectorAll('#mesa .mstabs [data-mstab]')) { const sel = b.dataset.mstab === on; b.classList.toggle('on', sel); b.setAttribute('aria-selected', String(sel)); b.tabIndex = sel ? 0 : -1; }
+  for (const p of document.querySelectorAll('#mesa .mspan')) p.hidden = p.id !== 'msp-' + on;
+  $('#msSeenN').textContent = M.seen.length ? String(M.seen.length) : '';
+}
+/** Siempre a la vista, en cualquier pestaña: la leyenda rival y el reloj (si se está usando). Tocarlos lleva a su pestaña. */
+function renderChips() {
+  const c = M.clock, left = clockLeft(c), used = c.end || left < c.min * 60000;
+  const opp = M.opp ? info(M.opp.code) : null;
+  $('#msChips').innerHTML = (opp ? `<button class="mschip" data-mstab="game" title="Leyenda rival: ${esc(opp.name)}"><img src="${esc(opp.img)}" alt=""><span>${esc(opp.name.split(',')[0])}</span></button>` : '')
+    + (used ? `<button class="mschip clock${left <= WARN_MS ? ' warn' : ''}${c.end ? '' : ' paused'}" data-mstab="tools" title="Reloj de ronda">${ic(c.end ? 'play' : 'pause')}<span id="msClockMini">${fmt(left)}</span></button>` : '');
+}
 
 /* ---------- pintar ---------- */
 function cardHTML(code) {
@@ -238,6 +260,7 @@ function render() {
   if (!M) return;
   const d = deckById(M.deckId);
   $('#msDeck').textContent = d ? `Jugando con ${d.name || 'Sin nombre'}` : 'Partida presencial';
+  renderTabs(); renderChips();
   [$('#msGame').innerHTML, $('#msEnd').innerHTML] = gameHTML();
   renderTools();
   const cur = M.cur && M.seen.includes(M.cur) ? M.cur : null;
@@ -253,6 +276,7 @@ export function init() {
   $('#msScan').onclick = () => scan();
   $('#mesa').addEventListener('click', e => {
     if (!M) return;
+    const tb = e.target.closest('[data-mstab]'); if (tb) { showTab(tb.dataset.mstab); return; }
     const t = e.target.closest('[data-mscard]'); if (t) { showCard(t.dataset.mscard); return; }
     if (e.target.closest('[data-msopp]')) { scan(true); return; }
     const res = e.target.closest('[data-msres]'); if (res) { record(res.dataset.msres); return; }
@@ -281,4 +305,10 @@ export function init() {
   // en captura: corre antes que el del escáner, así Esc con la cámara abierta solo cierra la cámara
   addEventListener('keydown', e => { if (e.key === 'Escape' && M && $('#coscan').hidden) closeTable(); }, true);
   document.addEventListener('visibilitychange', () => { if (M) { keepAwake(); clockTick(); } });
+  // flechas entre las pestañas
+  $('#mesa .mstabs').addEventListener('keydown', e => {
+    if (!M || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+    const i = TABS.indexOf(M.tab || 'game'), n = TABS[(i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
+    e.preventDefault(); showTab(n); $(`#mstab-${n}`).focus();
+  });
 }
