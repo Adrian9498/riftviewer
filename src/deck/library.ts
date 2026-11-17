@@ -35,7 +35,7 @@ export interface DeckReplay {
   name: string;
   ts: number;
   size: number;
-  meta: { players: { name: string; score: number; legendCode: string | null; legendName: string | null; winner: boolean }[]; turns: number | null; finished: boolean } | null;
+  meta: { v?: number; players: { name: string; score: number; legendCode: string | null; legendName: string | null; winner: boolean }[]; turns: number | null; finished: boolean } | null;
   /** quién eras, el resultado, los rivales y las cartas que jugaste */
   analysis?: ReplayAnalysis;
   /** false = no se suma al récord */

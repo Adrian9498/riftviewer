@@ -6,6 +6,7 @@
 import type { DCard, Deck } from './model';
 import type { DeckReplay, LibDeck, TableGame, Version } from './library';
 import { inIdentity } from './rules';
+import { winnersOf, type GameState } from '../replay/events';
 
 /** Código sin la letra de la variante ("UNL-079A" → "UNL-079"), para comparar impresiones. */
 export const baseCode = (c: string | null | undefined) => (c || '').toUpperCase().replace(/[A-Z*]+$/, '');
@@ -47,7 +48,7 @@ export interface ReplayAnalysis {
    */
   cards: Record<string, [number, number, number?]>;
 }
-export const ANALYSIS_V = 2;
+export const ANALYSIS_V = 3;
 
 const cardsIn = (x: unknown): RCard[] => !x ? [] : Array.isArray(x) ? x.filter(c => c && c.id) : (x as RCard).id ? [x as RCard] : [];
 const legendOf = (p?: RPlayer) => cardsIn(p?.board?.legend)[0];
@@ -64,7 +65,7 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
   const out: ReplayAnalysis = { v: ANALYSIS_V, me: null, meName: null, result: null, opp: [], cards: {} };
   if (!all.length) return out;
   // hasta que se decide la partida (lo de después no cuenta)
-  const decided = all.findIndex(f => f.state.gameOutcome?.winnerPlayerIds?.length);
+  const decided = all.findIndex(f => winnersOf(f.state as GameState).length);
   const frames = decided >= 0 ? all.slice(0, decided + 1) : all;
   const last = frames[frames.length - 1].state;
   const players = [...last.players].sort((a, b) => (a.seat ?? 0) - (b.seat ?? 0));
@@ -72,7 +73,7 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
   const me = byLegend.length === 1 ? byLegend[0] : players.find(p => p.id === rp.viewerPlayerId) || null;
   if (!me) return out;
   out.me = me.id; out.meName = me.name || null;
-  const winners = last.gameOutcome?.winnerPlayerIds || [];
+  const winners = winnersOf(last as GameState);
   out.result = winners.length ? (winners.includes(me.id) ? 'w' : 'l') : null;
   out.opp = players.filter(p => p.id !== me.id).map(p => { const l = legendOf(p); return { name: p.name || '', legendCode: l?.cardCode || null, legendName: l?.name || null }; });
 

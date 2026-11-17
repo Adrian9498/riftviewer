@@ -1,4 +1,5 @@
 // Lo que se aprende de un mazo: análisis de repeticiones, récord, probabilidades, versiones, comparar y reemplazos.
+import { winnersOf } from '../src/replay/events';
 import { describe, expect, it } from 'vitest';
 import {
   alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts, fullRecord, matchups,
@@ -145,5 +146,16 @@ describe('reemplazos', () => {
   it('mismo tipo, en tus dominios, energía parecida, y más barata o que ya tienes (primero las que tienes)', () => {
     const alts = alternativesFor(cara, 10, ['Mind', 'Chaos'], cat, new Set(['Ya en el mazo']), x => ({ price: prices[x.code] ?? null, owned: x.code === 'C3' ? 2 : 0 }));
     expect(alts.map(a => a.card.name)).toEqual(['La tengo', 'Barata']);
+  });
+});
+
+describe('partida que se cortó sin cerrarse', () => {
+  it('gana el único que llegó a 8 puntos', () => {
+    const pl = (id: string, score: number) => ({ id, name: id, seat: id === 'a' ? 0 : 1, board: { score } });
+    const rp = { viewerPlayerId: 'b', frames: [{ state: { phase: 'in_game', players: [pl('a', 6), pl('b', 7)] } }, { state: { phase: 'in_game', players: [pl('a', 8), pl('b', 7)] } }] };
+    expect(analyzeReplay(rp).result).toBe('l');
+    expect(winnersOf(rp.frames[0].state)).toEqual([]);
+    expect(winnersOf({ players: [pl('a', 8), pl('b', 8)] })).toEqual([]);
+    expect(winnersOf({ players: [pl('a', 9), pl('b', 2)], gameOutcome: { winnerPlayerIds: ['b'] } })).toEqual(['b']);
   });
 });

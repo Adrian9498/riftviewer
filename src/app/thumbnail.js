@@ -8,6 +8,7 @@ import { cardByCode, setStatus } from './cards';
 import { fit } from './fit';
 import { needPremium } from './premium';
 import { arr } from './replay';
+import { winnersOf } from '../replay/events';
 import { G } from './script-engine';
 import { DOC, setFmt, toast } from './shell';
 import { app } from './state';
@@ -16,7 +17,7 @@ import { closeModal, esc, openModal, sleep } from './utils';
 /** jugadores con su leyenda, color, puntos y si ganaron */
 function players() {
   if (app.R) {
-    const last = app.R.frames[app.R.frames.length - 1].state, win = new Set(last.gameOutcome?.winnerPlayerIds || []);
+    const last = app.R.frames[app.R.frames.length - 1].state, win = new Set(winnersOf(last));
     return app.R.players.map(p => {
       const b = last.players.find(x => x.id === p.id)?.board || {}, leg = arr(b.legend)[0];
       return { name: p.name, col: p.col, score: b.score || 0, winner: win.has(p.id), img: leg ? cardByCode(leg.cardCode, leg.name, leg.imageUrl)?.img || '' : '', legend: leg?.name || '' };

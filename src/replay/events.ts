@@ -2,7 +2,20 @@
 
 export interface CardRef { id: string; [k: string]: unknown }
 export interface PlayerState { id: string; board?: Record<string, unknown> & { score?: number } }
-export interface GameState { players: PlayerState[] }
+export interface GameState { players: PlayerState[]; gameOutcome?: { winnerPlayerIds?: string[] } | null }
+
+/** Puntos para ganar una partida de Riftbound. */
+export const WIN_SCORE = 8;
+/**
+ * Quién ganó en este estado. Lo dice el juego (`gameOutcome`); si la partida se cortó sin cerrarse
+ * (pasa al terminar o rendirse justo al llegar a los puntos), gana el único jugador con WIN_SCORE puntos o más.
+ */
+export function winnersOf(s: Partial<GameState> | null | undefined): string[] {
+  const out = s?.gameOutcome?.winnerPlayerIds;
+  if (out?.length) return out;
+  const top = (s?.players || []).filter(p => (p.board?.score || 0) >= WIN_SCORE);
+  return top.length === 1 ? [top[0].id] : [];
+}
 
 export const BATTLEFIELD_ZONES = ['battlefieldA', 'battlefieldB', 'battlefieldC', 'battlefieldToken'] as const;
 

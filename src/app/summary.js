@@ -3,12 +3,13 @@ import { $, stage } from './base';
 import { cardByCode } from './cards';
 import { drawChart } from './chart';
 import { arr } from './replay';
+import { winnersOf } from '../replay/events';
 import { app } from './state';
 import { esc, hold } from './utils';
 
 /* ================= 5. Resumen final ================= */
 export function sumPage1(){
-  const lastSt=app.R.frames[app.R.frames.length-1].state, out=lastSt.gameOutcome?.winnerPlayerIds||[], v=stage.className==='v';
+  const lastSt=app.R.frames[app.R.frames.length-1].state, out=winnersOf(lastSt), v=stage.className==='v';
   const win=app.R.players.filter(p=>out.includes(p.id));
   const mm=Math.floor(app.R.duration/60000), ss=String(Math.floor(app.R.duration/1000)%60).padStart(2,'0');
   const turns=app.R.series.length?app.R.series[app.R.series.length-1].t:0;
