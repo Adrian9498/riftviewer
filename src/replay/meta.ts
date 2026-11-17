@@ -1,6 +1,6 @@
 // Resumen corto de un replay para las tarjetas de "Recientes": jugadores, leyendas, marcador y ganador.
 import { decodeReplay, type RawReplay } from './decode';
-import { zoneCards } from './events';
+import { winnersOf, zoneCards, type GameState } from './events';
 
 export interface ReplayMetaPlayer {
   name: string;
@@ -9,7 +9,10 @@ export interface ReplayMetaPlayer {
   legendName: string | null;
   winner: boolean;
 }
+/** Sube cuando cambia cómo se calcula el resumen: los guardados se vuelven a calcular. */
+export const META_V = 2;
 export interface ReplayMeta {
+  v?: number;
   players: ReplayMetaPlayer[];
   turns: number | null;
   finished: boolean;
@@ -23,7 +26,7 @@ export function replayMeta(json: RawReplay): ReplayMeta | null {
   const frames = (rp?.frames || []).filter(f => f?.state?.players?.length);
   const last = frames[frames.length - 1]?.state;
   if (!last?.players) return null;
-  const winners = new Set(last.gameOutcome?.winnerPlayerIds || []);
+  const winners = new Set(winnersOf(last as GameState));
   const players = [...last.players].sort((a, b) => (a.seat ?? 0) - (b.seat ?? 0)).map(p => {
     const leg = zoneCards(p.board?.legend)[0] as { cardCode?: string; name?: string } | undefined;
     return {
@@ -34,5 +37,5 @@ export function replayMeta(json: RawReplay): ReplayMeta | null {
       winner: winners.has(p.id),
     };
   });
-  return { players, turns: typeof last.turnNumber === 'number' ? last.turnNumber : null, finished: winners.size > 0 };
+  return { v: META_V, players, turns: typeof last.turnNumber === 'number' ? last.turnNumber : null, finished: winners.size > 0 };
 }

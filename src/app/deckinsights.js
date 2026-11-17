@@ -3,6 +3,7 @@
 // - probabilidades de robo;
 // - reemplazos más baratos o que ya tienes, volver a una versión anterior y comparar con otro mazo.
 import { decodeReplay } from '../replay/decode';
+import { replayMeta } from '../replay/meta';
 import {
   ANALYSIS_V, OPENING_HAND, alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts,
   fullRecord, matchups, pAny, pAnyMulligan,
@@ -39,6 +40,7 @@ export async function backfill(d, rerender) {
       const text = await IDB.get(replayKey(d.id, r.id)).catch(() => null);
       if (typeof text !== 'string') continue;
       const a = analyzeText(text, d.legend); if (a) { r.analysis = a; changed = true; }
+      try { r.meta = replayMeta(JSON.parse(text)) || r.meta; } catch (e) {}
     }
   } finally { filling.delete(d.id); }
   if (changed && DB.currentDeck()?.id === d.id) { DB.writeDeck(d); rerender(); }

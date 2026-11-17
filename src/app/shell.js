@@ -3,7 +3,7 @@ import { noteLocalChange } from '../cloud/sync';
 import { $, ic, stage, FMT_KEY, isPhone } from './base';
 import { tombDoc, touchAsset } from './cloud-adapter';
 import { IDB, cardByCode, setStatus } from './cards';
-import { replayMeta } from '../replay/meta';
+import { META_V, replayMeta } from '../replay/meta';
 import { REPLAY_FILE_PREFIX, REPLAY_FORMAT } from '../replay/decode';
 import { applyProject, loadProj, renderClips } from './clips';
 import { DEMO } from './demo';
@@ -96,9 +96,9 @@ export async function renderRecents(){
 // los recientes guardados antes (o bajados de la nube) no traen el resumen: se calcula una vez y se guarda
 let filling=false;
 async function backfillMeta(list){
-  if(filling) return; const todo=list.filter(r=>r.kind==='replay'&&!r.meta&&r.data); if(!todo.length) return;
+  if(filling) return; const todo=list.filter(r=>r.kind==='replay'&&r.meta?.v!==META_V&&r.data); if(!todo.length) return;
   filling=true;
-  try{ for(const r of todo){ try{ r.meta=replayMeta(JSON.parse(r.data))||{players:[],turns:null,finished:false}; await IDB.set('recent:'+r.id,r); }catch(e){} }
+  try{ for(const r of todo){ try{ r.meta=replayMeta(JSON.parse(r.data))||{v:META_V,players:[],turns:null,finished:false}; await IDB.set('recent:'+r.id,r); }catch(e){} }
   }finally{ filling=false; }
   renderRecents();
 }

@@ -1,6 +1,6 @@
 // Generado a partir de legacy/app.js (sección "replay-render").
 import { computeCamera, padTarget as padRect, union } from '../replay/camera';
-import { newBattles, scoreDeltas } from '../replay/events';
+import { newBattles, scoreDeltas, winnersOf } from '../replay/events';
 import { arrowsKeyOf, clearTargetArrows, drawTargetArrows, finishMulligan, newArrowTargets, paintFieldSums, paintLegendXp, renderMulligan } from './replay-extras';
 import { $, ic, stage } from './base';
 import { cardTextHTML } from '../data/symbols';
@@ -194,7 +194,7 @@ export async function rRender(i,anim){
     const tok=app.token, draw=()=>{ if(tok===app.token && app.R?.shown===st) drawTargetArrows(st,same); };
     if(anim) setTimeout(draw,(same?560:850)/app.speed); else drawTargetArrows(st,same);
   }
-  const out=st.gameOutcome?.winnerPlayerIds;
+  const out=winnersOf(st);
   if(!anim){ $('#victory').classList.toggle('show',!!(out&&out.length&&i===app.R.frames.length-1)); if(out&&i===app.R.frames.length-1) rVictory(out); return; }
   $('#victory').classList.remove('show');
 
@@ -228,7 +228,7 @@ export async function rRender(i,anim){
   await wait(t);
   if($('#rcap').value==='1') $('#caption').classList.remove('show');
   await finishMulligan(i);
-  if(out&&out.length&&!prev?.gameOutcome){ rVictory(out); $('#victory').classList.add('show'); await wait(2500);
+  if(out.length&&!winnersOf(prev).length){ rVictory(out); $('#victory').classList.add('show'); await wait(2500);
     if($('#rauto').value==='1' && i===app.R.frames.length-1){ await summarySequence(); } }
 }
 export function rVictory(ids){ $('#victory').querySelector('p').innerHTML=ids.map(id=>{ const p=app.R.players.find(x=>x.id===id); return p?`<b style="color:${p.col}">${p.name}</b>`:''; }).join(' & '); }
