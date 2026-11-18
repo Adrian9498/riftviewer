@@ -40,6 +40,8 @@ export interface DeckReplay {
   analysis?: ReplayAnalysis;
   /** false = no se suma al récord */
   count?: boolean;
+  /** el resultado que marcaste a mano, cuando la repetición no dice quién ganó */
+  manual?: 'w' | 'l';
 }
 /** Clave del archivo de una repetición (en IndexedDB y en la sincronización de archivos). */
 export const replayKey = (deckId: string, id: string) => `rep:${deckId}:${id}`;

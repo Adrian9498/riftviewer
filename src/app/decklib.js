@@ -23,7 +23,7 @@ import { closeModal, esc, openModal } from './utils';
 import * as DB from './decks';
 import { drawCard, handHTML, mulligan, newHand, pickHandCard } from './deckinsights';
 import { analyzeText, backfill, insightsHTML, matchupsHTML, openCompare, recordHTML, restoreVersion, setSeen, showInsightsTab, swapCard } from './deckinsights';
-import { fullRecord } from '../deck/analysis';
+import { fullRecord, replayResult } from '../deck/analysis';
 import { openTable } from './table';
 
 const DOMS = ['Fury', 'Calm', 'Mind', 'Body', 'Chaos', 'Order'];
@@ -172,14 +172,16 @@ function checkHTML(issues) {
 }
 /* ---------- repeticiones de las partidas jugadas con el mazo ---------- */
 const MAX_REPLAY = 10 * 1024 * 1024;   // lo que admite la nube por archivo
-function repTile(r) {
+function repTile(r, all) {
   const ps = r.meta?.players || [];
   const art = ps.length
     ? `<div class="rart legs">${ps.slice(0, 2).map(p => { const u = (p.legendCode || p.legendName) ? cardByCode(p.legendCode, p.legendName)?.img || '' : ''; return `<span${u ? ` style="background-image:url('${esc(u)}')"` : ''}></span>`; }).join('')}</div>`
     : `<div class="rart">${ic('replay')}</div>`;
   const score = ps.length ? `<div class="rvs">${ps.map(p => `<span class="${p.winner ? 'win' : ''}">${p.winner ? ic('crown') : ''}${esc(p.name)} <b>${p.score}</b></span>`).join('<i>vs</i>')}</div>` : '';
   const a = r.analysis, sub = [a?.meName ? `jugaste como ${a.meName}` : '', r.meta?.turns ? plural(r.meta.turns, 'turno') : '', when(r.ts)].filter(Boolean).join(' · ');
-  const res = a?.result ? `<button class="ddrt ${a.result}${r.count === false ? ' off' : ''}" data-repcount="${esc(r.id)}" aria-pressed="${r.count !== false}" title="${r.count === false ? 'No se cuenta en el récord: pulsa para contarla' : 'Se cuenta en el récord: pulsa para no contarla'}">${a.result === 'w' ? 'Victoria' : 'Derrota'}</button>` : '';
+  const rr = replayResult(r, all), how = r.manual ? ' (la marcaste tú)' : a && !a.result && rr ? ' (por el marcador de la serie)' : '';
+  const res = rr ? `<span class="ddrts"><button class="ddrt ${rr}${r.count === false ? ' off' : ''}" data-repcount="${esc(r.id)}" aria-pressed="${r.count !== false}" title="${r.count === false ? 'No se cuenta en el récord: pulsa para contarla' : 'Se cuenta en el récord: pulsa para no contarla'}${how}">${rr === 'w' ? 'Victoria' : 'Derrota'}</button>${r.manual ? `<button class="ddrtx" data-repman="${esc(r.id)}" data-v="" title="Quitar el resultado que marcaste" aria-label="Quitar el resultado que marcaste">${ic('x')}</button>` : ''}</span>`
+    : a?.me ? `<span class="ddrask">¿Quién ganó? <button class="ddrt w" data-repman="${esc(r.id)}" data-v="w">Gané</button><button class="ddrt l" data-repman="${esc(r.id)}" data-v="l">Perdí</button></span>` : '';
   return `<div class="rtile ddrep" data-rep="${esc(r.id)}" tabindex="0" title="Ver esta repetición">${art}
     <div class="rinfo"><b>${esc(ps.length ? ps.map(p => p.name).join(' vs ') : r.name)}</b>${score}<small>${esc(sub)}</small>${res}</div>
     <button class="rx" data-repdel="${esc(r.id)}" title="Quitar del mazo" aria-label="Quitar esta repetición del mazo">${ic('trash')}</button></div>`;
@@ -187,7 +189,7 @@ function repTile(r) {
 function replaysHTML(d) {
   const list = d.replays || [];
   return `<section class="ddbox"><h4>${ic('replay')} Repeticiones${list.length ? ` <small>${list.length}</small>` : ''}</h4>
-    ${list.length ? `<div class="ddreps">${list.map(repTile).join('')}</div>`
+    ${list.length ? `<div class="ddreps">${list.map(r => repTile(r, list)).join('')}</div>`
       : '<p class="dlhint">Sube los replays (.json) de las partidas que jugaste con este mazo y ábrelos con un clic. También puedes soltarlos sobre esta página.</p>'}
     <button class="btn mini" data-repadd>${ic('upload')} Subir repeticiones</button></section>`;
 }
@@ -376,6 +378,8 @@ export function initLib() {
       const box = $('#ddHand'); if (box) box.outerHTML = handHTML(d);
       return;
     }
+    const man = e.target.closest('[data-repman]');
+    if (man) { const r = d.replays?.find(x => x.id === man.dataset.repman); if (r) { if (man.dataset.v) r.manual = man.dataset.v; else delete r.manual; DB.writeDeck(d); renderDetail(); } return; }
     const cnt = e.target.closest('[data-repcount]');
     if (cnt) { const r = d.replays?.find(x => x.id === cnt.dataset.repcount); if (r) { r.count = r.count === false; DB.writeDeck(d); renderDetail(); } return; }
     const sw = e.target.closest('[data-swap]'); if (sw) { swapCard(d, sw.dataset.swap, sw.dataset.to); renderDetail(); return; }
