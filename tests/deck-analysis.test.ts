@@ -2,7 +2,7 @@
 import { winnersOf } from '../src/replay/events';
 import { describe, expect, it } from 'vitest';
 import {
-  alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts, fullRecord, matchups,
+  alternativesFor, analyzeReplay, replayResult, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts, fullRecord, matchups,
   legendKey, legendParts, pAny, pAnyMulligan, pNone,
 } from '../src/deck/analysis';
 import { deckCounts, recordVersion, type LibDeck } from '../src/deck/library';
@@ -157,5 +157,20 @@ describe('partida que se cortó sin cerrarse', () => {
     expect(winnersOf(rp.frames[0].state)).toEqual([]);
     expect(winnersOf({ players: [pl('a', 8), pl('b', 8)] })).toEqual([]);
     expect(winnersOf({ players: [pl('a', 9), pl('b', 2)], gameOutcome: { winnerPlayerIds: ['b'] } })).toEqual(['b']);
+  });
+});
+
+describe('mejor de 3: partidas que no marcan ganador', () => {
+  const rep = (id: string, game: number, wins: Record<string, number>, result: 'w' | 'l' | null) =>
+    ({ id, name: id, ts: 0, size: 0, meta: null, analysis: { v: 4, me: 'yo', meName: 'yo', result, opp: [], cards: {}, series: { key: 's|rival,yo', game, wins } } }) as any;
+  it('la siguiente partida de la serie dice quién ganó; si no hay, la marcas tú', () => {
+    const g1 = rep('a', 1, {}, null), g2 = rep('b', 2, { yo: 1, rival: 0 }, 'l'), g3 = rep('c', 3, { yo: 1, rival: 1 }, null);
+    const all = [g3, g2, g1];
+    expect(replayResult(g1, all)).toBe('w');
+    expect(replayResult(g2, all)).toBe('l');
+    expect(replayResult(g3, all)).toBeNull();
+    g3.manual = 'w';
+    expect(fullRecord({ replays: all } as any)).toEqual({ w: 2, l: 1 });
+    expect(replayResult(g1, [g1])).toBeNull();
   });
 });

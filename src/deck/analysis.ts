@@ -29,7 +29,10 @@ export function legendParts(n: string | null | undefined): [string, string] {
 
 interface RCard { id: string; cardCode?: string; name?: string; type?: string; source?: string }
 interface RPlayer { id: string; name?: string; seat?: number; board?: Record<string, unknown> }
-interface RState { phase?: string; players: RPlayer[]; gameOutcome?: { winnerPlayerIds?: string[] } | null }
+interface RState {
+  phase?: string; players: RPlayer[]; gameOutcome?: { winnerPlayerIds?: string[] } | null;
+  seriesStartedAt?: number; gameNumber?: number; winsByPlayerId?: Record<string, number>;
+}
 export interface RFrame { state: RState }
 export interface RRoot { viewerPlayerId?: string; frames?: RFrame[] }
 
@@ -47,8 +50,13 @@ export interface ReplayAnalysis {
    * copias que tenías en la mano al terminar la partida]
    */
   cards: Record<string, [number, number, number?]>;
+  /**
+   * La serie (mejor de 3) a la que pertenece: misma clave en todas sus partidas, el número de partida y cuántas
+   * llevaba ganadas cada jugador al empezarla. Sirve para saber quién ganó una partida que no lo marca.
+   */
+  series?: { key: string; game: number; wins: Record<string, number> };
 }
-export const ANALYSIS_V = 3;
+export const ANALYSIS_V = 4;
 
 const cardsIn = (x: unknown): RCard[] => !x ? [] : Array.isArray(x) ? x.filter(c => c && c.id) : (x as RCard).id ? [x as RCard] : [];
 const legendOf = (p?: RPlayer) => cardsIn(p?.board?.legend)[0];
@@ -75,6 +83,10 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
   out.me = me.id; out.meName = me.name || null;
   const winners = winnersOf(last as GameState);
   out.result = winners.length ? (winners.includes(me.id) ? 'w' : 'l') : null;
+  const first = all[0].state;
+  if (first.seriesStartedAt && first.gameNumber) out.series = {
+    key: `${first.seriesStartedAt}|${players.map(p => p.id).sort().join(',')}`, game: first.gameNumber, wins: { ...(first.winsByPlayerId || {}) },
+  };
   out.opp = players.filter(p => p.id !== me.id).map(p => { const l = legendOf(p); return { name: p.name || '', legendCode: l?.cardCode || null, legendName: l?.name || null }; });
 
   // cada carta (por su id) desde que empieza la partida: si llegó a la mano y si salió de ahí a la mesa
@@ -109,11 +121,26 @@ export function analyzeReplay(rp: RRoot, deckLegend?: string | null): ReplayAnal
   return out;
 }
 
-const counted = (r: DeckReplay) => r.analysis?.result && r.count !== false;
+/**
+ * El resultado de una repetición: el que marcaste a mano; si no, el de la partida; si no lo marca (se cortó o
+ * alguien se rindió), lo que dice la siguiente partida de la misma serie: quién sumó una victoria entre las dos.
+ * `all`: las demás repeticiones del mazo.
+ */
+export function replayResult(r: DeckReplay, all: DeckReplay[] = []): 'w' | 'l' | null {
+  if (r.manual) return r.manual;
+  const a = r.analysis; if (!a) return null;
+  if (a.result) return a.result;
+  const s = a.series; if (!s || !a.me) return null;
+  const next = all.find(x => x.analysis?.series?.key === s.key && x.analysis.series.game === s.game + 1)?.analysis!.series!;
+  if (!next) return null;
+  const up = Object.keys(next.wins).filter(id => (next.wins[id] || 0) > (s.wins[id] || 0));
+  return up.length === 1 ? (up[0] === a.me ? 'w' : 'l') : null;
+}
+const counted = (r: DeckReplay, all: DeckReplay[]) => replayResult(r, all) && r.count !== false;
 /** Récord total: lo anotado a mano más las repeticiones que cuentan. */
 export function fullRecord(d: LibDeck): { w: number; l: number } {
   const r = { w: d.record?.w || 0, l: d.record?.l || 0 };
-  for (const x of d.replays || []) if (counted(x)) r[x.analysis!.result!]++;
+  for (const x of d.replays || []) if (counted(x, d.replays!)) r[replayResult(x, d.replays)!]++;
   for (const g of d.games || []) r[g.result]++;
   return r;
 }
@@ -127,7 +154,7 @@ export function matchups(reps: DeckReplay[], games: TableGame[] = []): Matchup[]
     const m = by.get(key) || { key, legendCode: o.legendCode, legendName: name, w: 0, l: 0 };
     m[res]++; by.set(key, m);
   };
-  for (const r of reps) if (counted(r)) for (const o of r.analysis!.opp) add(o, r.analysis!.result!);
+  for (const r of reps) if (counted(r, reps) && r.analysis) for (const o of r.analysis.opp) add(o, replayResult(r, reps)!);
   for (const g of games) if (g.opp) add(g.opp, g.result);
   return [...by.values()].sort((a, b) => (b.w + b.l) - (a.w + a.l) || a.legendName.localeCompare(b.legendName));
 }
@@ -149,7 +176,7 @@ export interface CardPerf {
  * `keyOf` junta códigos de la misma carta (por ejemplo, por nombre); por defecto, el código base.
  */
 export function cardPerformance(reps: DeckReplay[], keyOf: (code: string) => string = c => c): CardPerf[] {
-  const done = reps.filter(r => r.analysis?.result);
+  const done = reps.filter(r => r.analysis && replayResult(r, reps));
   const by = new Map<string, CardPerf>();
   for (const r of done) {
     // primero se junta lo de esta partida por carta, para contar partidas (no copias)
@@ -161,7 +188,7 @@ export function cardPerformance(reps: DeckReplay[], keyOf: (code: string) => str
     for (const [k, g] of game) {
       const p = by.get(k) || { code: g.code, games: done.length, drawnIn: 0, playedIn: 0, w: 0, l: 0, stuck: 0 };
       if (g.drawn) p.drawnIn++;
-      if (g.played) { p.playedIn++; p[r.analysis!.result!]++; }
+      if (g.played) { p.playedIn++; p[replayResult(r, reps)!]++; }
       p.stuck += g.end;
       by.set(k, p);
     }

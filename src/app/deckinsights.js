@@ -5,7 +5,7 @@
 import { decodeReplay } from '../replay/decode';
 import { replayMeta } from '../replay/meta';
 import {
-  ANALYSIS_V, OPENING_HAND, alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts,
+  ANALYSIS_V, OPENING_HAND, replayResult, alternativesFor, analyzeReplay, baseCode, cardPerformance, compareCounts, countsAtVersion, deckFromCounts,
   fullRecord, matchups, pAny, pAnyMulligan,
 } from '../deck/analysis';
 import { deckCounts, recordVersion, replayKey, winRate } from '../deck/library';
@@ -49,7 +49,7 @@ export async function backfill(d, rerender) {
 /* ---------- récord ---------- */
 export function recordHTML(d) {
   const r = fullRecord(d), g = r.w + r.l, man = d.record || { w: 0, l: 0 };
-  const fromRep = (d.replays || []).filter(x => x.analysis?.result && x.count !== false).length, atTable = (d.games || []).length;
+  const fromRep = (d.replays || []).filter(x => replayResult(x, d.replays) && x.count !== false).length, atTable = (d.games || []).length;
   const side = (k, label) => `<div class="ddres ${k}"><b>${r[k]}</b><small>${label}</small>
     <span><button class="btn mini ico" data-res="${k}" data-delta="-1" title="Quitar una anotada a mano" ${man[k] ? '' : 'disabled'}>−</button><button class="btn mini" data-res="${k}" data-delta="1">${ic('plus')} ${k === 'w' ? 'Victoria' : 'Derrota'}</button></span></div>`;
   return `<section class="ddbox"><h4>${ic('trophy')} Récord de partidas</h4>
@@ -73,7 +73,7 @@ export function matchupsHTML(d) {
 
 /* ---------- rendimiento de cada carta ---------- */
 export function perfHTML(d) {
-  const reps = (d.replays || []).filter(r => r.analysis?.result);
+  const reps = (d.replays || []).filter(r => r.analysis && replayResult(r, d.replays));
   const head = `<section class="ddsec ddwide"><h3>${ic('chart')} Rendimiento de las cartas${reps.length ? ` <small>en ${plural(reps.length, 'partida')}</small>` : ''}</h3>`;
   if (!reps.length) return `${head}<p class="dlhint">Sube repeticiones de partidas terminadas con este mazo y aquí verás qué cartas jugaste más, con cuáles ganas más y cuáles se te quedan en la mano.</p></section>`;
   const r = fullRecord({ replays: reps }), base = winRate(r);
@@ -173,7 +173,7 @@ export function handHTML(d) {
 let TAB = 'deck', TAB_DECK = null;   // al abrir otro mazo se empieza por la lista
 export function insightsHTML(d, shared, list, count) {
   if (d.id !== TAB_DECK) { TAB_DECK = d.id; TAB = 'deck'; }
-  const reps = (d.replays || []).filter(r => r.analysis?.result).length;
+  const reps = (d.replays || []).filter(r => r.analysis && replayResult(r, d.replays)).length;
   const tabs = [
     { id: 'deck', icon: 'cards', label: 'Mazo', badge: count, html: list },
     { id: 'hand', icon: 'play', label: 'Mano de prueba', html: handHTML(d) },
