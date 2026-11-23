@@ -82,14 +82,18 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 40px}
 .bvnav button:hover:not(:disabled){border-color:var(--acc)}
 .bvnav button:disabled{opacity:.35;cursor:default}
 
-.bvzoom{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;background:#000c}
+.bvzoom{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;background:#000b;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .bvzoom[hidden]{display:none}
-.bvzbox{display:flex;gap:22px;align-items:center;max-width:760px;width:100%}
-.bvzimg{position:relative;flex:none;width:min(360px,72vw,calc((100dvh - 230px) * .716));border-radius:16px;overflow:hidden;box-shadow:0 20px 60px #000}
+/* la ventana: carta a la izquierda y su información en un panel que se lee bien */
+.bvzbox{position:relative;display:flex;gap:24px;align-items:center;max-width:720px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px;
+  border:1px solid var(--line2);border-radius:20px;background:linear-gradient(180deg,#121d33,#0a111f);box-shadow:0 30px 80px #000d}
+.bvzbox::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc) 50%,transparent);opacity:.8}
+.bvzinfo{flex:1;min-width:200px}
+.bvzimg{position:relative;flex:none;width:min(340px,72vw,calc((100dvh - 290px) * .716));border-radius:16px;overflow:hidden;box-shadow:0 20px 60px #000}
 .bvzimg img{display:block;width:100%}
 .bvzinfo h3{margin:0;font-family:Cinzel,serif;font-size:24px;color:var(--ivory)}
 .bvzinfo p{margin:4px 0 14px;color:var(--muted)}
-.bvzinfo dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 18px}
+.bvzinfo dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0b1322}
 .bvzinfo dt{color:var(--muted)}
 .bvzinfo dd{margin:0;font-weight:600;color:var(--acc2)}
 .bvzx{padding:9px 16px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);cursor:pointer}
@@ -103,7 +107,9 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 40px}
   .bvjewel{width:calc((100% - 28px) / 3);max-width:150px}
   .bvstats span{min-width:0;flex:1 1 30%;padding:8px 6px}
   .bvstats b{font-size:17px}
-  .bvzbox{flex-direction:column;gap:14px;text-align:center}
+  .bvzbox{flex-direction:column;gap:14px;text-align:center;padding:16px;width:100%}
+  .bvzinfo{min-width:0;width:100%}
+  .bvzx{width:100%}
   .bvzinfo dl{justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){ .bvshine{animation:none} .bvbook .bvpage{animation:none!important} }
