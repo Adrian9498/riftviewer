@@ -225,3 +225,23 @@
   .csc{grid-template-columns:72px 1fr;gap:10px}
   .credits.cscred{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 0}
 }
+
+/* Carpeta pública: la ventana para publicar (src/app/binderpub.js) */
+.mbody>.bphint,.mbody>.bplbl,.mbody>.bpmode,.mbody>.bplink,.mbody>.bpmsg,.mbody>.bpacts{grid-column:1/-1}
+.bphint{margin:0;color:#aab5cc;font-size:13.5px;line-height:1.5}
+.bplbl{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
+.bplbl input,.bplink input{padding:10px 12px;font-size:15px;width:100%;box-sizing:border-box}
+.bpmode{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bpmode label{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);cursor:pointer}
+.bpmode label:has(input:checked){border-color:var(--acc);background:#c8aa6e14}
+.bpmode input{margin-top:3px;accent-color:var(--acc)}
+.bpmode span{display:flex;flex-direction:column;gap:2px}
+.bpmode b{font-size:14px}
+.bpmode small{color:var(--muted);font-size:12px}
+.bplink{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid #45d48355;border-radius:12px;background:#45d48310}
+.bplink>span{display:flex;align-items:center;gap:6px;color:var(--ok);font-size:13px;font-weight:600}
+.bplink .i{width:16px;height:16px}
+.bpmsg{margin:0;color:var(--acc2);font-size:13.5px}
+.bpacts{display:flex;flex-wrap:wrap;gap:8px}
+.bpacts .bpdel{color:var(--err);margin-left:auto}
+@media (max-width:760px){ .bpmode{grid-template-columns:1fr} .bpacts .btn{flex:1 1 auto} .bpacts .bpdel{margin-left:0} }
