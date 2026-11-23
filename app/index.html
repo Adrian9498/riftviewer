@@ -258,28 +258,43 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
       <div class="hemblem"></div>
       <h1>Riftviewer</h1>
       <div class="hdiv"></div>
-      <p class="sub">Convierte tus partidas de Riftbound en videos listos para publicar</p>
+      <p class="sub">Todo tu Riftbound en un solo lugar: arma mazos, juega en la mesa, lleva tu colección y convierte tus partidas en video.</p>
     </header>
+    <div class="hstats" id="hStats" hidden></div>
     <div id="hcont" hidden></div>
-    <div class="hcards">
-      <div class="hcard">
-        <div class="hic"><svg class="i"><use href="#i-replay"/></svg></div>
-        <h2>Ver un replay</h2>
-        <p>Abre el archivo <b>.json</b> del replay que descargas del <b>simulador</b>. La partida se reproduce sola, con todas las cartas y jugadas.</p>
-        <label class="drop-hint"><svg class="i"><use href="#i-upload"/></svg><b>Arrastra tu replay aquí</b><small>o haz clic para elegir el archivo</small><input type="file" id="replayIn" accept=".json" hidden></label>
+    <section class="hsec">
+      <h2 class="hsech"><span>Juega</span><small>Prepara tu mazo y llévalo a la mesa</small></h2>
+      <div class="hgrid">
+        <button class="htile t-deck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span class="htxt"><b>Mis mazos</b><small>Arma tu lista con las reglas al día y aprende de cada partida.</small><span class="htags"><i>Constructor</i><i>Mano de prueba</i><i>Probabilidades</i><i>Récord por rival</i><i>Reemplazos</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
+        <button class="htile t-mesa" id="hMesa"><span class="hic"><svg class="i"><use href="#i-camera"/></svg></span><span class="htxt"><b>En la mesa</b><small>Tu compañero en partidas presenciales: escanea la carta del rival y léela en inglés.</small><span class="htags"><i>Escáner en cualquier idioma</i><i>Moneda y d20</i><i>Reloj de ronda</i><i>Gané / Perdí</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
       </div>
-      <div class="hcard scr">
-        <div class="hic"><svg class="i"><use href="#i-pen"/></svg></div>
-        <h2>Crear con guion</h2>
-        <p>Escribe la partida jugada a jugada (jugar cartas, mover, combatir, conquistar…) y la mesa se anima sola. Ideal para partidas en físico.</p>
-        <div class="acts"><button class="btn primary" id="hNew"><svg class="i"><use href="#i-pen"/></svg> Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
+    </section>
+    <section class="hsec">
+      <h2 class="hsech"><span>Colecciona</span><small>Tus cartas, su valor y con quién cambiarlas</small></h2>
+      <div class="hgrid">
+        <button class="htile t-coll" id="hColl"><span class="hic"><svg class="i"><use href="#i-binder"/></svg></span><span class="htxt"><b>Mi colección</b><small>Escanea tus cartas con la cámara y mira cuánto te falta de cada set.</small><span class="htags"><i>Escaneo con cámara</i><i>Progreso por set</i><i>Precios</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
+        <button class="htile t-trade" id="hTrade"><span class="hic"><svg class="i"><use href="#i-flip"/></svg></span><span class="htxt"><b>Intercambios</b><small>Lo que te sobra y lo que buscas, listo para compartir y cruzar con otra lista.</small><span class="htags"><i>Tus repetidas</i><i>Lo que te falta</i><i>Enlace y WhatsApp</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
       </div>
-    </div>
-    <button class="hdeck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span><b>Construir un mazo</b><small>Busca cartas, valida las reglas, revisa la curva y comparte tu lista.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
-    <button class="hdeck hmesa" id="hMesa"><span class="hic"><svg class="i"><use href="#i-camera"/></svg></span><span><b>En la mesa</b><small>¿Tu rival juega en chino o en otro idioma? Escanea su carta y léela en inglés.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
-    <button class="hdeck hcoll" id="hColl"><span class="hic"><svg class="i"><use href="#i-binder"/></svg></span><span><b>Mi colección</b><small>Escanea tus cartas con la cámara y mira cuánto te falta de cada set.</small></span><svg class="i"><use href="#i-arrow"/></svg></button>
-    <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
-    <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
+    </section>
+    <section class="hsec">
+      <h2 class="hsech"><span>Crea videos</span><small>Convierte tus partidas en videos listos para publicar</small></h2>
+      <div class="hcards">
+        <div class="hcard">
+          <div class="hic"><svg class="i"><use href="#i-replay"/></svg></div>
+          <h2>Ver un replay</h2>
+          <p>Abre el archivo <b>.json</b> que descargas del <b>simulador</b>. La partida se reproduce sola, con todas las cartas y jugadas.</p>
+          <label class="drop-hint"><svg class="i"><use href="#i-upload"/></svg><b>Arrastra tu replay aquí</b><small>o haz clic para elegir el archivo</small><input type="file" id="replayIn" accept=".json" hidden></label>
+        </div>
+        <div class="hcard scr">
+          <div class="hic"><svg class="i"><use href="#i-pen"/></svg></div>
+          <h2>Crear con guion</h2>
+          <p>Escribe la partida jugada a jugada (jugar cartas, mover, combatir, conquistar…) y la mesa se anima sola. Ideal para partidas en físico.</p>
+          <div class="acts"><button class="btn primary" id="hNew"><svg class="i"><use href="#i-pen"/></svg> Guion nuevo</button><label class="btn">Abrir guion .txt…<input type="file" id="fileIn" accept=".txt" hidden></label></div>
+        </div>
+      </div>
+      <div class="hrecent" id="hrecent" hidden><h3>Recientes</h3><div id="recents"></div></div>
+      <div class="hfoot">¿Primera vez? <button class="btn ghost" id="hDemo">Ver un guion de ejemplo</button></div>
+    </section>
     <p class="credits hcred">Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> · precios: TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.</p>
   </div>
 </div>

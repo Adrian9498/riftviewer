@@ -14,7 +14,7 @@ let API_DONE=false;
 /** GET con límite de tiempo: si riftcodex se queda colgado no deja la app sin cartas. */
 function getJSON(url,ms=15000){
   const ac=new AbortController(), t=setTimeout(()=>ac.abort(),ms);
-  return fetch(url,{signal:ac.signal}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).finally(()=>clearTimeout(t));
+  return fetch(url,{signal:ac.signal}).then(r=>{ if(r.ok===false) throw new Error('HTTP '+r.status); return r.json(); }).finally(()=>clearTimeout(t));
 }
 export async function loadCards(){
   // la copia guardada se usa de inmediato aunque sea vieja; si ya pasaron 3 días se actualiza por detrás
