@@ -10,7 +10,7 @@ import { esc } from './utils';
 
 export const ROUTES = ['inicio', 'partida', 'mazos', 'coleccion'];
 const ITEMS = [
-  { r: 'inicio', icon: 'home', label: 'Inicio', sub: () => 'Abrir un replay o un guion, y tus recientes' },
+  { r: 'inicio', icon: 'home', label: 'Inicio', sub: () => 'Todo Riftviewer: mazos, mesa, colección y videos' },
   { r: 'partida', icon: 'replay', label: 'Partida', sub: () => DOC.kind ? `${DOC.kind === 'replay' ? 'Replay' : 'Guion'} · ${DOC.name}` : 'Abre un replay o un guion primero' },
   { r: 'mazos', icon: 'cards', label: 'Mazos', sub: () => 'Construye, revisa y comparte tus mazos' },
   { r: 'coleccion', icon: 'binder', label: 'Colección', sub: () => 'Tus cartas, el escáner y su valor' },

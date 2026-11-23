@@ -9,8 +9,8 @@ export default defineConfig({
     target: 'es2022',
     // en la publicación (GitHub Pages) sin mapas de código: no hace falta publicar el código fuente legible
     sourcemap: !process.env.SIN_SOURCEMAPS,
-    // dos páginas: la informativa en la raíz y la app en /app/
-    rollupOptions: { input: { inicio: resolve(__dirname, 'index.html'), app: resolve(__dirname, 'app/index.html') } },
+    // tres páginas: la informativa en la raíz, la app en /app/ y la carpeta pública en /carpeta/
+    rollupOptions: { input: { inicio: resolve(__dirname, 'index.html'), app: resolve(__dirname, 'app/index.html'), carpeta: resolve(__dirname, 'carpeta/index.html') } },
   },
   test: { include: ['tests/**/*.test.ts'] },
 });

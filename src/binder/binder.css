@@ -1,0 +1,115 @@
+/* Página pública de una carpeta (carpeta/index.html). Mismos colores que la app. */
+:root{
+  --bg:#060b14; --panel:#0b1322; --panel2:#111b2e; --line:#1d2a42; --line2:#2a3b5a;
+  --text:#e9edf5; --muted:#8d99b3; --acc:#c8aa6e; --acc2:#e6c67f; --ivory:#f0e6d2; --teal:#0ac8b9;
+  --gold:linear-gradient(135deg,#fff1c2 0%,#c8aa6e 30%,#8a6a2e 55%,#e6c67f 80%,#fff1c2 100%);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(ellipse at 50% -10%,#1b2a44 0%,#0b0f17 55%) fixed,var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif}
+button{font:inherit;color:inherit}
+a{color:var(--acc2)}
+html{scrollbar-color:#c8aa6e55 transparent;scrollbar-width:thin}
+
+.bvtop{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1180px;margin:0 auto;padding:14px 16px}
+.bvbrand{display:inline-flex;align-items:center;gap:8px;font-family:Cinzel,serif;font-weight:700;letter-spacing:2px;text-decoration:none;background:var(--gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bvmark{width:22px;height:22px;background:var(--gold);-webkit-mask:url(../assets/fx/magic-03.png) center/contain no-repeat;mask:url(../assets/fx/magic-03.png) center/contain no-repeat}
+.bvcta{padding:8px 14px;border-radius:10px;border:1px solid #c8aa6e88;background:#c8aa6e1a;color:var(--ivory);text-decoration:none;font-weight:600;font-size:14px}
+.bvcta:hover{background:#c8aa6e2e}
+
+main{max-width:1180px;margin:0 auto;padding:0 16px 40px}
+.bvstate{text-align:center;color:var(--muted);margin:18vh auto;max-width:420px}
+
+.bvhead{text-align:center;margin:10px 0 24px}
+.bvhead h1{margin:0;font-family:Cinzel,serif;font-weight:900;font-size:clamp(26px,4.6vw,44px);letter-spacing:2px;line-height:1.15;background:var(--gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bvwhen{margin:4px 0 16px;color:var(--muted);font-size:13px}
+.bvstats{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+.bvstats span{display:flex;flex-direction:column;align-items:center;min-width:150px;padding:10px 16px;border:1px solid var(--line2);border-radius:14px;background:#0f1b30cc}
+.bvstats b{font-family:Cinzel,serif;font-size:22px;color:var(--acc2)}
+.bvstats small{color:var(--muted);font-size:12px}
+
+#bvBest h2{font-family:Cinzel,serif;font-size:14px;letter-spacing:2.5px;text-transform:uppercase;color:var(--acc);margin:0 0 10px;text-align:center}
+.bvbest{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.bvjewel{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;width:170px;padding:0;border:0;background:none;cursor:pointer;text-align:center}
+.bvjewel img{width:100%;aspect-ratio:744/1039;object-fit:cover;border-radius:10px;box-shadow:0 12px 30px #000a,0 0 0 1px #c8aa6e55;transition:transform .2s}
+.bvjewel:hover img{transform:translateY(-4px) rotate(-1deg)}
+.bvjewel span{display:flex;flex-direction:column}
+.bvjewel b{font-size:13.5px}
+.bvjewel small{color:var(--acc2);font-size:12.5px}
+.bvjewel .bvshine{height:auto;aspect-ratio:744/1039;bottom:auto}
+
+.bvbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.bvsets{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.bvchip{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);cursor:pointer;font-size:13px}
+.bvchip.on{border-color:var(--acc);background:#c8aa6e22;color:var(--ivory)}
+.bvsp{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;cursor:pointer}
+.bvsp input{accent-color:var(--acc)}
+
+/* la carpeta: dos hojas en PC, una en el teléfono */
+.bvbook{display:grid;grid-template-columns:1fr 18px 1fr;padding:18px;border-radius:22px;
+  background:linear-gradient(90deg,#141c2b,#1a2436 48%,#0e1522 50%,#1a2436 52%,#141c2b);border:1px solid #2a3b5a;box-shadow:0 30px 70px #000b,inset 0 0 0 6px #0b111c;perspective:1600px}
+.bvbook.single{grid-template-columns:1fr}
+.bvspine{background:repeating-linear-gradient(180deg,#0b111c 0 18px,#3a4660 18px 24px);border-radius:4px;margin:30px 0;opacity:.7}
+.bvpage{position:relative;padding:12px 12px 26px;border-radius:12px;background:linear-gradient(180deg,#0d1524,#0a111e)}
+.bvgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bvpn{position:absolute;bottom:5px;left:0;right:0;text-align:center;color:var(--muted);font-size:11px}
+.bvpk{position:relative;display:block;aspect-ratio:744/1039;padding:0;border:0;border-radius:9px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(135deg,#ffffff10,#ffffff04);box-shadow:inset 0 0 0 1px #ffffff1c,0 4px 12px #0008;transition:transform .18s,box-shadow .18s}
+.bvpk.empty{cursor:default;background:linear-gradient(135deg,#ffffff08,#ffffff02);box-shadow:inset 0 0 0 1px #ffffff12}
+.bvpk:not(.empty):hover{transform:translateY(-3px) scale(1.03);z-index:1;box-shadow:inset 0 0 0 1px #ffffff2a,0 14px 30px #000b}
+.bvpk img{width:100%;height:100%;object-fit:cover;display:block}
+/* la funda: un brillo encima, como una carpeta real */
+.bvpk:not(.empty)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,#ffffff1f 0%,transparent 35%,transparent 70%,#ffffff0d);pointer-events:none}
+.bvpk b{position:absolute;right:5px;bottom:5px;padding:1px 7px;border-radius:7px;background:#0a1221e6;color:var(--acc2);font-size:12px}
+.bvpk em{position:absolute;left:5px;top:5px;max-width:calc(100% - 10px);padding:1px 6px;border-radius:6px;background:linear-gradient(135deg,#9be3ff,#d8a6ff,#ffe39b);color:#1a1530;font-style:normal;font-weight:700;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* brillo foil: una franja suave que cruza la carta, sin lavar la imagen */
+.bvshine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:overlay;opacity:.7;
+  background:linear-gradient(115deg,transparent 25%,#ff6ad5 38%,#5ee7ff 48%,#ffe86a 58%,transparent 72%);background-size:250% 250%;animation:bvshine 7s ease-in-out infinite alternate}
+/* vaivén lento, como al inclinar la carta: sin cruzar de lado a lado ni saltar al reiniciar */
+@keyframes bvshine{from{background-position:20% 0}to{background-position:80% 0}}
+.bvpk:nth-child(3n+2) .bvshine{animation-delay:-2.3s}
+.bvpk:nth-child(3n) .bvshine{animation-delay:-4.6s}
+.bvjewel:nth-child(2) .bvshine{animation-delay:-3s}
+
+.bvbook.turn-next .bvpage{animation:bvnext .45s ease-out}
+.bvbook.turn-prev .bvpage{animation:bvprev .45s ease-out}
+@keyframes bvnext{from{transform:rotateY(-14deg) translateX(14px);opacity:.2}to{transform:none;opacity:1}}
+@keyframes bvprev{from{transform:rotateY(14deg) translateX(-14px);opacity:.2}to{transform:none;opacity:1}}
+
+.bvnav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px;color:var(--muted);font-size:13.5px}
+.bvnav button{width:44px;height:44px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);font-size:24px;line-height:1;cursor:pointer}
+.bvnav button:hover:not(:disabled){border-color:var(--acc)}
+.bvnav button:disabled{opacity:.35;cursor:default}
+
+.bvzoom{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;background:#000b;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.bvzoom[hidden]{display:none}
+/* la ventana: carta a la izquierda y su información en un panel que se lee bien */
+.bvzbox{position:relative;display:flex;gap:24px;align-items:center;max-width:720px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px;
+  border:1px solid var(--line2);border-radius:20px;background:linear-gradient(180deg,#121d33,#0a111f);box-shadow:0 30px 80px #000d}
+.bvzbox::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--acc) 50%,transparent);opacity:.8}
+.bvzinfo{flex:1;min-width:200px}
+.bvzimg{position:relative;flex:none;width:min(340px,72vw,calc((100dvh - 290px) * .716));border-radius:16px;overflow:hidden;box-shadow:0 20px 60px #000}
+.bvzimg img{display:block;width:100%}
+.bvzinfo h3{margin:0;font-family:Cinzel,serif;font-size:24px;color:var(--ivory)}
+.bvzinfo p{margin:4px 0 14px;color:var(--muted)}
+.bvzinfo dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0b1322}
+.bvzinfo dt{color:var(--muted)}
+.bvzinfo dd{margin:0;font-weight:600;color:var(--acc2)}
+.bvzx{padding:9px 16px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);cursor:pointer}
+
+.bvfoot{max-width:1180px;margin:0 auto;padding:20px 16px 30px;color:var(--muted);font-size:12px;text-align:center}
+
+@media (max-width:899px){
+  .bvbook{padding:10px;border-radius:16px;background:linear-gradient(180deg,#141c2b,#101827)}
+  .bvpage{padding:8px 8px 22px}
+  .bvgrid{gap:6px}
+  .bvjewel{width:calc((100% - 28px) / 3);max-width:150px}
+  .bvstats span{min-width:0;flex:1 1 30%;padding:8px 6px}
+  .bvstats b{font-size:17px}
+  .bvzbox{flex-direction:column;gap:14px;text-align:center;padding:16px;width:100%}
+  .bvzinfo{min-width:0;width:100%}
+  .bvzx{width:100%}
+  .bvzinfo dl{justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){ .bvshine{animation:none} .bvbook .bvpage{animation:none!important} }
