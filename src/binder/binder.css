@@ -65,8 +65,12 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 40px}
 .bvpk em{position:absolute;left:5px;top:5px;max-width:calc(100% - 10px);padding:1px 6px;border-radius:6px;background:linear-gradient(135deg,#9be3ff,#d8a6ff,#ffe39b);color:#1a1530;font-style:normal;font-weight:700;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* brillo foil: una franja suave que cruza la carta, sin lavar la imagen */
 .bvshine{position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:overlay;opacity:.7;
-  background:linear-gradient(115deg,transparent 25%,#ff6ad5 38%,#5ee7ff 48%,#ffe86a 58%,transparent 72%);background-size:250% 250%;animation:bvshine 6s linear infinite}
-@keyframes bvshine{from{background-position:120% 0}to{background-position:-120% 0}}
+  background:linear-gradient(115deg,transparent 25%,#ff6ad5 38%,#5ee7ff 48%,#ffe86a 58%,transparent 72%);background-size:250% 250%;animation:bvshine 7s ease-in-out infinite alternate}
+/* vaivén lento, como al inclinar la carta: sin cruzar de lado a lado ni saltar al reiniciar */
+@keyframes bvshine{from{background-position:20% 0}to{background-position:80% 0}}
+.bvpk:nth-child(3n+2) .bvshine{animation-delay:-2.3s}
+.bvpk:nth-child(3n) .bvshine{animation-delay:-4.6s}
+.bvjewel:nth-child(2) .bvshine{animation-delay:-3s}
 
 .bvbook.turn-next .bvpage{animation:bvnext .45s ease-out}
 .bvbook.turn-prev .bvpage{animation:bvprev .45s ease-out}
