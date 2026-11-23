@@ -19,8 +19,8 @@ export type BinderMode = 'all' | 'special';
 
 export const PER_PAGE = 9;
 const IMG = /\/media\/cards\/([^/]+?)-\d+w\.webp$/;
-/** URL de la imagen a partir del id guardado. */
-export const binderImg = (id: string, w = 400) => id ? `https://openrift.app/media/cards/${id}-${w}w.webp` : '';
+/** URL de la imagen a partir del id guardado (OpenRift solo publica el tamaño de 400 px). */
+export const binderImg = (id: string) => id ? `https://openrift.app/media/cards/${id}-400w.webp` : '';
 /** ¿Es especial? (arte alterno, firmada, foil o metal, o rareza épica o mayor) */
 export const isSpecial = (x: Pick<BinderCard, 'v' | 'f' | 'r'>) =>
   x.v !== 'Normal' || x.f !== 'normal' || ['Epic', 'Showcase', 'Ultimate'].includes(x.r);

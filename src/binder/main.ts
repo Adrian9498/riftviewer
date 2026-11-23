@@ -72,7 +72,7 @@ function zoom(c: BinderCard | undefined) {
   const z = $('#bvZoom');
   if (!c) { z.hidden = true; z.innerHTML = ''; return; }
   const p = price(c), t = tags(c);
-  z.innerHTML = `<div class="bvzbox"><div class="bvzimg${c.f !== 'normal' ? ' foil' : ''}"><img src="${esc(binderImg(c.i, 750))}" alt="${esc(c.nm)}">${c.f !== 'normal' ? '<i class="bvshine" aria-hidden="true"></i>' : ''}</div>
+  z.innerHTML = `<div class="bvzbox"><div class="bvzimg${c.f !== 'normal' ? ' foil' : ''}"><img src="${esc(binderImg(c.i))}" alt="${esc(c.nm)}">${c.f !== 'normal' ? '<i class="bvshine" aria-hidden="true"></i>' : ''}</div>
     <div class="bvzinfo"><h3>${esc(c.nm)}</h3><p>${esc([c.c, c.r, ...t].filter(Boolean).join(' · '))}</p>
     <dl><dt>Copias</dt><dd>${c.n}</dd>${p != null ? `<dt>Precio</dt><dd>${money(p)} c/u</dd>` : ''}</dl>
     <button class="bvzx" data-zx>Cerrar</button></div></div>`;
