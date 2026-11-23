@@ -9,15 +9,21 @@ import { app } from './state';
 /* ================= Datos de cartas ================= */
 export let CARDS = [];
 
+/** ¿Ya terminó (bien o mal) la carga de riftcodex? Hasta entonces OpenRift no arma el catálogo solo. */
+let API_DONE=false;
+/** GET con límite de tiempo: si riftcodex se queda colgado no deja la app sin cartas. */
+function getJSON(url,ms=15000){
+  const ac=new AbortController(), t=setTimeout(()=>ac.abort(),ms);
+  return fetch(url,{signal:ac.signal}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).finally(()=>clearTimeout(t));
+}
 export async function loadCards(){
+  // la copia guardada se usa de inmediato aunque sea vieja; si ya pasaron 3 días se actualiza por detrás
+  let c=null; try{ c=JSON.parse(localStorage.getItem('rb_cards4')||'null'); }catch(e){}
+  if(c?.d?.length){ CARDS=c.d; API_DONE=true; ready(); if(Date.now()-c.t < 864e5*3) return; }
   try{
-    const c = JSON.parse(localStorage.getItem('rb_cards4')||'null');
-    if(c && Date.now()-c.t < 864e5*3){ CARDS = c.d; return ready(); }
-  }catch(e){}
-  try{
-    const first = await (await fetch(`${API}/cards?size=100&page=1`)).json();
+    const first = await getJSON(`${API}/cards?size=100&page=1`);
     let items = first.items;
-    const rest = await Promise.all(Array.from({length:first.pages-1},(_,i)=>fetch(`${API}/cards?size=100&page=${i+2}`).then(r=>r.json())));
+    const rest = await Promise.all(Array.from({length:first.pages-1},(_,i)=>getJSON(`${API}/cards?size=100&page=${i+2}`)));
     rest.forEach(p=>items=items.concat(p.items));
     CARDS = items.map(x=>({
       name:x.name, n:norm(x.name), type:x.classification.type, sup:x.classification.supertype,
@@ -28,13 +34,16 @@ export async function loadCards(){
       code:(x.riftbound_id||'').split('-').slice(0,2).join('-').toUpperCase()
     }));
     try{ localStorage.removeItem('rb_cards'); localStorage.removeItem('rb_cards2'); localStorage.removeItem('rb_cards3'); localStorage.setItem('rb_cards4',JSON.stringify({t:Date.now(),d:CARDS})); }catch(e){}
-    ready();
+    API_DONE=true; ready();
   }catch(e){
-    setStatus('No se pudieron cargar las cartas de la API ('+e.message+'). Se usarán marcadores de texto.','err');
-    run();
+    console.warn('riftcodex no respondió', e);
+    API_DONE=true;
+    if(c?.d?.length) return;   // se queda la copia guardada
+    // sin riftcodex ni copia: el catálogo sale completo de OpenRift
+    CARDS=[]; ready();
   }
 }
-export function ready(){ mergeOpenRift(); setStatus(`${CARDS.length} cartas de riftcodex · `+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
+export function ready(){ mergeOpenRift(); const rc=CARDS.filter(c=>c.src!=='openrift').length; setStatus((rc?`${rc} cartas de riftcodex · `:`riftcodex no responde · `)+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
 export let BYCODE=null;
 export function cardByCode(code,name,imageUrl){
   if(!code && (imageUrl || isToken(name))) return withCustom(tokenCard(name,imageUrl), imgKey(code,name), name);
@@ -144,6 +153,6 @@ export function findCardRaw(name){
 
 export function init() {
   fetch(pub('openrift-catalog.json')).then(r=>r.ok?r.json():null).then(cat=>{
-    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(CARDS.length) ready(); else document.dispatchEvent(new Event('rb:cards'));
+    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(API_DONE) ready(); else document.dispatchEvent(new Event('rb:cards'));
   }).catch(()=>{});
 }
