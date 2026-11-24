@@ -1,3 +1,5 @@
+import { mountAds } from '../ads/ads';
+
 // Página informativa: barra que se vuelve sólida al bajar, aparición de secciones al hacer scroll
 // y el brillo de las tarjetas que sigue al ratón.
 
@@ -26,3 +28,23 @@ document.querySelectorAll<HTMLElement>('.fcard').forEach(card => {
 
 const year = document.getElementById('year');
 if (year) year.textContent = String(new Date().getFullYear());
+
+// lugares que quedan en la beta abierta (beta_estado en Supabase, con la clave pública): sin conexión se queda el texto fijo
+const SB_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined, SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+if (SB_URL && SB_KEY) {
+  fetch(`${SB_URL}/rest/v1/rpc/beta_estado`, { method: 'POST', headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' }, body: '{}' })
+    .then(r => r.ok ? r.json() : null)
+    .then((st: { cerrada?: boolean; cupo?: number | null; lugares?: number | null } | null) => {
+      if (!st || st.cerrada || st.cupo == null || st.lugares == null) return;
+      const left = Math.max(0, st.lugares), short = left ? `quedan ${left} de ${st.cupo} lugares` : 'lugares llenos';
+      document.querySelectorAll<HTMLElement>('[data-lugares]').forEach(el => { el.textContent = short; });
+      document.querySelectorAll<HTMLElement>('[data-lugares-full]').forEach(el => {
+        el.textContent = left ? `Quedan ${left} de ${st.cupo} lugares.` : `Ya se llenaron los ${st.cupo} lugares: si ya tienes cuenta, entra.`;
+        el.hidden = false;
+      });
+    })
+    .catch(() => {});
+}
+
+// anuncios (solo si AdSense está configurado)
+mountAds();
