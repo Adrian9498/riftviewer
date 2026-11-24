@@ -5,6 +5,7 @@ import { fetchBinder, type PublicBinder } from '../cloud/binder';
 import { cloudEnabled } from '../cloud/client';
 import { latestPrices, money, priceOf, type DayPrices } from '../cloud/prices';
 import { mountAd } from '../ads/ads';
+import { startVisits } from '../stats/visits';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -132,3 +133,4 @@ async function main() {
   addEventListener('hashchange', () => location.reload());
 }
 main();
+startVisits();

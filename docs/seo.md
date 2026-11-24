@@ -42,6 +42,18 @@ En <https://www.bing.com/webmasters> puedes **importar el sitio desde Search Con
 4. **Versión en inglés** (más adelante): la comunidad de Riftbound es mayormente en inglés. Con una página `/en/` y
    las etiquetas `hreflang`, Google muestra cada idioma a quien corresponde.
 5. **Medir**: Search Console dice con qué búsquedas apareces; para visitas, una herramienta sin cookies
-   (como Plausible o Cloudflare Web Analytics) no necesita aviso de cookies.
+   (como Plausible o Cloudflare Web Analytics) no necesita aviso de cookies. Ya está GoatCounter:
+   ve a [Visitas](#visitas) abajo.
 6. **Mazos compartidos indexables** (más adelante): hoy los mazos compartidos viven dentro de la app (`#deck=…`) y
    Google no los ve. Una página pública por mazo compartido atraería búsquedas de listas.
+
+## Visitas
+
+Riftviewer cuenta visitas con [GoatCounter](https://www.goatcounter.com): gratis, sin cookies y sin aviso de consentimiento.
+
+1. Crea una cuenta en <https://www.goatcounter.com/signup> y elige un código (por ejemplo `riftviewer` → `riftviewer.goatcounter.com`).
+2. En GitHub: Settings → Secrets and variables → Actions → **Variables** → `VITE_GOATCOUNTER` = tu código.
+3. Vuelve a publicar. Las visitas por día aparecen en el panel de `https://<código>.goatcounter.com`.
+
+Cuenta la landing (`/`), la app (`/app/`) y la carpeta pública (`/carpeta/`). Nunca registra lo que va después de `#`,
+así que los enlaces de cada carpeta no quedan guardados. En `localhost` no cuenta nada.

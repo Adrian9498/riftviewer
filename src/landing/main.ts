@@ -1,4 +1,5 @@
 import { mountAds } from '../ads/ads';
+import { startVisits } from '../stats/visits';
 
 // Página informativa: barra que se vuelve sólida al bajar, aparición de secciones al hacer scroll
 // y el brillo de las tarjetas que sigue al ratón.
@@ -48,3 +49,6 @@ if (SB_URL && SB_KEY) {
 
 // anuncios (solo si AdSense está configurado)
 mountAds();
+
+// contador de visitas (solo si GoatCounter está configurado)
+startVisits();
