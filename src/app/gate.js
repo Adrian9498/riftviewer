@@ -1,8 +1,10 @@
-// Pantalla de acceso de la beta cerrada: tapa la app hasta que entras con una cuenta invitada.
-// Con la beta abierta (o sin Supabase configurado) no aparece nunca.
+// Pantalla de acceso de la beta: tapa la app hasta que entras.
+// - Beta cerrada: solo cuentas invitadas.
+// - Beta abierta con cupo: cualquiera crea su cuenta mientras haya lugares (se muestra cuántos quedan).
+// Sin límite (o sin Supabase configurado) no aparece nunca.
 // Nota: esto es la puerta de la interfaz; el candado real está en Supabase (solo los invitados pueden crear cuenta
 // y sus datos ya están protegidos por usuario).
-import { cachedBeta, canUse, deniedByBeta, fetchBeta } from '../cloud/beta';
+import { cachedBeta, canUse, deniedByBeta, fetchBeta, withCupo } from '../cloud/beta';
 import { cloudEnabled } from '../cloud/client';
 import { currentUser, displayName, onUserChange, signOut } from '../cloud/auth';
 import { $, ic } from './base';
@@ -16,9 +18,19 @@ function show(on) {
   document.body.classList.toggle('gated', on);
 }
 function render(mode) {
-  const u = currentUser(), box = $('#gate .gbox');
-  const head = `<span class="gmark"></span><h1>Riftviewer</h1><span class="gbadge"><span class="gdot"></span>Beta cerrada</span>`;
+  const u = currentUser(), box = $('#gate .gbox'), open = withCupo(state);
+  const head = `<span class="gmark"></span><h1>Riftviewer</h1><span class="gbadge"><span class="gdot"></span>${open ? 'Beta abierta' : 'Beta cerrada'}</span>`;
   if (mode === 'checking') { box.innerHTML = `${head}<p class="gsub">Comprobando tu acceso…</p>`; return; }
+  if (open && !u) {
+    const left = state.lugares ?? 0, full = left <= 0;
+    box.innerHTML = `${head}
+      <p class="gsub">${full ? `Ya se llenaron los ${state.cupo} lugares de la beta. Si ya tienes cuenta, entra.` : 'Riftviewer está abierto: crea tu cuenta gratis y usa todo, sin invitación.'}</p>
+      ${full ? '' : `<p class="gcupo"><b>${left}</b> de ${state.cupo} lugares disponibles</p>`}
+      ${deniedOAuth ? `<p class="gerr">${full ? 'Ya no quedan lugares para cuentas nuevas.' : 'No se pudo crear la cuenta. Inténtalo otra vez.'}</p>` : ''}
+      <div class="gbtns">${full ? '' : `<button class="btn primary" data-g="signup">${ic('user')} Crear mi cuenta</button>`}<button class="btn${full ? ' primary' : ''}" data-g="login">Ya tengo cuenta</button></div>
+      <a class="glink" href="../">Conocer Riftviewer</a>`;
+    return;
+  }
   if (u) {
     box.innerHTML = `${head}
       <p class="gsub">La cuenta <b>${esc(displayName(u))}</b> todavía no tiene invitación a la beta.</p>

@@ -463,6 +463,8 @@ body.gated{overflow:hidden}
 .gdot{width:7px;height:7px;border-radius:50%;background:#45d483}
 .gsub{margin:6px 0 0;color:#c5cee0;font-size:15px;line-height:1.5}
 .ghint{margin:0;color:var(--muted);font-size:13px}
+.gcupo{margin:2px 0 0;color:var(--muted);font-size:14px}
+.gcupo b{font-family:Cinzel,serif;font-size:22px;color:var(--acc2);margin-right:4px}
 .gerr{margin:0;padding:8px 12px;border-radius:10px;background:#ff6b6b18;border:1px solid #ff6b6b55;color:#ffb3b3;font-size:13px}
 .gbtns{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:8px}
 .gbtns .btn{justify-content:center;padding:11px 16px}

@@ -1,6 +1,10 @@
-# Riftviewer: la página informativa se indexa; la app (beta cerrada) no.
+# Riftviewer: la página informativa y la de privacidad se indexan; la app (con cuenta) no.
 User-agent: *
 Allow: /
 Disallow: /app/
+
+# el rastreador de AdSense revisa las páginas con anuncios
+User-agent: Mediapartners-Google
+Allow: /
 
 Sitemap: https://riftviewer.com/sitemap.xml

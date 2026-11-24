@@ -7,6 +7,7 @@ import * as DB from './decks';
 import { openTable } from './table';
 import { openTrade } from './trade';
 import { esc } from './utils';
+import { mountAd } from '../ads/ads';
 
 const MESA_FRESH = 6 * 3600 * 1000;
 const plural = (n, s, p = s + 's') => `${n} ${n === 1 ? s : p}`;
@@ -33,6 +34,8 @@ export function renderHub() {
   if (cards) chips.push(`<button class="hchip" data-hgo="coll">${ic('binder')}<span><small>Tu colección</small><b>${plural(cards, 'carta')}</b></span></button>`);
   box.innerHTML = chips.join('');
   box.hidden = !chips.length;
+  // el anuncio del inicio se pone cuando el inicio está a la vista (sin ancho, AdSense no lo llena)
+  if ($('#home').classList.contains('show')) mountAd($('#hAd'));
 }
 
 export function init() {

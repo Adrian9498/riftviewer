@@ -3,11 +3,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { canUse, deniedByBeta } from '../src/cloud/beta';
+import { canUse, deniedByBeta, withCupo } from '../src/cloud/beta';
 
 // ---------- Supabase de mentira: estado de la beta y sesión que cambiamos en cada prueba ----------
 const fake = vi.hoisted(() => {
-  const st = { beta: { cerrada: true, acceso: false } as { cerrada: boolean; acceso: boolean } | null, session: null as unknown, authCb: null as null | ((ev: string, s: unknown) => void) };
+  const st = { beta: { cerrada: true, acceso: false } as Record<string, unknown> | null, session: null as unknown, authCb: null as null | ((ev: string, s: unknown) => void) };
   // cualquier consulta encadenada (from().select().order()…) responde vacío
   const chain = (): unknown => new Proxy(function () {}, {
     get: (_t, k) => k === 'then' ? (res: (v: unknown) => void) => res({ data: null, error: null }) : chain(),
@@ -84,6 +84,36 @@ describe('beta cerrada', () => {
   });
 });
 
+describe('beta abierta con cupo', () => {
+  it('sin sesión: invita a crear cuenta y dice cuántos lugares quedan', async () => {
+    fake.st.beta = { cerrada: false, acceso: false, patreon: false, cupo: 100, lugares: 37 };
+    await fake.client.auth.signOut(); await settle();
+    expect($('#gate').hidden).toBe(false);
+    expect($('#gate .gbadge').textContent).toContain('Beta abierta');
+    expect($('#gate .gcupo').textContent).toContain('37 de 100');
+    expect($('#gate [data-g="signup"]')).not.toBeNull();
+  });
+  it('con el cupo lleno solo deja entrar a quien ya tiene cuenta', async () => {
+    fake.st.beta = { cerrada: false, acceso: false, patreon: false, cupo: 100, lugares: 0 };
+    fake.st.authCb?.('SIGNED_OUT', null); await settle();
+    expect($('#gate').textContent).toContain('Ya se llenaron los 100 lugares');
+    expect($('#gate [data-g="signup"]')).toBeNull();
+    expect($('#gate [data-g="login"]')).not.toBeNull();
+  });
+  it('con cuenta: entra', async () => {
+    fake.st.beta = { cerrada: false, acceso: true, patreon: false, cupo: 100, lugares: 0 };
+    await signIn('cualquiera@correo.com');
+    expect($('#gate').hidden).toBe(true);
+  });
+  it('reglas', () => {
+    const st = { cerrada: false, acceso: false, patreon: false, cupo: 100, lugares: 5 };
+    expect(withCupo(st)).toBe(true);
+    expect(canUse(st)).toBe(false);
+    expect(canUse({ ...st, acceso: true })).toBe(true);
+    expect(canUse({ ...st, cupo: null })).toBe(true);
+  });
+});
+
 describe('interruptor de Patreon', () => {
   it('apagado: todo desbloqueado, sin candados ni nada de Patreon en tu cuenta', async () => {
     fake.st.beta = { cerrada: true, acceso: true, patreon: false } as any;
@@ -108,9 +138,9 @@ describe('interruptor de Patreon', () => {
 describe('reglas de acceso', () => {
   it('sin saber el estado (sin nube o sin la migración) la app queda abierta', () => {
     expect(canUse(null)).toBe(true);
-    expect(canUse({ cerrada: false, acceso: false, patreon: false })).toBe(true);
-    expect(canUse({ cerrada: true, acceso: true, patreon: false })).toBe(true);
-    expect(canUse({ cerrada: true, acceso: false, patreon: false })).toBe(false);
+    expect(canUse({ cerrada: false, acceso: false, patreon: false, cupo: null, lugares: null })).toBe(true);
+    expect(canUse({ cerrada: true, acceso: true, patreon: false, cupo: null, lugares: null })).toBe(true);
+    expect(canUse({ cerrada: true, acceso: false, patreon: false, cupo: null, lugares: null })).toBe(false);
   });
   it('reconoce el regreso de Google/Discord rechazado por el candado', () => {
     expect(deniedByBeta('https://riftviewer.com/app/#error=server_error&error_code=unexpected_failure&error_description=Database+error+saving+new+user')).toBe(true);

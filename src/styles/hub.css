@@ -52,3 +52,8 @@
   .hchip{flex:1 1 calc(50% - 10px);min-width:0}
   .hchip b{max-width:none}
 }
+
+/* anuncios (src/ads/ads.ts): ocultos hasta que AdSense esté configurado */
+.adbox{display:block;max-width:970px;margin:30px auto 0;min-height:90px;text-align:center}
+.adbox[hidden]{display:none}
+.adlbl{display:block;margin-bottom:4px;color:#8d99b3;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase}

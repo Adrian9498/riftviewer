@@ -67,11 +67,11 @@
     <div class="hglow" aria-hidden="true"><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>
     <div class="hsparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="hcopy">
-      <span class="kicker"><span class="dot"></span>Beta cerrada · por invitación</span>
+      <span class="kicker"><span class="dot"></span>Beta abierta · <span data-lugares>100 lugares</span></span>
       <h1><span class="gold">Tus partidas de Riftbound,</span> listas para el mundo</h1>
       <p class="lead">Convierte replays en videos con mesa animada, arma y comparte mazos que cumplen las reglas, y lleva tu colección escaneando tus cartas con la cámara.</p>
       <div class="ctas">
-        <a class="lbtn lbtn-gold" href="app/">Entrar a la beta <svg class="i"><use href="#l-arrow"/></svg></a>
+        <a class="lbtn lbtn-gold" href="app/">Crear mi cuenta gratis <svg class="i"><use href="#l-arrow"/></svg></a>
         <a class="lbtn lbtn-ghost" href="#funciones">Ver funciones</a>
       </div>
       <ul class="hpoints">
@@ -174,12 +174,13 @@
   </section>
 
   <!-- ---------- preguntas frecuentes (también van como datos estructurados en el <head>) ---------- -->
+  <div class="adbox" hidden></div>
   <section class="sec" id="preguntas">
     <div class="shead reveal"><span class="eyebrow">Preguntas frecuentes</span><h2>Lo que más nos preguntan</h2></div>
     <div class="faq reveal">
       <details open><summary>¿Qué es Riftviewer?</summary><p>Una herramienta para jugadores y creadores de contenido de Riftbound: reproduce tus replays en una mesa animada y los exporta como video, te ayuda a construir mazos que cumplen las reglas y lleva tu colección de cartas con su valor.</p></details>
-      <details><summary>¿Cuánto cuesta?</summary><p>Durante la beta, Riftviewer es gratis y tiene todas sus funciones desbloqueadas.</p></details>
-      <details><summary>¿Cómo entro a la beta?</summary><p>La beta es por invitación. Si ya te invitamos, entra a la app y crea tu cuenta con el mismo correo de la invitación.</p></details>
+      <details><summary>¿Cuánto cuesta?</summary><p>Nada. Riftviewer es gratis y tiene todas sus funciones desbloqueadas; se sostiene con anuncios discretos.</p></details>
+      <details><summary>¿Cómo entro a la beta?</summary><p>La beta está abierta a las primeras 100 personas: entra a la app y crea tu cuenta con tu correo, Google o Discord. Cuando se llenen los lugares, solo podrán entrar quienes ya tienen cuenta.</p></details>
       <details><summary>¿Funciona en el teléfono?</summary><p>Sí. Puedes ver tus partidas en formato vertical 9:16, armar mazos y escanear tus cartas con la cámara del teléfono.</p></details>
       <details><summary>¿Cómo funciona el escáner de cartas?</summary><p>Apuntas la cámara al número de la carta y Riftviewer lo lee y compara el arte para reconocer la versión exacta (normal, arte alterno, sobrenumerada o firmada), y la suma a tu colección.</p></details>
       <details><summary>¿De dónde salen los datos de las cartas y los precios?</summary><p>Los datos e imágenes de las cartas vienen de las APIs públicas de Riftcodex y OpenRift. Los precios son los de mercado de TCGplayer, a través de TCGCSV, y se actualizan cada día.</p></details>
@@ -190,10 +191,10 @@
   <!-- ---------- beta ---------- -->
   <section class="sec" id="beta">
     <div class="beta reveal">
-      <span class="bic"><svg class="i"><use href="#l-lock"/></svg></span>
-      <h2>La beta es por invitación</h2>
-      <p>Estamos abriendo Riftviewer poco a poco. Si ya te invitamos, entra con el correo de tu invitación.</p>
-      <a class="lbtn lbtn-gold" href="app/">Entrar a la beta <svg class="i"><use href="#l-arrow"/></svg></a>
+      <span class="bic"><svg class="i"><use href="#l-check"/></svg></span>
+      <h2>La beta está abierta</h2>
+      <p>Las primeras 100 personas entran gratis y con todo desbloqueado. <b class="blug" data-lugares-full hidden></b></p>
+      <a class="lbtn lbtn-gold" href="app/">Crear mi cuenta gratis <svg class="i"><use href="#l-arrow"/></svg></a>
     </div>
   </section>
 </main>
@@ -201,7 +202,7 @@
 <footer class="lfoot">
   <div class="lbrand"><span class="lmark"></span><span>Riftviewer</span></div>
   <p>Riftviewer es un proyecto de fans y no está afiliado, respaldado ni patrocinado por Riot Games. Riftbound, League of Legends y sus elementos son marcas de Riot Games, Inc. Datos e imágenes de cartas: <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a> y <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>; precios de TCGplayer vía <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. Efectos visuales de Kenney (CC0).</p>
-  <small>© <span id="year">2026</span> Riftviewer</small>
+  <small>© <span id="year">2026</span> Riftviewer · <a href="privacidad.html">Privacidad</a></small>
 </footer>
 <script type="module" src="/src/landing/main.ts"></script>
 </body>

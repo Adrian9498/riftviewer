@@ -1,8 +1,21 @@
 /// <reference types="vitest/config" />
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
+
+/** ads.txt para AdSense: se escribe al compilar si está VITE_ADSENSE_CLIENT (ca-pub-…). */
+function adsTxt(): Plugin {
+  return {
+    name: 'ads-txt',
+    generateBundle() {
+      const env = { ...loadEnv('production', process.cwd(), 'VITE_'), ...process.env };
+      const pub = (env.VITE_ADSENSE_CLIENT || '').trim().replace(/^ca-/, '');
+      if (/^pub-\d{10,20}$/.test(pub)) this.emitFile({ type: 'asset', fileName: 'ads.txt', source: `google.com, ${pub}, DIRECT, f08c47fec0942fa0\n` });
+    },
+  };
+}
 
 export default defineConfig({
+  plugins: [adsTxt()],
   // rutas relativas: el build funciona en cualquier subcarpeta del hosting
   base: './',
   build: {

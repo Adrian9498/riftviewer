@@ -4,6 +4,7 @@ import { binderImg, binderPages, binderSummary, isSpecial, PER_PAGE, type Binder
 import { fetchBinder, type PublicBinder } from '../cloud/binder';
 import { cloudEnabled } from '../cloud/client';
 import { latestPrices, money, priceOf, type DayPrices } from '../cloud/prices';
+import { mountAd } from '../ads/ads';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -87,8 +88,9 @@ function shell() {
     <section id="bvBest"></section>
     <div class="bvbar"><div class="bvsets" id="bvSets"></div><label class="bvsp"><input type="checkbox" id="bvSpecial"> Solo especiales</label></div>
     <div class="bvbook" id="bvBook"></div>
-    <nav class="bvnav"><button id="bvPrev" aria-label="Hojas anteriores">‹</button><span id="bvPos"></span><button id="bvNext" aria-label="Hojas siguientes">›</button></nav>`;
-  renderSummary(); renderFilters(); renderBook();
+    <nav class="bvnav"><button id="bvPrev" aria-label="Hojas anteriores">‹</button><span id="bvPos"></span><button id="bvNext" aria-label="Hojas siguientes">›</button></nav>
+    <div class="adbox" id="bvAd" hidden></div>`;
+  renderSummary(); renderFilters(); renderBook(); mountAd($('#bvAd'));
 }
 
 function fit() {

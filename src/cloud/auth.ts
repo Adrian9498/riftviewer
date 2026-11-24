@@ -1,4 +1,5 @@
 // Sesión del usuario: email + contraseña, Google y Discord.
+import { cachedBeta } from './beta';
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from './client';
 
@@ -45,8 +46,12 @@ const traducir = (msg: string): string => {
   if (m.includes('already registered')) return 'Ya existe una cuenta con ese correo.';
   if (m.includes('password should be at least')) return 'La contraseña debe tener al menos 6 caracteres.';
   if (m.includes('rate limit')) return 'Demasiados intentos. Espera un momento y vuelve a intentar.';
-  // el candado de la beta cerrada rechazó el registro (Supabase no deja pasar el mensaje original)
-  if (m.includes('database error saving new user') || m.includes('beta cerrada')) return 'Riftviewer está en beta cerrada y ese correo no tiene invitación.';
+  // el candado de la beta rechazó el registro (Supabase no deja pasar el mensaje original): sin invitación o sin lugares
+  if (m.includes('cupo lleno')) return 'Ya se llenaron los lugares de la beta.';
+  if (m.includes('database error saving new user') || m.includes('beta cerrada')) {
+    const b = cachedBeta();
+    return b && !b.cerrada ? 'Ya se llenaron los lugares de la beta.' : 'Riftviewer está en beta cerrada y ese correo no tiene invitación.';
+  }
   return msg;
 };
 async function run<R extends { data: unknown; error: { message: string } | null }>(p: Promise<R>): Promise<R['data']> {
