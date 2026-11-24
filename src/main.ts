@@ -38,6 +38,7 @@ import { init as initHub } from './app/hub.js';
 import { init as initBinderPub } from './app/binderpub.js';
 import { init as initNav } from './app/nav.js';
 import { init as initGate } from './app/gate.js';
+import { startVisits } from './stats/visits';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
@@ -45,3 +46,4 @@ export function start(): void {
 }
 
 start();
+startVisits();
