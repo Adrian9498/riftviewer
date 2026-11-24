@@ -1,5 +1,8 @@
 // Página pública de una carpeta (riftviewer.com/carpeta/#slug): se hojea de 9 en 9, sin cuenta.
 import './binder.css';
+import '../i18n/i18n.css';
+import { LANG, locale, t, wireLangSwitch } from '../i18n/i18n';
+import { startDomTranslation } from '../i18n/dom';
 import { binderImg, binderPages, binderSummary, isSpecial, PER_PAGE, type BinderCard } from '../collection/binder';
 import { fetchBinder, type PublicBinder } from '../cloud/binder';
 import { cloudEnabled } from '../cloud/client';
@@ -9,7 +12,7 @@ import { startVisits } from '../stats/visits';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
-const plural = (n: number, s: string, p = s + 's') => `${n.toLocaleString('es')} ${n === 1 ? s : p}`;
+const plural = (n: number, s: string, p = s + 's') => `${n.toLocaleString(locale())} ${n === 1 ? s : p}`;
 const FIN: Record<string, string> = { foil: 'Foil', metal: 'Metal', 'metal-deluxe': 'Metal Deluxe' };
 const VAR: Record<string, string> = { 'Arte alterno': 'Alterna', Firmada: 'Firmada', Sobrenumerada: 'Sobrenumerada', Ultimate: 'Ultimate' };
 
@@ -52,7 +55,7 @@ function renderBook(dir = 0) {
 
 function renderSummary() {
   const b = S.b!, sum = binderSummary(b.data.cards, (c, f) => priceOf(S.prices, c, f));
-  const when = new Date(b.updatedAt).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+  const when = new Date(b.updatedAt).toLocaleDateString(locale(), { day: 'numeric', month: 'long', year: 'numeric' });
   $('#bvStats').innerHTML = `<span><b>${plural(sum.copies, 'carta')}</b><small>${plural(sum.distinct, 'versión', 'versiones')} distintas</small></span>
     ${sum.priced ? `<span><b>${money(sum.value)}</b><small>valor de mercado hoy</small></span>` : ''}
     <span><b>${plural(b.data.cards.filter(isSpecial).length, 'especial', 'especiales')}</b><small>alternas, foil y épicas</small></span>`;
@@ -83,7 +86,7 @@ function zoom(c: BinderCard | undefined) {
 
 function shell() {
   const b = S.b!;
-  document.title = `${b.title || 'Carpeta'} · Riftviewer`;
+  document.title = `${b.title || t('Carpeta')} · Riftviewer`;
   $('#bv').innerHTML = `
     <section class="bvhead"><h1>${esc(b.title || 'Carpeta de Riftbound')}</h1><p class="bvwhen" id="bvWhen"></p><div class="bvstats" id="bvStats"></div></section>
     <section id="bvBest"></section>
@@ -132,5 +135,9 @@ async function main() {
   $('#bv').addEventListener('touchend', e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 50) turn(dx < 0 ? 1 : -1); });
   addEventListener('hashchange', () => location.reload());
 }
+// idioma primero: lo que se pinte después ya sale traducido
+startDomTranslation();
+wireLangSwitch();
+document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
 main();
 startVisits();

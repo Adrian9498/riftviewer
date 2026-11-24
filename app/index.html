@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- idioma: en inglés la página se oculta un instante hasta traducirse (sin parpadeo en español) -->
+<script>try{if((localStorage.getItem('rb_lang')||'en')==='en'){document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},1500)}}catch(e){}</script>
+<style>.i18n-wait body{visibility:hidden}</style>
 <title>Riftviewer · App</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#070b14">
@@ -132,6 +135,37 @@ Copias: "Poro#2" se refiere a la 2ª copia.
 Comentarios: líneas que empiezan con #.
 Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
 </pre></template>
+    <template id="cmdHelpEn"><pre class="cmdpre">
+SETUP (before the first "turn")
+  player p1 "Name"           player p2 "Name"
+  legend p1 "Card"           champion p1 "Card"
+  battlefield A "Battlefield" (A, B or C)
+  hand p1 4                  (face-down cards)
+  goal 8                     (points to win)
+
+PLAYS
+  turn p1                    phase "Text"
+  draw p1 [n]                draw p1 "Card" (revealed)
+  runes p1 3  /  +2  / -1
+  play p1 "Card"             (spell → trash)
+  play p1 "Card" to base     play p1 "Card" to A
+  move p1 "Card" to B        move p1 "Card" to base
+  exhaust "Card"             ready "Card"
+  ready p1 all
+  damage "Card" 3            heal "Card"
+  might "Card" +2            (bonus marker)
+  combat A                   conquer p1 A
+  hold p1 A                  release A
+  dies "Card"                return "Card"  (to hand)
+  points p1 +1               focus "Card"
+  text "Comment"             pause 2
+  wins p1
+
+Copies: "Poro#2" means the 2nd copy.
+Comments: lines starting with #.
+Spanish commands work too (juega, roba, mueve…).
+Keys: Space play/pause · ←/→ step · Home · H editor
+</pre></template>
   </aside>
 
   <main id="viewport">
@@ -223,7 +257,7 @@ Teclas: Espacio play/pausa · ←/→ paso · Inicio · H editor
           <span>Perspectiva</span><select id="rview"></select>
           <span>Manos</span><select id="rhands"><option value="all">Todas visibles</option><option value="view">Solo la perspectiva</option><option value="none">Ocultas</option></select>
           <span>Subtítulos</span><select id="rcap"><option value="0">No</option><option value="1">Sí, mostrar cada acción</option></select>
-          <span>Idioma del registro</span><select id="rlang"><option value="es">Español</option><option value="en">Original (inglés)</option></select>
+          <span class="esonly">Idioma del registro</span><select id="rlang" class="esonly"><option value="es">Español</option><option value="en">Original (inglés)</option></select>
           <div class="full hint">La perspectiva es el jugador cuya mano va abajo. Con "Solo la perspectiva", las cartas del rival se ven boca abajo.</div>
         </div>
       </details>

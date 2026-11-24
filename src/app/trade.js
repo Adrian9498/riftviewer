@@ -3,6 +3,7 @@
 // - "Busco": lo que te falta para tus mazos, más lo que agregues a mano.
 // - Se comparte con un enlace (la lista va dentro, sin servidor) y un texto para WhatsApp.
 // - Al abrir el enlace de alguien más, la app cruza su lista con la tuya: qué te puede dar y qué le puedes dar.
+import { _t } from '../i18n/i18n';
 import { FINISH_ES, searchPrintings } from '../collection/model';
 import { decodeTrade, encodeTrade, extras, matchLists, tradeText, wants } from '../collection/trade';
 import { money, priceOf, pricesNow } from '../cloud/prices';
@@ -197,7 +198,7 @@ export function init() {
     if (e.target.closest('[data-trsclose]') || e.target.id === 'trSheet') { setName(); closeSheet(); return; }
     if (e.target.closest('[data-trcopylink]')) { setName(); copy(shareUrl(), 'Enlace copiado'); return; }
     if (e.target.closest('[data-trcopytext]')) { setName(); copy(tradeText(myList(), nameOf, shareUrl()), 'Texto copiado: pégalo en el grupo'); return; }
-    if (e.target.closest('[data-trshare]')) { setName(); navigator.share?.({ title: 'Mis intercambios de Riftbound', text: tradeText(myList(), nameOf, shareUrl()) }).catch(() => {}); return; }
+    if (e.target.closest('[data-trshare]')) { setName(); navigator.share?.({ title: _t('Mis intercambios de Riftbound'), text: tradeText(myList(), nameOf, shareUrl()) }).catch(() => {}); return; }
   });
   root.addEventListener('input', e => {
     if (e.target.id === 'trQ') {

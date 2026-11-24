@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- idioma: en inglés la página se oculta un instante hasta traducirse (sin parpadeo en español) -->
+<script>try{if((localStorage.getItem('rb_lang')||'en')==='en'){document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},1500)}}catch(e){}</script>
+<style>.i18n-wait body{visibility:hidden}</style>
 <title>Carpeta de Riftbound · Riftviewer</title>
 <meta name="description" content="Hojea esta colección de Riftbound: sus cartas, versiones especiales y cuánto vale. Hecha con Riftviewer.">
 <meta name="robots" content="noindex">
@@ -20,6 +23,7 @@
 <body>
 <header class="bvtop">
   <a class="bvbrand" href="../"><span class="bvmark"></span>Riftviewer</a>
+  <span class="langsw" translate="no" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en">EN</button><button type="button" data-lang="es">ES</button></span>
   <a class="bvcta" href="../app/">Crea tu carpeta</a>
 </header>
 <main id="bv" aria-live="polite">

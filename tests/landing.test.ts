@@ -2,9 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { EN } from '../src/i18n/en';
 
 const html = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
-const redirect = html.match(/<script>([\s\S]*?)<\/script>/)![1];
+const redirect = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(s => s.includes('location.replace'))!;
 /** corre el script del <head> con una dirección de prueba y devuelve a dónde manda (o null) */
 function goesTo(hash: string): string | null {
   let to: string | null = null;
@@ -65,10 +66,10 @@ describe('SEO', () => {
     expect(meta('twitter:card')).toBe('summary_large_image');
     expect(meta('og:url')).toBe('https://riftviewer.com/');
   });
-  it('datos estructurados válidos, y las preguntas son las mismas que se ven en la página', () => {
+  it('datos estructurados válidos, y las preguntas son las de la página (en inglés, el idioma principal)', () => {
     const j = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
     const faq = j['@graph'].find((x: { '@type': string }) => x['@type'] === 'FAQPage');
-    const visible = [...html.matchAll(/<summary>([^<]*)<\/summary>/g)].map(m => m[1]);
+    const visible = [...html.matchAll(/<summary>([^<]*)<\/summary>/g)].map(m => EN[m[1]]);
     expect(faq.mainEntity.map((q: { name: string }) => q.name)).toEqual(visible);
     expect(j['@graph'].some((x: { '@type': string }) => x['@type'] === 'WebApplication')).toBe(true);
   });

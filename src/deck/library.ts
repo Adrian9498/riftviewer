@@ -3,6 +3,7 @@
 // y los mazos de antes siguen funcionando.
 import { fullRecord, type ReplayAnalysis } from './analysis';
 import type { Deck } from './model';
+import { t } from '../i18n/i18n';
 
 export interface Record_ { w: number; l: number }
 /** Una versión: qué cartas entraron y salieron respecto a la anterior. */
@@ -165,7 +166,7 @@ export function filterDecks(decks: LibDeck[], f: LibFilter, info: InfoOf): LibDe
 /** Copia de un mazo para "Duplicar": mismas cartas, notas y carpeta; récord e historial nuevos. */
 export function duplicate(d: LibDeck, id: string, now = Date.now()): LibDeck {
   const c: LibDeck = JSON.parse(JSON.stringify(d));
-  c.id = id; c.name = `${d.name || 'Mazo'} (copia)`; c.fav = false; c.updatedAt = now; c.createdAt = now;
+  c.id = id; c.name = t('{0} (copia)', d.name || t('Mazo')); c.fav = false; c.updatedAt = now; c.createdAt = now;
   delete c.record; c.history = [];
   delete c.replays;   // los archivos son del mazo original
   delete c.games;

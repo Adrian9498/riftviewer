@@ -1,4 +1,6 @@
 // Generado a partir de legacy/app.js (sección "export").
+import { translateText } from '../i18n/dom';
+import { _t } from '../i18n/i18n';
 import { isPremium } from '../cloud/plan';
 import { $, ic, stage } from './base';
 import { startFrame } from './replay';
@@ -75,16 +77,16 @@ export async function recordVideo(segs,fps=60){
   if(!chunks.length){ setStatus('No se grabó nada','err'); return; }
   const type=rec.mimeType||'video/webm', ext=type.includes('mp4')?'mp4':'webm', blob=new Blob(chunks,{type});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`partida-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')}.${ext}`; a.click();
+  a.download=`${_t('partida')}-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')}.${ext}`; a.click();
   setStatus(`Video exportado: ${a.download} (${(blob.size/1048576).toFixed(1)} MB)`,'ok');
   showChapters(cleanChapters(marks,duration),a.download);
 }
 /* al terminar, los capítulos listos para pegar en la descripción de YouTube */
 function showChapters(cs,file){
   if(cs.length<2) return;
-  const txt=chaptersText(cs);
+  const txt=chaptersText(cs.map(c=>({...c,label:translateText(c.label)??c.label})));
   const body=openModal('Video listo',`
-    <div class="full hint">Se descargó <b>${esc(file)}</b>. Pega estos capítulos en la descripción de YouTube para que el video tenga secciones.${cs.length<3?' YouTube necesita al menos 3 capítulos; este video tiene '+cs.length+'.':''}</div>
+    <div class="full hint">${_t('Se descargó <b>{0}</b>. Pega estos capítulos en la descripción de YouTube para que el video tenga secciones.', esc(file))}${cs.length<3?' '+_t('YouTube necesita al menos 3 capítulos; este video tiene {0}.', cs.length):''}</div>
     <textarea class="full chtxt" readonly rows="${Math.min(12,cs.length+1)}">${esc(txt)}</textarea>`,
     [['Cerrar'],['Copiar capítulos','primary',()=>{ navigator.clipboard?.writeText(txt).then(()=>toast('Capítulos copiados','ok')).catch(()=>{ body.querySelector('textarea').select(); document.execCommand('copy'); }); return false; }]]);
 }
@@ -139,7 +141,7 @@ export function init() {
       <span>Título inicial</span><input type="text" id="exTitle" placeholder="Opcional: Diana vs Seraphine">
       ${full?'':`<div class="full hint">Plan Gratis: 720p · 30 fps, con una marca de agua pequeña. <a href="#" data-up>Ver Full Access</a></div>`}
       <div class="full exsum" id="exSum"></div>
-      <div class="full hint">Al pulsar <b>Grabar</b>, el navegador te pedirá compartir <b>esta pestaña</b>: elígela y acepta. Se graba solo la mesa, con sonido y en pantalla completa.${app.R&&$('#rauto').value==='1'?' Si el video llega al final, incluye el resumen y los mazos.':''}</div>`,
+      <div class="full hint">${_t('Al pulsar <b>Grabar</b>, el navegador te pedirá compartir <b>esta pestaña</b>: elígela y acepta. Se graba solo la mesa, con sonido y en pantalla completa.')}${app.R&&$('#rauto').value==='1'?' '+_t('Si el video llega al final, incluye el resumen y los mazos.'):''}</div>`,
       [['Miniatura para YouTube','ghost',()=>{ openThumbnail(); return false; }],['Cancelar'],['Grabar','primary',()=>{
         const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ alert('Elige qué quieres grabar.'); return false; }
         if(k==='turns' && +$('#exTo').value < +$('#exFrom').value){ alert('El turno final debe ser igual o posterior al inicial.'); return false; }
@@ -150,7 +152,7 @@ export function init() {
     const summary=()=>{
       const k=body.querySelector('.preset.on')?.dataset.p; if(!k){ $('#exSum').textContent=''; return; }
       const n=W[k].segs().reduce((t,s)=>t+Math.max(0,s.to-s.from),0);
-      $('#exSum').innerHTML=`${ic('replay')} Se grabarán <b>${n} jugada${n===1?'':'s'}</b>${W[k].segs().length>1?` en ${W[k].segs().length} partes`:''}.`;
+      $('#exSum').innerHTML=`${ic('replay')} ${_t('Se grabarán <b>{0}</b>', _t(n===1?'{0} jugada':'{0} jugadas', n))}${W[k].segs().length>1?' '+_t('en {0} partes', W[k].segs().length):''}.`;
     };
     const setFmt=f=>body.querySelectorAll('.exfmt button').forEach(b=>b.classList.toggle('on',b.dataset.fmt===f));
     setFmt(stage.className);

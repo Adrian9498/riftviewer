@@ -7,6 +7,7 @@
 import { cachedBeta, canUse, deniedByBeta, fetchBeta, withCupo } from '../cloud/beta';
 import { cloudEnabled } from '../cloud/client';
 import { currentUser, displayName, onUserChange, signOut } from '../cloud/auth';
+import { langSwitchHTML } from '../i18n/i18n';
 import { $, ic } from './base';
 import { openAuth } from './account';
 import { esc } from './utils';
@@ -19,7 +20,7 @@ function show(on) {
 }
 function render(mode) {
   const u = currentUser(), box = $('#gate .gbox'), open = withCupo(state);
-  const head = `<span class="gmark"></span><h1>Riftviewer</h1><span class="gbadge"><span class="gdot"></span>${open ? 'Beta abierta' : 'Beta cerrada'}</span>`;
+  const head = `<span class="gmark"></span><h1>Riftviewer</h1><span class="gbadge"><span class="gdot"></span>${open ? 'Beta abierta' : 'Beta cerrada'}</span>${langSwitchHTML('langsw gate')}`;
   if (mode === 'checking') { box.innerHTML = `${head}<p class="gsub">Comprobando tu acceso…</p>`; return; }
   if (open && !u) {
     const left = state.lugares ?? 0, full = left <= 0;

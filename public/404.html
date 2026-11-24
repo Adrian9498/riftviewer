@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Página no encontrada · Riftviewer</title>
+<title>Page not found · Riftviewer</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <style>
@@ -20,9 +20,19 @@
 <body>
 <main>
   <img src="/icon-192.png" alt="">
-  <h1>Esta página no existe</h1>
-  <p>Puede que el enlace esté mal escrito o que la página se haya movido.</p>
-  <a class="a1" href="/">Ir al inicio</a><a class="a2" href="/app/">Abrir la app</a>
+  <h1 data-es="Esta página no existe">This page doesn't exist</h1>
+  <p data-es="Puede que el enlace esté mal escrito o que la página se haya movido.">The link may be mistyped or the page may have moved.</p>
+  <a class="a1" href="/" data-es="Ir al inicio">Go to the home page</a><a class="a2" href="/app/" data-es="Abrir la app">Open the app</a>
 </main>
+<!-- en inglés por defecto; en español si la persona lo eligió en Riftviewer -->
+<script>
+try {
+  if (localStorage.getItem('rb_lang') === 'es') {
+    document.documentElement.lang = 'es';
+    document.title = 'Página no encontrada · Riftviewer';
+    document.querySelectorAll('[data-es]').forEach(function (e) { e.textContent = e.getAttribute('data-es'); });
+  }
+} catch (e) {}
+</script>
 </body>
 </html>

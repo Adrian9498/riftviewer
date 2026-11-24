@@ -1,5 +1,14 @@
+import '../i18n/i18n.css';
 import { mountAds } from '../ads/ads';
 import { startVisits } from '../stats/visits';
+import { startDomTranslation } from '../i18n/dom';
+import { LANG, wireLangSwitch } from '../i18n/i18n';
+
+// idioma: inglés por defecto (la página está escrita en español y se traduce al cargar)
+startDomTranslation();
+wireLangSwitch();
+document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+if (LANG === 'es') { document.documentElement.lang = 'es'; document.title = 'Riftviewer · Replays, mazos y colección de Riftbound'; }
 
 // Página informativa: barra que se vuelve sólida al bajar, aparición de secciones al hacer scroll
 // y el brillo de las tarjetas que sigue al ratón.

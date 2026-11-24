@@ -9,6 +9,7 @@ import './styles/collection.css';
 import './styles/table.css';
 import './styles/trade.css';
 import './styles/hub.css';
+import './i18n/i18n.css';
 import { init as initCards } from './app/cards.js';
 import { init as initReplay } from './app/replay.js';
 import { init as initShell } from './app/shell.js';
@@ -39,11 +40,16 @@ import { init as initBinderPub } from './app/binderpub.js';
 import { init as initNav } from './app/nav.js';
 import { init as initGate } from './app/gate.js';
 import { startVisits } from './stats/visits';
+import { startDomTranslation } from './i18n/dom';
+import { wireLangSwitch } from './i18n/i18n';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
     initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initTable, initTrade, initHub, initBinderPub, initGate, initNav]) init();
 }
 
+// el idioma va primero: así todo lo que se pinta después ya sale traducido
+startDomTranslation();
+wireLangSwitch();
 start();
 startVisits();

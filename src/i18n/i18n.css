@@ -1,0 +1,33 @@
+/* Idioma: el selector EN / ES y los textos que vienen del CSS (content:) en inglés. */
+
+.langsw{display:inline-flex;flex:none;padding:2px;border-radius:999px;border:1px solid #c8aa6e55;background:#0b1220cc;gap:2px}
+.langsw button{min-width:34px;height:26px;padding:0 9px;border:0;border-radius:999px;background:transparent;color:#aeb8cc;font:700 12px/1 Inter,system-ui,sans-serif;letter-spacing:.5px;cursor:pointer}
+.langsw button:hover{color:#fff}
+.langsw button.on{background:#c8aa6e;color:#0b1220}
+.langsw button:focus-visible{outline:2px solid #e6c67f;outline-offset:1px}
+
+/* en el menú de secciones de la app */
+.navlang{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px 6px;color:#aeb8cc;font-size:13px}
+/* en la pantalla de acceso, arriba a la derecha */
+.langsw.gate{position:absolute;top:14px;right:14px}
+
+/* solo en español (por ejemplo, el idioma del registro de jugadas) */
+html[lang="en"] .esonly{display:none}
+
+/* textos puestos con content: en los estilos */
+html[lang="en"] .rstrip.side.active .pname::after{content:" ● THEIR TURN"}
+html[lang="en"] #stage[data-skin=fan] .rstrip.side.active .pname::after{content:" ◆ THEIR TURN"}
+html[lang="en"] #stage[data-skin=pro] .rstrip.side.active .pname::after{content:" ● ON TURN"}
+html[lang="en"] #rchain:not(:empty)::before{content:"CHAIN"}
+html[lang="en"] #stage[data-skin=fan] #rchain:not(:empty)::before{content:"◆ CHAIN ◆"}
+html[lang="en"] body:not(.rec) .card .face.ph::after{content:"right-click: set image"}
+html[lang="en"] .card.hid::after{content:"HIDDEN"}
+html[lang="en"] .mc.new::before{content:"NEW"}
+html[lang="en"] .csstrip::after{content:'Number here'}
+html[lang="en"] .simc.pick::after{content:'To bottom'}
+@media (max-width:760px){ html[lang="en"] #bPanel::after{content:'Plays'} }
+.gbox{position:relative}
+/* en la landing y la carpeta, junto al botón de la barra */
+.bvtop .langsw{margin-left:auto;margin-right:2px}
+.lnav .langsw{margin:0}
+@media (max-width:640px){ .lnav .langsw{margin-left:auto;margin-right:-16px} }

@@ -1,4 +1,5 @@
 // Cuenta: iniciar sesión / crear cuenta (correo, Google, Discord), menú de la cuenta y estado de la nube.
+import { locale } from '../i18n/i18n';
 import { currentUser, displayName, enabledProviders, initAuth, onUserChange, sendPasswordReset, setNewPassword, signIn, signInWith, signOut, signUp } from '../cloud/auth';
 import { cloudEnabled } from '../cloud/client';
 import { connectPatreon, disconnectPatreon, patreonLink, takePatreonReturn } from '../cloud/patreon';
@@ -113,7 +114,7 @@ function paintTier() {
   const el = $('#acTier'); if (!el) return;
   const p = currentPlan();
   if (isPremium()) {
-    const until = p.validUntil ? ` <small style="color:var(--muted)">· vigente hasta el ${new Date(p.validUntil).toLocaleDateString('es')}</small>` : '';
+    const until = p.validUntil ? ` <small style="color:var(--muted)">· vigente hasta el ${new Date(p.validUntil).toLocaleDateString(locale())}</small>` : '';
     el.innerHTML = `<b class="pt-on">${esc(tierLabel(p.tier))}</b>${until}`;
   } else {
     el.innerHTML = 'Gratis <a href="#" id="acUp">Ver Full Access</a>';

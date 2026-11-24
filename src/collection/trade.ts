@@ -1,6 +1,7 @@
 // Intercambios: lo que te sobra de tu colección, lo que buscas para tus mazos y el cruce con la lista de otra persona.
 // Todo es puro (sin DOM) para poder probarlo. La lista se comparte dentro de un enlace, sin servidor.
 import type { Collection, Printing } from './model';
+import { t as tr } from '../i18n/i18n';
 
 /** Una carta en una lista de intercambio: impresión, acabado y copias. */
 export interface TradeItem { code: string; finish: string; n: number }
@@ -100,14 +101,14 @@ export function matchLists(giver: TradeItem[], taker: WantItem[], keyOfCode: (co
 /** Texto para mandar por WhatsApp: las dos listas (cortas) y el enlace. */
 export function tradeText(t: TradeList, nameOf: (code: string) => string, url: string, max = 25): string {
   const fin = (f: string) => (f === 'normal' ? '' : ` (${f === 'foil' ? 'foil' : f})`);
-  const lines = <T,>(xs: T[], fn: (x: T) => string) => [...xs.slice(0, max).map(fn), ...(xs.length > max ? [`…y ${xs.length - max} más`] : [])];
+  const lines = <T,>(xs: T[], fn: (x: T) => string) => [...xs.slice(0, max).map(fn), ...(xs.length > max ? [tr('…y {0} más', xs.length - max)] : [])];
   return [
-    `Intercambios${t.name ? ' de ' + t.name : ''} (Riftbound)`,
+    t.name ? tr('Intercambios de {0} (Riftbound)', t.name) : tr('Intercambios (Riftbound)'),
     '',
-    t.have.length ? 'Me sobran:' : '', ...lines(t.have, x => `${x.n} ${nameOf(x.code)}${fin(x.finish)}`),
+    t.have.length ? tr('Me sobran:') : '', ...lines(t.have, x => `${x.n} ${nameOf(x.code)}${fin(x.finish)}`),
     t.have.length ? '' : '',
-    t.want.length ? 'Busco:' : '', ...lines(t.want, x => `${x.n} ${nameOf(x.code)}`),
+    t.want.length ? tr('Busco:') : '', ...lines(t.want, x => `${x.n} ${nameOf(x.code)}`),
     '',
-    `Ve qué nos podemos cambiar con tu colección: ${url}`,
+    tr('Ve qué nos podemos cambiar con tu colección: {0}', url),
   ].filter((l, i, a) => !(l === '' && a[i - 1] === '')).join('\n').trim();
 }

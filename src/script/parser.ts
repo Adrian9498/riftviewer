@@ -39,8 +39,19 @@ const NEEDS_QUOTED = ['leyenda', 'campeon', 'juega', 'mueve', 'agota', 'dano', '
 const NEEDS_FIELD = ['combate', 'conquista', 'controla', 'libera'];
 const NEEDS_NUMBER = ['dano', 'poder', 'meta', 'mano', 'runas', 'puntos'];
 
+/** Los comandos también se pueden escribir en inglés: "play p1 "Card" to base" = "juega j1 "Carta" a base". */
+export const EN_COMMANDS: Record<string, (typeof COMMANDS)[number]> = {
+  player: 'jugador', legend: 'leyenda', champion: 'campeon', battlefield: 'campo', field: 'campo', hand: 'mano',
+  goal: 'meta', turn: 'turno', phase: 'fase', draw: 'roba', runes: 'runas', play: 'juega', move: 'mueve',
+  exhaust: 'agota', ready: 'prepara', damage: 'dano', heal: 'cura', might: 'poder', combat: 'combate', fight: 'combate',
+  conquer: 'conquista', hold: 'controla', control: 'controla', release: 'libera', die: 'muere', dies: 'muere', kill: 'muere',
+  return: 'regresa', points: 'puntos', score: 'puntos', focus: 'foco', text: 'texto', pause: 'pausa', wait: 'pausa',
+  win: 'gana', wins: 'gana',
+};
+const EN_WORDS: Record<string, string> = { to: 'a', all: 'todo' };
+
 export const playerOf = (w: string | undefined): Player | undefined =>
-  ({ j1: 1, j2: 2 } as Record<string, Player>)[w?.toLowerCase() ?? ''];
+  ({ j1: 1, j2: 2, p1: 1, p2: 2 } as Record<string, Player>)[w?.toLowerCase() ?? ''];
 
 export function tokenize(line: string): Token[] {
   const out: Token[] = [];
@@ -60,9 +71,10 @@ export function parse(src: string): ParseResult {
     if (!line || line.startsWith('#') || line.startsWith('//')) return;
     const t = tokenize(line);
     const first = 'w' in t[0] ? t[0].w : '';
-    const cmd = stripAccents(first);
+    const cmd0 = stripAccents(first);
+    const cmd = EN_COMMANDS[cmd0] ?? cmd0;
     const rest = t.slice(1);
-    const words = rest.flatMap(x => ('w' in x ? [x.w] : []));
+    const words = rest.flatMap(x => ('w' in x ? [EN_WORDS[x.w.toLowerCase()] ?? x.w] : []));
     const quoted = rest.flatMap(x => ('q' in x ? [x.q] : []));
     const pl = words.map(playerOf).find(Boolean);
     const num = words.find(w => /^[+-]?\d+(\.\d+)?$/.test(w));

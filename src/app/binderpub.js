@@ -1,5 +1,6 @@
 // Publicar la colección como carpeta pública (botón "Carpeta pública" de la colección).
 // La foto se arma aquí y se guarda en Supabase; la página /carpeta/ la muestra a cualquiera con el enlace.
+import { locale } from '../i18n/i18n';
 import { buildBinder, isSpecial } from '../collection/binder';
 import { myBinder, publishBinder, unpublishBinder } from '../cloud/binder';
 import { cloudEnabled } from '../cloud/client';
@@ -46,7 +47,7 @@ function render(body, msg = '') {
       <label><input type="radio" name="bpmode" value="all" ${mode === 'all' ? 'checked' : ''}><span><b>Toda mi colección</b><small>${plural(all.cards.length, 'carta')}</small></span></label>
       <label><input type="radio" name="bpmode" value="special" ${mode === 'special' ? 'checked' : ''}><span><b>Solo las especiales</b><small>alternas, firmadas, foil y épicas · ${plural(nSpecial, 'carta')}</small></span></label>
     </div>
-    ${pub ? `<div class="bplink"><span>${ic('check')} Publicada · se ve como estaba al ${new Date(pub.updatedAt).toLocaleDateString('es', { day: 'numeric', month: 'short' })}</span><input readonly value="${esc(link)}" id="bpLink"></div>` : ''}
+    ${pub ? `<div class="bplink"><span>${ic('check')} Publicada · se ve como estaba al ${new Date(pub.updatedAt).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}</span><input readonly value="${esc(link)}" id="bpLink"></div>` : ''}
     ${msg ? `<p class="bpmsg">${esc(msg)}</p>` : ''}
     <div class="bpacts">
       <button class="btn primary" data-bp="publish">${ic('upload')} ${pub ? 'Actualizar con mi colección de hoy' : 'Publicar mi carpeta'}</button>

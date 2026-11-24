@@ -54,3 +54,56 @@ puntos j2 +1
 pausa 1
 gana j1
 `;
+/** El mismo ejemplo con los comandos y textos en inglés. */
+export const DEMO_EN = `# ===== Sample script =====
+# Edit it, press "Apply changes" (Ctrl+Enter) and then Play.
+player p1 "Adrian"
+player p2 "Opponent"
+legend p1 "Jinx - Loose Cannon"
+legend p2 "Vi - Piltover Enforcer"
+battlefield A "Star Spring"
+battlefield B "Trapping Grounds"
+hand p1 4
+hand p2 4
+goal 8
+
+turn p1
+phase "Start"
+runes p1 2
+draw p1 "Jinx - Rebel"
+play p1 "Prepared Neophyte" to base
+text "Adrian opens with a cheap unit"
+
+turn p2
+runes p2 2
+draw p2
+play p2 "Undying Legion" to base
+move p2 "Undying Legion" to A
+hold p2 A
+points p2 +1
+
+turn p1
+ready p1 all
+runes p1 3
+play p1 "Jinx - Rebel" to base
+move p1 "Jinx - Rebel" to A
+move p1 "Prepared Neophyte" to A
+text "Jinx is going to contest battlefield A!"
+combat A
+damage "Undying Legion" 3
+dies "Undying Legion"
+damage "Prepared Neophyte" 1
+conquer p1 A
+points p1 +1
+exhaust "Jinx - Rebel"
+
+turn p2
+runes p2 4
+play p2 "Vault Breaker"
+text "Spell straight to the trash"
+play p2 "Lord Broadmane" to B
+hold p2 B
+points p2 +1
+pause 1
+wins p1
+`;

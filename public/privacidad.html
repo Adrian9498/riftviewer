@@ -1,24 +1,63 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacidad · Riftviewer</title>
-<meta name="description" content="Qué datos usa Riftviewer, para qué, y cómo funcionan los anuncios y las cookies.">
+<title>Privacy · Riftviewer</title>
+<meta name="description" content="What data Riftviewer uses, why, and how ads, cookies and visit counting work.">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <style>
   :root{color-scheme:dark}
   body{margin:0;background:#070b14;color:#e9edf5;font:16px/1.65 Inter,system-ui,sans-serif}
   main{max-width:760px;margin:0 auto;padding:40px 20px 60px}
+  main[hidden]{display:none}
   h1{font-family:Cinzel,Georgia,serif;font-size:32px;margin:0 0 4px;color:#e6c67f}
   h2{font-size:19px;margin:30px 0 8px;color:#f0e6d2}
   p,li{color:#c5cee0}
   a{color:#e6c67f}
   small{color:#8d99b3}
+  .sw{float:right;display:inline-flex;gap:2px;padding:2px;border-radius:999px;border:1px solid #c8aa6e55}
+  .sw a{padding:3px 10px;border-radius:999px;font:700 12px/1.4 Inter,system-ui,sans-serif;text-decoration:none;color:#aeb8cc}
+  .sw a.on{background:#c8aa6e;color:#0b1220}
 </style>
 </head>
 <body>
-<main>
+<main id="en" lang="en">
+  <span class="sw"><a href="#" data-l="en" class="on">EN</a><a href="#" data-l="es">ES</a></span>
+  <h1>Privacy</h1>
+  <small>Last updated: November 24, 2026</small>
+
+  <p>Riftviewer is a free Riftbound fan project supported by ads. Here's what data it uses and why.</p>
+
+  <h2>Your account</h2>
+  <p>To use the app you create an account with your email, Google or Discord. We store your email and, if you give it, your display name, to identify you and sync your things across devices. Accounts are managed by <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase</a>, our database provider.</p>
+
+  <h2>What you save in Riftviewer</h2>
+  <p>Your decks, collection, replays, scripts and settings are saved in your browser and, when you're signed in, in your account so they're on all your devices. Only you can see them, except what you choose to share: a deck by link, your trade list or your public binder. Anyone with the link can see your public binder until you unpublish it.</p>
+  <p>The card scanner uses the camera only on your device: images are never sent to any server.</p>
+
+  <h2>Ads and cookies</h2>
+  <p>We show Google AdSense ads on some pages (never inside the videos you export). Google and its partners may use cookies and identifiers to show ads based on your visits to this and other sites. You can see how Google uses this data in <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a> and turn off personalized ads in <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google's ad settings</a>.</p>
+  <p>Where the law requires it (for example, in the European Economic Area and the United Kingdom), you're asked for consent before advertising cookies are used.</p>
+
+  <h2>Visit counter</h2>
+  <p>To know how many people visit Riftviewer we use <a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>, a counter that doesn't use cookies or store your IP address or anything that identifies you: only the page visited, the site you came from, the browser type, the screen size and the country.</p>
+
+  <h2>Other services</h2>
+  <p>Card data and images come from <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a> and <a href="https://riftcodex.com" target="_blank" rel="noopener">Riftcodex</a>, and TCGplayer prices via <a href="https://tcgcsv.com" target="_blank" rel="noopener">TCGCSV</a>. When images load, your browser connects to those sites.</p>
+
+  <h2>Deleting your data</h2>
+  <p>You can delete your decks, collection and replays from the app. To delete your account and everything saved in it, write to us and we'll do it.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or requests about your data: write to us through Riftviewer's channels.</p>
+
+  <p><small>Riftviewer is not affiliated with, endorsed or sponsored by Riot Games. Riftbound is a trademark of Riot Games, Inc.</small></p>
+  <p><a href="./">← Back to Riftviewer</a></p>
+</main>
+
+<main id="es" lang="es" hidden>
+  <span class="sw"><a href="#" data-l="en">EN</a><a href="#" data-l="es" class="on">ES</a></span>
   <h1>Privacidad</h1>
   <small>Última actualización: 24 de noviembre de 2026</small>
 
@@ -50,5 +89,26 @@
   <p><small>Riftviewer no está afiliado, respaldado ni patrocinado por Riot Games. Riftbound es una marca de Riot Games, Inc.</small></p>
   <p><a href="./">← Volver a Riftviewer</a></p>
 </main>
+<!-- en inglés por defecto; en español si la persona lo eligió en Riftviewer (o aquí) -->
+<script>
+(function () {
+  function show(l) {
+    document.getElementById('en').hidden = l !== 'en';
+    document.getElementById('es').hidden = l !== 'es';
+    document.documentElement.lang = l;
+    document.title = l === 'es' ? 'Privacidad · Riftviewer' : 'Privacy · Riftviewer';
+  }
+  var l = 'en';
+  try { if (localStorage.getItem('rb_lang') === 'es') l = 'es'; } catch (e) {}
+  show(l);
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-l]');
+    if (!a) return;
+    e.preventDefault();
+    try { localStorage.setItem('rb_lang', a.getAttribute('data-l')); } catch (err) {}
+    show(a.getAttribute('data-l'));
+  });
+})();
+</script>
 </body>
 </html>
