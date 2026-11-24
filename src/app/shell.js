@@ -1,12 +1,13 @@
 // Generado a partir de legacy/app.js (sección "shell").
 import { noteLocalChange } from '../cloud/sync';
+import { LANG, _t, locale } from '../i18n/i18n';
 import { $, ic, stage, FMT_KEY, isPhone } from './base';
 import { tombDoc, touchAsset } from './cloud-adapter';
 import { IDB, cardByCode, setStatus } from './cards';
 import { META_V, replayMeta } from '../replay/meta';
 import { REPLAY_FILE_PREFIX, REPLAY_FORMAT } from '../replay/decode';
 import { applyProject, loadProj, renderClips } from './clips';
-import { DEMO } from './demo';
+import { DEMO, DEMO_EN } from './demo';
 import { fit } from './fit';
 import { renderNotes } from './notes';
 import { buildFrameList, loadReplay } from './replay';
@@ -48,6 +49,17 @@ mano j2 4
 
 # 2) Escribe las jugadas (pulsa 📖 Comandos para ver todas):
 turno j1
+`;
+const NEW_SCRIPT_EN=`# 1) Set the names, legends and battlefields:
+player p1 "Player 1"
+player p2 "Player 2"
+# legend p1 "Legend name"
+# battlefield A "Battlefield name"
+hand p1 4
+hand p2 4
+
+# 2) Write the plays (press 📖 Commands to see them all):
+turn p1
 `;
 export async function readDropped(file){
   const text=await file.text();
@@ -175,7 +187,7 @@ export function tourStep(){
   const s=TOUR[TK], t=document.querySelector(s.sel); if(!t || !t.offsetParent){ if(++TK<TOUR.length) return tourStep(); return endTour(); }
   const r=t.getBoundingClientRect(), box=$('#tour .tbox'), bub=$('#tour .tbub'), pad=6;
   Object.assign(box.style,{left:(r.left-pad)+'px',top:(r.top-pad)+'px',width:(r.width+pad*2)+'px',height:(r.height+pad*2)+'px'});
-  bub.querySelector('.tstep').textContent=`PASO ${TK+1} DE ${TOUR.length}`; bub.querySelector('h3').textContent=s.t; bub.querySelector('p').innerHTML=s.d;
+  bub.querySelector('.tstep').textContent=`PASO ${TK+1} DE ${TOUR.length}`; bub.querySelector('h3').textContent=s.t; bub.querySelector('p').innerHTML=_t(s.d);
   $('#tNext').textContent=TK===TOUR.length-1?'¡Listo!':'Siguiente';
   const bw=Math.min(340,innerWidth-24), below=r.bottom+16+200<innerHeight;
   const x=Math.max(12,Math.min(innerWidth-bw-12, r.left+r.width/2-bw/2));
@@ -189,8 +201,8 @@ export function toast(t,c){ setStatus(t,c); const d=document.createElement('div'
 export function init() {
   $('#replayIn').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(f) readDropped(f); };
   $('#fileIn').onchange=async e=>{ const f=e.target.files[0]; e.target.value=''; if(f) readDropped(f); };
-  $('#hNew').onclick=()=>{ const d=new Date(); openScript(NEW_SCRIPT,`Guion ${d.toLocaleDateString('es',{day:'numeric',month:'short'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`); };
-  $('#hDemo').onclick=()=>openScript(DEMO,'Ejemplo');
+  $('#hNew').onclick=()=>{ const d=new Date(); openScript(LANG==='en'?NEW_SCRIPT_EN:NEW_SCRIPT,`${_t('Guion')} ${d.toLocaleDateString(locale(),{day:'numeric',month:'short'})} ${d.toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'})}`); };
+  $('#hDemo').onclick=()=>openScript(LANG==='en'?DEMO_EN:DEMO,_t('Ejemplo'));
   $('#hClose').onclick=hideHome;
   // las imágenes de las leyendas llegan cuando terminan de cargar las cartas
   document.addEventListener('rb:cards',()=>{ if($('#home').classList.contains('show')) renderRecents(); });
@@ -209,7 +221,7 @@ export function init() {
   document.querySelector('.tabs').onclick=e=>{ const b=e.target.closest('button'); if(b) switchTab(b.dataset.t); };
   $('#fmtseg').onclick=e=>{ const b=e.target.closest('button'); if(b) setFmt(b.dataset.f); };
   $('#skinseg').onclick=e=>{ const b=e.target.closest('button'); if(b) setSkin(b.dataset.s); };
-  $('#bCmds').onclick=()=>{ openModal('Comandos del guion',`<div class="full">${$('#cmdHelp').innerHTML}</div>`,[['Cerrar','primary']]); };
+  $('#bCmds').onclick=()=>{ openModal('Comandos del guion',`<div class="full">${$(LANG==='en'?'#cmdHelpEn':'#cmdHelp').innerHTML}</div>`,[['Cerrar','primary']]); };
   $('#bPanel').onclick=()=>togglePanel();
   $('#bPanelX').onclick=()=>togglePanel(false);
   // en el teléfono la mesa arranca a pantalla completa y el panel se abre como hoja desde abajo

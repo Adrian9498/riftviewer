@@ -1,6 +1,7 @@
 // Mi colección: cuántas copias tienes de cada impresión y acabado, con el progreso de cada set.
 // Se guarda como un proyecto más ("rb_proj_coll:mine"), así se sincroniza con tu cuenta como los mazos.
 // Las impresiones salen del catálogo de OpenRift (public/openrift-catalog.json).
+import { locale } from '../i18n/i18n';
 import { noteLocalChange } from '../cloud/sync';
 import { FINISH_ES, buildPrintings, bump, collectionText, countOf, emptyCollection, pct, setProgress, variantsOf } from '../collection/model';
 import { deckNeeds, needsSummary } from '../collection/needs';
@@ -126,7 +127,7 @@ function renderHead() {
   const val = pricesNow() ? collectionValue(pricesNow(), inSet).value : 0;
   const ring = (p, label, sub) => `<div class="coring" style="--p:${pct(p)}"><span><b>${pct(p)}%</b><small>${label}</small></span><em>${sub}</em></div>`;
   $('#coHead').innerHTML = `
-    <div class="cohinfo"><h2>${esc(s.name)}</h2><small>${s.code}${s.date ? ' · ' + new Date(s.date + 'T12:00').toLocaleDateString('es', { month: 'long', year: 'numeric' }) : ''} · ${pr.copies} copia${pr.copies === 1 ? '' : 's'} en total${val ? ` · <b class="coval">vale ${money(val)}</b>` : ''}</small>
+    <div class="cohinfo"><h2>${esc(s.name)}</h2><small>${s.code}${s.date ? ' · ' + new Date(s.date + 'T12:00').toLocaleDateString(locale(), { month: 'long', year: 'numeric' }) : ''} · ${pr.copies} copia${pr.copies === 1 ? '' : 's'} en total${val ? ` · <b class="coval">vale ${money(val)}</b>` : ''}</small>
       ${pr.base.total && miss ? `<button class="btn mini" data-misses>${ic('target')} Ver las ${miss} que me faltan</button>` : pr.base.total ? '<span class="codone">¡Set base completo!</span>' : ''}</div>
     ${pr.base.total ? ring(pr.base, 'set base', `${pr.base.have} de ${pr.base.total}`) : ''}
     ${ring(pr.all, 'con versiones', `${pr.all.have} de ${pr.all.total}`)}`;
@@ -223,7 +224,7 @@ function lineChart(box, pts, aria, before = '') {
   const X = d => L + (W - L - R) * ((+new Date(d) - t0) / (t1 - t0 || 1)), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
   const line = pts.map((q, i) => `${i ? 'L' : 'M'}${X(q.day).toFixed(1)},${Y(q.v).toFixed(1)}`).join('');
   const area = `${line}L${X(pts[pts.length - 1].day).toFixed(1)},${H - B}L${L},${H - B}Z`;
-  const fd = d => new Date(d + 'T12:00').toLocaleDateString('es', { day: 'numeric', month: 'short' });
+  const fd = d => new Date(d + 'T12:00').toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
   const first = pts[0].v, last = pts[pts.length - 1].v, ch = first ? (last - first) / first * 100 : 0, diff = last - first;
   box.innerHTML = `${before}<div class="cohtop"><b>${money(last)}</b><span class="${ch > 0.5 ? 'up' : ch < -0.5 ? 'down' : ''}">${ch > 0 ? '▲' : ch < 0 ? '▼' : ''} ${Math.abs(ch).toFixed(1)}%${Math.abs(diff) >= 0.01 ? ` (${diff > 0 ? '+' : '−'}${money(Math.abs(diff))})` : ''} desde ${fd(pts[0].day)}</span></div>
     <svg viewBox="0 0 ${W} ${H}" class="cohsvg" role="img" aria-label="${esc(aria)}: de ${money(first)} a ${money(last)}">

@@ -3,6 +3,7 @@
 // - Cada sección tiene su dirección (#/inicio, #/partida, #/mazos, #/coleccion): funcionan "atrás", recargar y los enlaces.
 //   La dirección se mantiene al día sola, también cuando se cambia de sección por otros botones (tarjetas del inicio, recientes…).
 import { $, ic } from './base';
+import { LANG, langSwitchHTML } from '../i18n/i18n';
 import { hideCollection, showCollection } from './collection';
 import { hideDecks, showDecks } from './decks';
 import { DOC, hideHome, showHome } from './shell';
@@ -63,7 +64,8 @@ function menuHTML() {
     return `<button role="menuitem" class="navit${on ? ' on' : ''}" data-go="${it.r}"${off ? ' disabled' : ''}${on ? ' aria-current="page"' : ''}>
       ${ic(it.icon)}<span><b>${it.label}</b><small>${esc(it.sub())}</small></span>${on ? ic('check') : ''}</button>`;
   }).join('')
-    + (acct && !acct.hidden ? `<div class="navsep"></div><button role="menuitem" class="navit" data-acct>${ic('user')}<span><b>${esc(acct.textContent.trim() || 'Tu cuenta')}</b><small>Cuenta y sincronización</small></span></button>` : '');
+    + (acct && !acct.hidden ? `<div class="navsep"></div><button role="menuitem" class="navit" data-acct>${ic('user')}<span><b>${esc(acct.textContent.trim() || 'Tu cuenta')}</b><small>Cuenta y sincronización</small></span></button>` : '')
+    + `<div class="navsep"></div><div class="navlang"><span>${LANG === 'en' ? 'Language' : 'Idioma'}</span>${langSwitchHTML()}</div>`;
 }
 export function openMenu(btn) {
   const m = $('#navmenu');

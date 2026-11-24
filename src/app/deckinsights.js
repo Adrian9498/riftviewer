@@ -2,6 +2,7 @@
 // - récord contra cada leyenda y rendimiento de cada carta, sacados de sus repeticiones;
 // - probabilidades de robo;
 // - reemplazos más baratos o que ya tienes, volver a una versión anterior y comparar con otro mazo.
+import { _t } from '../i18n/i18n';
 import { decodeReplay } from '../replay/decode';
 import { replayMeta } from '../replay/meta';
 import {
@@ -55,7 +56,7 @@ export function recordHTML(d) {
   return `<section class="ddbox"><h4>${ic('trophy')} Récord de partidas</h4>
     <div class="ddrec">${side('w', 'Victorias')}${side('l', 'Derrotas')}</div>
     ${g ? `<div class="ddwr" title="${pct(winRate(r))} de victorias"><i style="width:${winRate(r) * 100}%"></i></div>
-      <p class="dlhint">${pct(winRate(r))} de victorias en ${plural(g, 'partida')}${fromRep ? ` · ${fromRep} de ${fromRep === 1 ? 'una repetición' : 'repeticiones'}` : ''}${atTable ? ` · ${atTable} en la mesa` : ''}.</p>`
+      <p class="dlhint">${_t('{0} de victorias en {1}', pct(winRate(r)), _t(g === 1 ? '{0} partida' : '{0} partidas', g))}${fromRep ? ' · ' + _t(fromRep === 1 ? '{0} de una repetición' : '{0} de repeticiones', fromRep) : ''}${atTable ? ' · ' + _t('{0} en la mesa', atTable) : ''}.</p>`
       : '<p class="dlhint">Sube las repeticiones de tus partidas y se cuentan solas, o anótalas aquí a mano.</p>'}</section>`;
 }
 
@@ -154,7 +155,7 @@ export function handHTML(d) {
   const extra = H.hand.length - H.opening;
   const hint = !H.mull
     ? `Tu mano inicial de ${OPENING_HAND}. Toca hasta ${MULL_MAX} cartas para devolverlas en el mulligan, o roba para seguir con esta.`
-    : `Quedan ${plural(H.lib.length, 'carta')} en el mazo${extra > 0 ? ` · robaste ${extra}` : ''}.`;
+    : _t('Quedan {0} en el mazo', _t(H.lib.length === 1 ? '{0} carta' : '{0} cartas', H.lib.length)) + (extra > 0 ? ' · ' + _t('robaste {0}', extra) : '') + '.';
   return `<div id="ddHand">
     <div class="ddhbar">
       <button class="btn mini" data-hand="new">${ic('replay')} Nueva mano</button>
@@ -217,7 +218,7 @@ export function altHTML(d) {
         ${thumb(a.card.code)}<span><b>${esc(a.card.name)}</b><small>${a.owned ? `${ic('check')} tienes ${a.owned}` : ''}${a.owned && a.price != null ? ' · ' : ''}${a.price != null ? money(a.price) : ''}</small></span></button>`).join('')
         : '<small class="dlhint">Sin reemplazos parecidos.</small>'}</div></div>`;
   }).join('');
-  return `${head}<p class="dlhint">${coll ? 'Para las cartas que te faltan' : 'Para las cartas más caras'}: otras del mismo tipo, de tus dominios y con energía parecida${coll ? ' que ya tienes o' : ''} que cuestan menos. Pulsa una para cambiarla en el mazo; se guarda como versión nueva, así que puedes volver atrás.</p>
+  return `${head}<p class="dlhint">${coll ? _t('Para las cartas que te faltan: otras del mismo tipo, de tus dominios y con energía parecida que ya tienes o que cuestan menos.') : _t('Para las cartas más caras: otras del mismo tipo, de tus dominios y con energía parecida que cuestan menos.')} ${_t('Pulsa una para cambiarla en el mazo; se guarda como versión nueva, así que puedes volver atrás.')}</p>
     <div class="ddalts">${rows}</div></section>`;
 }
 export function swapCard(d, from, to) {

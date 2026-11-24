@@ -3,6 +3,7 @@ import { decodeReplay } from '../replay/decode';
 import { isCompleteList } from '../deck/format';
 import { computeMulligans } from '../replay/mulligan';
 import { translateLog } from '../replay/translate';
+import { LANG } from '../i18n/i18n';
 import { KIND_ICON, actionKind } from '../replay/timeline';
 import { $, ic, stage } from './base';
 import { analyze } from './chart';
@@ -24,7 +25,8 @@ export const arr = x => !x ? [] : Array.isArray(x) ? x.filter(c=>c&&c.id) : (x.i
 
 /** lista del mazo de un jugador tal como la guarda el simulador */
 export const deckRawOf = p => p ? (p.deck?.raw||p.decklistRaw||p.submittedDeck?.raw||p.registeredDeck?.raw||'') : '';
-export const tr = t => translateLog(t, $('#rlang').value);
+// en inglés el registro se queda como lo escribe el simulador
+export const tr = t => translateLog(t, LANG === 'en' ? 'en' : $('#rlang').value);
 
 export function loadReplay(json){
   const rp=decodeReplay(json);

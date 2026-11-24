@@ -12,6 +12,7 @@ import {
   HISTORY_MAX, NO_FOLDER, addResult, replayKey, cleanFolder, domainsIn, duplicate, emptyFilter, filterDecks, folders, games, legendsIn, versionSize, winRate,
 } from '../deck/library';
 import { $, ic } from './base';
+import { _t, locale } from '../i18n/i18n';
 import { IDB, cardByCode, deckCard } from './cards';
 import { touchAsset } from './cloud-adapter';
 import { go } from './nav';
@@ -103,7 +104,7 @@ function toggleFav(id) { const d = stored(id); if (!d) return; d.fav = !d.fav; D
 /** Pregunta antes de borrar un mazo; `then` corre solo si se borró. */
 function askDelete(d, then) {
   if (!d) return;
-  openModal('Borrar mazo', `<p class="full">¿Borrar <b>${esc(d.name || 'Sin nombre')}</b>? Se borran también su récord, sus notas, su historial y sus repeticiones, y no se puede deshacer.</p>`,
+  openModal('Borrar mazo', `<p class="full">${_t('¿Borrar <b>{0}</b>? Se borran también su récord, sus notas, su historial y sus repeticiones, y no se puede deshacer.', esc(d.name || _t('Sin nombre')))}</p>`,
     [['Cancelar'], ['Borrar', 'danger', () => { removeDeck(d); toast('Mazo borrado', 'ok'); then?.(); }]]);
 }
 function renameFolder(from) {
@@ -128,7 +129,7 @@ function renameDeck(d) {
 function deleteFolder(name) {
   const decks = DB.allDecks().filter(d => cleanFolder(d.folder) === name);
   const done = msg => { F.folder = ''; renderLib(); toast(msg, 'ok'); };
-  openModal('Borrar carpeta', `<p class="full">¿Qué hacemos con la carpeta <b>${esc(name)}</b> y sus ${plural(decks.length, 'mazo')}?</p>`, [
+  openModal('Borrar carpeta', `<p class="full">${_t('¿Qué hacemos con la carpeta <b>{0}</b> y sus {1}?', esc(name), _t(decks.length === 1 ? '{0} mazo' : '{0} mazos', decks.length))}</p>`, [
     ['Cancelar'],
     ['Borrar carpeta y mazos', 'danger', () => { for (const d of decks) removeDeck(d); done(`Borrados la carpeta y ${plural(decks.length, 'mazo')}`); }],
     ['Solo la carpeta', 'primary', () => { for (const d of decks) { delete d.folder; DB.writeDeck(d); } done('Carpeta borrada: sus mazos quedan sin carpeta'); }],
@@ -235,7 +236,7 @@ async function openDeckReplay(rid) {
 const dropReplayFile = (deckId, id) => { const key = replayKey(deckId, id); IDB.del(key).catch(() => {}); touchAsset(key, true); };
 function removeReplay(rid) {
   const d = DB.currentDeck(), r = d?.replays?.find(x => x.id === rid); if (!r) return;
-  openModal('Quitar repetición', `<p class="full">¿Quitar <b>${esc(r.name)}</b> de este mazo? Se borra el archivo guardado aquí.</p>`,
+  openModal('Quitar repetición', `<p class="full">${_t('¿Quitar <b>{0}</b> de este mazo? Se borra el archivo guardado aquí.', esc(r.name))}</p>`,
     [['Cancelar'], ['Quitar', 'danger', () => {
       dropReplayFile(d.id, rid); d.replays = d.replays.filter(x => x.id !== rid); DB.writeDeck(d); renderDetail(); toast('Repetición quitada', 'ok');
     }]]);
@@ -243,7 +244,7 @@ function removeReplay(rid) {
 /** Borra un mazo junto con los archivos de sus repeticiones. */
 function removeDeck(d) { for (const r of d.replays || []) dropReplayFile(d.id, r.id); DB.deleteDeck(d.id); }
 
-const when = ts => new Date(ts).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const when = ts => new Date(ts).toLocaleString(locale(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 function changes(r, sign) {
   return Object.entries(r).sort((a, b) => b[1] - a[1]).map(([k, n]) => {
     const side = k.startsWith('side:'), code = side ? k.slice(5) : k;

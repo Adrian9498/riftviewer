@@ -10,6 +10,7 @@ import { emptyDeck, mainWithChampion, slotFor, total } from '../deck/model';
 import { BATTLEFIELDS, MAIN_MIN, MAX_COPIES, RUNES, inIdentity, validateDeck } from '../deck/rules';
 import { OPENING_HAND, atLeastOne, deckStats, mainSize, seenByTurn } from '../deck/stats';
 import { $, ic } from './base';
+import { _t } from '../i18n/i18n';
 import { CARDS, cardByCode, deckCard, deckCatalog, printRank } from './cards';
 import { deckRawOf } from './replay';
 import { BR, BRIMG } from './brand';
@@ -264,7 +265,7 @@ function renderTest() {
     <div class="simbar"><button class="btn mini" data-sim="new">${ic('replay')} Nueva mano</button>
       ${picking ? `<button class="btn mini${SIM.pick.size ? ' primary' : ''}" data-sim="mull" ${SIM.pick.size ? '' : 'disabled'}>Mulligan (${SIM.pick.size}/${MULL_MAX})</button>` : ''}
       <button class="btn mini" data-sim="draw" ${SIM.lib.length ? '' : 'disabled'}>${ic('cards')} Robar</button></div>
-    <div class="dbhint">${picking ? `Toca hasta ${MULL_MAX} cartas para devolverlas al fondo del mazo y robar otras tantas.` : 'Roba una carta por turno para ver cómo sigue tu partida.'}${champ ? ` Tu campeón, <b>${esc(champ.name)}</b>, empieza en su zona.` : ''}</div>
+    <div class="dbhint">${picking ? _t('Toca hasta {0} cartas para devolverlas al fondo del mazo y robar otras tantas.', MULL_MAX) : _t('Roba una carta por turno para ver cómo sigue tu partida.')}${champ ? ' ' + _t('Tu campeón, <b>{0}</b>, empieza en su zona.', esc(champ.name)) : ''}</div>
     <div class="simhand">${SIM.hand.map((c, k) => { const full = cardByCode(c); return `<div class="dbc simc${SIM.pick.has(k) ? ' pick' : ''}" data-code="${esc(c)}" data-hi="${k}" title="${esc(get(c)?.name || c)}"><img src="${esc(full?.img || '')}" alt=""></div>`; }).join('')}</div>
   </div>`;
 }

@@ -1,6 +1,7 @@
 // Mazo de Riftbound: leyenda, campeón elegido, mazo principal, runas, campos de batalla y banquillo.
 // Las cartas se guardan por código ("OGN-095"), igual que en las listas del simulador.
 
+import { t } from '../i18n/i18n';
 export interface Deck {
   id: string;
   name: string;
@@ -29,7 +30,7 @@ export type CardLookup = (code: string) => DCard | undefined;
 
 export type Section = 'main' | 'runes' | 'side';
 
-export const emptyDeck = (id: string, name = 'Mazo nuevo'): Deck =>
+export const emptyDeck = (id: string, name = t('Mazo nuevo')): Deck =>
   ({ id, name, legend: null, champion: null, main: {}, runes: {}, battlefields: [], side: {}, updatedAt: Date.now() });
 
 export const total = (r: Record<string, number>): number => Object.values(r).reduce((a, b) => a + b, 0);

@@ -1,5 +1,6 @@
 // Importar y exportar mazos: texto del simulador y enlaces para compartir.
 import { parseDeck } from '../replay/deck';
+import { t } from '../i18n/i18n';
 import { type CardLookup, type Deck, emptyDeck } from './model';
 
 /** Texto en el formato del simulador ("3 Stupefy [OGN-095]"), con sus secciones. */
@@ -51,7 +52,7 @@ export function encodeDeck(d: Deck): string {
 export function decodeDeck(s: string, id: string): Deck | null {
   try {
     const f = Object.fromEntries(unb64url(s).split(';').map(p => { const k = p.indexOf('='); return [p.slice(0, k), p.slice(k + 1)]; }));
-    const d = emptyDeck(id, f.n || 'Mazo compartido');
+    const d = emptyDeck(id, f.n || t('Mazo compartido'));
     d.legend = f.l || null; d.champion = f.c || null; d.main = unpack(f.m); d.runes = unpack(f.r);
     d.battlefields = f.b ? f.b.split(',') : []; d.side = unpack(f.s);
     return d;
