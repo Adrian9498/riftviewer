@@ -311,7 +311,8 @@ export function showCollection() {
   load(); renderAll();
   latestPrices().then(d => { if (d && !$('#collb').hidden) renderAll(); }).catch(() => {});
   // el lector de cartas se carga en segundo plano para que el escáner abra al instante
-  setTimeout(() => { if (!$('#collb').hidden) warmScanner().catch(() => {}); }, 800);
+  // (si la página ya no existe, como al terminar una prueba, no hace nada)
+  setTimeout(() => { if (typeof document !== 'undefined' && !$('#collb').hidden) warmScanner().catch(() => {}); }, 800);
 }
 export function hideCollection() { $('#collb').hidden = true; document.body.classList.remove('incoll'); releaseScanner(); }
 function scan() {
