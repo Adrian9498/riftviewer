@@ -27,15 +27,15 @@ type Token = { q: string } | { w: string };
 export const COMMANDS = [
   'jugador', 'leyenda', 'campeon', 'campo', 'mano', 'meta', 'turno', 'fase', 'roba', 'runas', 'juega', 'mueve',
   'agota', 'prepara', 'dano', 'cura', 'poder', 'combate', 'conquista', 'controla', 'libera', 'muere', 'regresa',
-  'puntos', 'foco', 'texto', 'pausa', 'gana',
+  'puntos', 'foco', 'texto', 'pausa', 'gana', 'pon',
 ] as const;
 
 /** comandos de configuración: se aplican siempre, aunque se salte a una jugada posterior */
-export const SETUP_COMMANDS = ['jugador', 'leyenda', 'campeon', 'campo', 'mano', 'meta'];
+export const SETUP_COMMANDS = ['jugador', 'leyenda', 'campeon', 'campo', 'mano', 'meta', 'pon'];
 export const isSetup = (s: Pick<Step, 'cmd'>): boolean => SETUP_COMMANDS.includes(s.cmd);
 
-const NEEDS_PLAYER = ['jugador', 'leyenda', 'campeon', 'mano', 'turno', 'roba', 'runas', 'juega', 'mueve', 'conquista', 'controla', 'puntos', 'gana'];
-const NEEDS_QUOTED = ['leyenda', 'campeon', 'juega', 'mueve', 'agota', 'dano', 'cura', 'poder', 'muere', 'regresa', 'foco', 'texto', 'fase'];
+const NEEDS_PLAYER = ['pon', 'jugador', 'leyenda', 'campeon', 'mano', 'turno', 'roba', 'runas', 'juega', 'mueve', 'conquista', 'controla', 'puntos', 'gana'];
+const NEEDS_QUOTED = ['pon', 'leyenda', 'campeon', 'juega', 'mueve', 'agota', 'dano', 'cura', 'poder', 'muere', 'regresa', 'foco', 'texto', 'fase'];
 const NEEDS_FIELD = ['combate', 'conquista', 'controla', 'libera'];
 const NEEDS_NUMBER = ['dano', 'poder', 'meta', 'mano', 'runas', 'puntos'];
 
@@ -46,9 +46,13 @@ export const EN_COMMANDS: Record<string, (typeof COMMANDS)[number]> = {
   exhaust: 'agota', ready: 'prepara', damage: 'dano', heal: 'cura', might: 'poder', combat: 'combate', fight: 'combate',
   conquer: 'conquista', hold: 'controla', control: 'controla', release: 'libera', die: 'muere', dies: 'muere', kill: 'muere',
   return: 'regresa', points: 'puntos', score: 'puntos', focus: 'foco', text: 'texto', pause: 'pausa', wait: 'pausa',
-  win: 'gana', wins: 'gana',
+  win: 'gana', wins: 'gana', put: 'pon', place: 'pon',
 };
-const EN_WORDS: Record<string, string> = { to: 'a', all: 'todo' };
+// "pon" acomoda la mesa al empezar: pon j1 "Carta" en A [oculta] [agotada]; también en base, descarte o mano.
+// "juega … desde descarte [recicla]": un hechizo que se juega desde el descarte (Fizz) y luego se recicla.
+const EN_WORDS: Record<string, string> = {
+  to: 'a', all: 'todo', at: 'en', hidden: 'oculta', exhausted: 'agotada', trash: 'descarte', hand: 'mano', from: 'desde', recycle: 'recicla',
+};
 
 export const playerOf = (w: string | undefined): Player | undefined =>
   ({ j1: 1, j2: 2, p1: 1, p2: 2 } as Record<string, Player>)[w?.toLowerCase() ?? ''];
@@ -79,7 +83,9 @@ export function parse(src: string): ParseResult {
     const pl = words.map(playerOf).find(Boolean);
     const num = words.find(w => /^[+-]?\d+(\.\d+)?$/.test(w));
     const aIdx = words.findIndex(w => w.toLowerCase() === 'a');
-    const dest = aIdx >= 0 ? (words[aIdx + 1] ?? null) : null;
+    // destino: la palabra después de "a" (o de "en" para pon)
+    const enIdx = cmd === 'pon' ? words.findIndex(w => w.toLowerCase() === 'en') : -1;
+    const dest = enIdx >= 0 ? (words[enIdx + 1] ?? null) : aIdx >= 0 ? (words[aIdx + 1] ?? null) : null;
     const fieldW = words.find(w => (/^[abc]$/i.test(w) && w.toLowerCase() !== 'a') || /^[ABC]$/.test(w));
     const s: Step = { cmd, line: i + 1, pl, num, q: quoted[0], dest, field: fieldW?.toUpperCase(), words };
     const need = (cond: unknown, msg: string) => {
@@ -102,6 +108,7 @@ export function parse(src: string): ParseResult {
       need(s.field, 'falta el campo (A, B o C)');
     }
     if (cmd === 'mueve') need(dest, 'falta el destino: a base / a A');
+    if (cmd === 'pon') need(dest && /^(base|[abc]|descarte|mano)$/i.test(dest), 'falta dónde: en base / en A / en descarte / en mano');
     if (NEEDS_NUMBER.includes(cmd)) need(num !== undefined, 'falta un número');
     steps.push(s);
   });

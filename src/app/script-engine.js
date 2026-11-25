@@ -137,6 +137,13 @@ export async function exec(s,anim){
       if(d){ const im=document.createElement('img'); im.className='bfimg'; im.src=d.img; mid.prepend(im); }
       f.querySelector('.bfname').textContent=d?.name||s.q; break; }
     case 'mano': for(let i=0;i<n;i++) place(newCard(o,'?','hand',false),'hand',false); break;
+    case 'pon': {
+      // acomoda la mesa al empezar, sin animación: pon j1 "Carta" en A [oculta] [agotada]
+      const w=s.words.map(x=>x.toLowerCase()), d=s.dest.toLowerCase();
+      const zone = d==='base'?'base' : d==='descarte'?'trash' : d==='mano'?'hand' : d.toUpperCase();
+      const hidden=w.includes('oculta');
+      const c=newCard(o,s.q,zone,!hidden); c.ex=w.includes('agotada');
+      place(c,zone,false); break; }
     case 'turno':
       G.turn++; G.active=o; updateHud();
       if(anim) await banner(`TURNO ${G.turn}<small style="color:var(--p${o})">${pl.name.toUpperCase()}</small>`);
@@ -154,6 +161,22 @@ export async function exec(s,anim){
       break; }
     case 'runas': { pl.runes=Math.max(0,rel(pl.runes)); updateHud(); if(anim){ floatText($('#r'+o),(/^[+-]/.test(s.num)?s.num:'='+n)+' ◆','#7fd3ff'); await wait(500);} break; }
     case 'juega': {
+      // una carta escondida boca abajo en un campo: se revela ahí mismo
+      const hid=Object.values(G.cards).find(x=>!x.known&&x.owner===o&&['A','B','C'].includes(x.zone)&&norm(x.name)===norm(s.q));
+      if(hid){
+        hid.known=true; hid.data=findCard(s.q); el[hid.id].dataset.ikey='card:n:'+norm(s.q); el[hid.id].dataset.iname=s.q; paintCard(hid);
+        if(anim){ log(`${pn(o)} revela ${nm(hid)}`,o); await spotlight(hid,`${pl.name} revela`); }
+        if(s.dest){ place(hid,s.dest.toLowerCase()==='base'?'base':s.dest.toUpperCase(),anim); if(anim) await wait(450); }
+        break;
+      }
+      // "juega … desde descarte": un hechizo del descarte (Fizz); con "recicla" se va al fondo del mazo
+      const w=s.words.map(x=>x.toLowerCase());
+      if(w.includes('desde')&&w.includes('descarte')){
+        const t=findInst(s.q,o,['trash']); if(!t||t.zone!=='trash') throw new Error(`Línea ${s.line}: no hay "${s.q}" en el descarte`);
+        if(anim){ log(`${pn(o)} juega ${nm(t)} desde el descarte`,o); await spotlight(t,`${pl.name} juega`); }
+        if(w.includes('recicla')){ t.zone='gone'; el[t.id].remove(); updateHud(); if(anim){ log(`${nm(t)} se recicla al fondo del mazo`,o); await wait(300); } }
+        break;
+      }
       let c=findInst(s.q,o,['hand']);
       if(!c||c.zone!=='hand'){ const h=handCards(o).find(x=>!x.known); c=newCard(o,s.q,'hand'); if(h){ el[c.id].remove(); h.zone='gone'; el[h.id].replaceWith(el[c.id]); } }
       c.known=true; c.name=s.q; c.data=findCard(s.q);

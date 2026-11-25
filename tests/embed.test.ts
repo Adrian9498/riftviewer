@@ -40,3 +40,30 @@ describe('modo incrustado', () => {
     expect(keys.filter((k: string) => k.startsWith('recent:'))).toEqual([]);
   });
 });
+
+describe('las jugadas de las guías corren completas sin errores', () => {
+  it.each(DIANA_PLAYS.flatMap(p => (['en', 'es'] as const).map(l => [p.id, l, p.script[l]] as const)))('%s (%s)', async (_id, _l, text) => {
+    const eng = await import('../src/app/script-engine.js');
+    ($('#script') as HTMLTextAreaElement).value = text;
+    eng.run();
+    await eng.jumpTo(eng.STEPS.length);
+    expect($('#errors').textContent).toBe('');
+    // la mesa inicial está antes de la primera jugada (no se ve "bajar" de la mano)
+    const first = eng.STEPS.findIndex((s: { cmd: string }) => s.cmd === 'turno');
+    expect(eng.STEPS.slice(0, first).filter((s: { cmd: string }) => s.cmd === 'juega')).toEqual([]);
+  });
+  it('lo escondido se ve boca abajo hasta revelarlo', async () => {
+    const eng = await import('../src/app/script-engine.js');
+    ($('#script') as HTMLTextAreaElement).value = DIANA_PLAYS[0].script.en;
+    eng.run();
+    await eng.jumpTo(0);
+    const tide = () => Object.values(eng.G.cards).filter((c: any) => c.name === 'Tideturner') as any[];
+    expect(tide()).toHaveLength(1);
+    expect(tide()[0].known).toBe(false);
+    expect(tide()[0].zone).toBe('A');
+    const reveal = eng.STEPS.findIndex((s: { cmd: string; q?: string }) => s.cmd === 'juega' && s.q === 'Tideturner');
+    await eng.jumpTo(reveal + 1);
+    const hidden = Object.values(eng.G.cards).filter((c: any) => c.name === 'Tideturner');
+    expect(hidden.every((c: any) => c.known)).toBe(true);
+  });
+});

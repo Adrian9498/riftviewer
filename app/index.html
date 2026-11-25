@@ -111,6 +111,9 @@ CONFIGURACIÓN (antes del primer "turno")
   leyenda j1 "Carta"         campeon j1 "Carta"
   campo A "Battlefield"      (A, B o C)
   mano j1 4                  (cartas boca abajo)
+  pon j1 "Carta" en A        (mesa inicial, sin animación;
+                              en base / A / descarte / mano,
+                              + oculta, + agotada)
   meta 8                     (puntos para ganar)
 
 JUGADAS
@@ -119,6 +122,8 @@ JUGADAS
   runas j1 3  /  +2  / -1
   juega j1 "Carta"           (hechizo → descarte)
   juega j1 "Carta" a base    juega j1 "Carta" a A
+  juega j1 "Carta"           (si está oculta en un campo, se revela)
+  juega j1 "Carta" desde descarte [recicla]
   mueve j1 "Carta" a B       mueve j1 "Carta" a base
   agota "Carta"              prepara "Carta"
   prepara j1 todo
@@ -141,6 +146,9 @@ SETUP (before the first "turn")
   legend p1 "Card"           champion p1 "Card"
   battlefield A "Battlefield" (A, B or C)
   hand p1 4                  (face-down cards)
+  put p1 "Card" at A         (starting board, no animation;
+                              at base / A / trash / hand,
+                              + hidden, + exhausted)
   goal 8                     (points to win)
 
 PLAYS
@@ -149,6 +157,8 @@ PLAYS
   runes p1 3  /  +2  / -1
   play p1 "Card"             (spell → trash)
   play p1 "Card" to base     play p1 "Card" to A
+  play p1 "Card"             (if hidden at a battlefield, reveals it)
+  play p1 "Card" from trash [recycle]
   move p1 "Card" to B        move p1 "Card" to base
   exhaust "Card"             ready "Card"
   ready p1 all
