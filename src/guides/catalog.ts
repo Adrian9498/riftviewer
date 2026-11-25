@@ -2,7 +2,7 @@
 import type { GuideCardInfo } from './render';
 
 interface Cat {
-  cards: Record<string, { name: string; types?: string[]; superTypes?: string[]; domains?: string[]; tags?: string[] }>;
+  cards: Record<string, { name: string; types?: string[]; superTypes?: string[]; domains?: string[]; tags?: string[]; energy?: number | null }>;
   printings: Record<string, {
     shortCode?: string; cardId: string; language?: string; artVariant?: string; isSigned?: boolean;
     isOvernumbered?: boolean; finish?: string; images?: { imageId: string }[];
@@ -25,7 +25,7 @@ export function guideCards(cat: Cat): Map<string, GuideCardInfo> {
     const k = cardKey(c.name);
     const prev = out.get(k);
     if (prev && prev.s >= s) continue;
-    out.set(k, { name: c.name.replace(/’/g, "'"), code: p.shortCode.toUpperCase(), img: `https://openrift.app/media/cards/${img}-400w.webp`, type: (c.types || [])[0] || '', s });
+    out.set(k, { name: c.name.replace(/’/g, "'"), code: p.shortCode.toUpperCase(), img: `https://openrift.app/media/cards/${img}-400w.webp`, type: (c.types || [])[0] || '', energy: typeof c.energy === 'number' ? c.energy : null, s });
   }
   return out;
 }

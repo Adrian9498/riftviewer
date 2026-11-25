@@ -27,6 +27,9 @@ export interface GuideSection {
   draft?: boolean;
 }
 
+/** Una jugada clave: un guion que se ve animado en la guía (modo incrustado de la app). */
+export interface GuidePlay { id: string; title: L10n; desc: L10n; script: L10n }
+
 export interface GuideSource { date: string; event: string; place: string; players: number; player: string; meta: 'Radiance' | 'Vendetta' }
 
 export interface Guide {
@@ -58,7 +61,9 @@ export interface Guide {
     runes: Record<string, number>;
     side: Record<string, number>;
   };
+  /** en el orden en que salen; "lists" (las tablas) va después de la primera */
   sections: Record<Lang, GuideSection[]>;
+  plays: GuidePlay[];
   sources: GuideSource[];
   sourcesUrl: string;
 }

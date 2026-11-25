@@ -10,6 +10,7 @@ import './styles/table.css';
 import './styles/trade.css';
 import './styles/hub.css';
 import './i18n/i18n.css';
+import { init as initEmbed } from './app/embed.js';
 import { init as initCards } from './app/cards.js';
 import { init as initReplay } from './app/replay.js';
 import { init as initShell } from './app/shell.js';
@@ -45,7 +46,7 @@ import { wireLangSwitch } from './i18n/i18n';
 
 export function start(): void {
   for (const init of [initCards, initReplay, initShell, initUtils, initExport, initClips, initNotes, initChart,
-    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initTable, initTrade, initHub, initBinderPub, initGate, initNav]) init();
+    initSummary, initBrand, initCustomImages, initSounds, initHover, initFit, initUi, initAccount, initPremium, initInspector, initAnnot, initCardMenu, initDecks, initCollection, initScanner, initTable, initTrade, initHub, initBinderPub, initGate, initNav, initEmbed]) init();
 }
 
 // el idioma va primero: así todo lo que se pinta después ya sale traducido

@@ -4,6 +4,7 @@
 // Las tablas de core, flex y banquillo salen de las 11 de Radiance (el formato actual).
 // Ninguna de esas listas usa cartas del ban del 23 nov 2026.
 import type { Guide } from '../types';
+import { DIANA_PLAYS } from './diana-plays';
 
 export const DIANA: Guide = {
   slug: 'diana',
@@ -132,6 +133,27 @@ export const DIANA: Guide = {
         ],
       },
       {
+        id: 'turns',
+        h: 'Turn by turn',
+        draft: true,
+        p: [
+          'The curve is low: most of the deck costs 1 to 3 energy, so the question each turn is not what to play but how much to keep open. Your legend only adds energy during showdowns, so energy you leave open on your turn still turns into a reaction when the opponent attacks.',
+        ],
+        list: [
+          '<b>First turn (2 energy).</b> A 2-cost unit: [[Ravenbloom Student]], [[Traveling Merchant]], or hide [[Tideturner]] at a battlefield you hold. With no unit, keep [[Gust]] or [[Stupefy]] up.',
+          '<b>3–4 energy.</b> A second unit plus one reaction open. [[Diana, Lunari]] costs 3: put her where the showdowns will happen, because her draw only triggers at her battlefield. [[Vex, Apathetic]] (4) is best on the battlefield the opponent needs most.',
+          '<b>5–6 energy.</b> [[Hwei, Brooding Painter]] comes down, and from then on every move you make is a card. Keep [[Ride the Wind]] or [[Tideturner]] to move him again in combat.',
+          '<b>The deciding turn.</b> Hold [[Moonfall]] and [[Star-Crossed]] until one showdown decides a battlefield or the game. Spend everything there, counting your legend’s extra energy.',
+        ],
+      },
+      {
+        id: 'plays',
+        h: 'Key plays, animated',
+        p: [
+          'Three situations the deck is built for, played out on the Riftviewer board. Press play on each one; you can pause and step through them.',
+        ],
+      },
+      {
         id: 'mulligan',
         h: 'Mulligan',
         draft: true,
@@ -144,6 +166,22 @@ export const DIANA: Guide = {
         h: 'Sideboard',
         p: [
           'The sideboard answers specific decks rather than adding raw power. The table below shows what good players bring and against what.',
+        ],
+      },
+      {
+        id: 'details',
+        h: 'The fine print',
+        p: [
+          '<b>Why these copy counts.</b> [[Stupefy]] is a three-of in all 11 lists and [[Gust]] and [[Ride the Wind]] in 9 of 11: they are cheap, and with your legend’s energy you can often cast one for free in combat. [[Star-Crossed]] is a two-of in 9 of 11 lists because it costs you a unit too; the third copy waits in the sideboard for decks with a few huge units. [[Hard Bargain]] and [[Eclipse]] are one or two copies because they only answer some decks well: Hard Bargain does nothing against a deck that just plays units.',
+          '<b>Siding in.</b> Swap like for like: a reaction for a reaction, a gear answer for your weakest flex card. The core above is what makes the deck work, so cut flex slots first.',
+        ],
+        list: [
+          'Don’t spend all your energy on your own turn: your legend’s energy only exists in showdowns, and it does nothing without a reaction to cast.',
+          '[[Moonfall]] needs you to have units at that battlefield. Move in first, then cast it.',
+          '[[Star-Crossed]] always returns one of yours. Pick a unit you want to replay ([[Fizz, Trickster]], [[Tideturner]]) or one that is about to die.',
+          '[[Abandoned Hall]] works for both players: the opponent’s spells pump their units there too.',
+          '[[Vex, Apathetic]] only stuns new units while she is at a battlefield, not at your base.',
+          'To confirm: that your legend’s showdown energy can pay the 1 for [[Diana, Lunari]]’s trigger, and that revealing a hidden [[Tideturner]] counts as playing it, so its swap happens.',
         ],
       },
       {
@@ -188,6 +226,27 @@ export const DIANA: Guide = {
         ],
       },
       {
+        id: 'turns',
+        h: 'Turno por turno',
+        draft: true,
+        p: [
+          'La curva es baja: casi todo el mazo cuesta de 1 a 3 de energía, así que la pregunta de cada turno no es qué jugar sino cuánto dejar libre. Tu leyenda solo da energía durante los showdowns, así que la energía que dejas libre en tu turno se vuelve una reacción cuando el rival ataca.',
+        ],
+        list: [
+          '<b>Primer turno (2 de energía).</b> Una unidad de 2: [[Ravenbloom Student]], [[Traveling Merchant]], o esconde [[Tideturner]] en un campo que controles. Sin unidad, guarda [[Gust]] o [[Stupefy]].',
+          '<b>3–4 de energía.</b> Una segunda unidad y una reacción libre. [[Diana, Lunari]] cuesta 3: ponla donde van a pasar los showdowns, porque su robo solo se activa en su campo. [[Vex, Apathetic]] (4) rinde más en el campo que el rival más necesita.',
+          '<b>5–6 de energía.</b> Baja [[Hwei, Brooding Painter]], y desde ahí cada movimiento tuyo es una carta. Guarda [[Ride the Wind]] o [[Tideturner]] para volver a moverlo en combate.',
+          '<b>El turno que decide.</b> Guarda [[Moonfall]] y [[Star-Crossed]] hasta que un showdown decida un campo o la partida. Gasta todo ahí, contando la energía extra de tu leyenda.',
+        ],
+      },
+      {
+        id: 'plays',
+        h: 'Jugadas clave, animadas',
+        p: [
+          'Tres situaciones para las que está hecho el mazo, jugadas en la mesa de Riftviewer. Dale reproducir a cada una; puedes pausar e ir paso a paso.',
+        ],
+      },
+      {
         id: 'mulligan',
         h: 'Mulligan',
         draft: true,
@@ -203,6 +262,22 @@ export const DIANA: Guide = {
         ],
       },
       {
+        id: 'details',
+        h: 'La letra chica',
+        p: [
+          '<b>Por qué esas copias.</b> [[Stupefy]] va de a tres en las 11 listas, y [[Gust]] y [[Ride the Wind]] en 9 de 11: son baratas, y con la energía de tu leyenda muchas veces lanzas una gratis en combate. [[Star-Crossed]] va de a dos en 9 de 11 listas porque también te cuesta una unidad; la tercera espera en el banquillo para mazos con pocas unidades enormes. [[Hard Bargain]] y [[Eclipse]] van de a una o dos porque solo responden bien a algunos mazos: Hard Bargain no hace nada contra un mazo que solo juega unidades.',
+          '<b>Al meter cartas del banquillo.</b> Cambia una por otra del mismo tipo: una reacción por otra reacción, una respuesta al equipo por tu carta flexible más floja. El core es lo que hace funcionar al mazo, así que primero salen los huecos flexibles.',
+        ],
+        list: [
+          'No gastes toda tu energía en tu turno: la energía de tu leyenda solo existe en los showdowns, y no sirve sin una reacción que lanzar.',
+          '[[Moonfall]] necesita que tengas unidades en ese campo. Primero entra, luego lánzalo.',
+          '[[Star-Crossed]] siempre regresa una tuya. Elige una que quieras volver a jugar ([[Fizz, Trickster]], [[Tideturner]]) o una que está por morir.',
+          '[[Abandoned Hall]] funciona para los dos jugadores: los hechizos del rival también le dan poder a sus unidades ahí.',
+          '[[Vex, Apathetic]] solo aturde unidades nuevas mientras está en un campo, no en tu base.',
+          'Por confirmar: que la energía de showdown de tu leyenda pueda pagar el 1 del efecto de [[Diana, Lunari]], y que revelar un [[Tideturner]] escondido cuente como jugarlo, para que haga su cambio.',
+        ],
+      },
+      {
         id: 'ban',
         h: 'Qué cambió después del ban de Stacked Deck',
         p: [
@@ -212,6 +287,8 @@ export const DIANA: Guide = {
       },
     ],
   },
+
+  plays: DIANA_PLAYS,
 
   sources: [
     { date: '2026-11-22', event: 'S5 Ningbo Regional Open', place: '46th', players: 1280, player: '闪电家.乐事.li', meta: 'Radiance' },

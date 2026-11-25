@@ -536,3 +536,9 @@ html{scrollbar-color:#c8aa6e55 transparent}
 ::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
 ::-webkit-scrollbar-thumb{background:#c8aa6e55;border-radius:10px;border:3px solid transparent;background-clip:padding-box}
 ::-webkit-scrollbar-thumb:hover{background:#c8aa6eaa;border:3px solid transparent;background-clip:padding-box}
+
+/* modo incrustado (app/?embed=1, las jugadas de las guías): solo el tablero y la barra de reproducción */
+html.embed #topbar, html.embed #editor, html.embed #home, html.embed #gate, html.embed #tour, html.embed #annot,
+html.embed #bChart, html.embed #bSum, html.embed .sheetbar{display:none!important}
+html.embed #app{height:100vh}
+html.embed #ctrl{bottom:8px}

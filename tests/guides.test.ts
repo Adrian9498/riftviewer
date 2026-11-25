@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { decodeDeck } from '../src/deck/format';
 import { GUIDES } from '../src/guides/index';
 import { buildGuidePage, catalog, pageGuide } from '../src/guides/page';
-import { renderGuide, sampleDeck } from '../src/guides/render';
+import { curve, renderGuide, sampleDeck } from '../src/guides/render';
 import type { Guide } from '../src/guides/types';
 
 const { find } = catalog();
@@ -79,5 +79,53 @@ describe('guías en el sitio', () => {
     expect(read('public/sitemap.xml')).toContain('<loc>https://riftviewer.com/guides/</loc>');
     for (const g of GUIDES) expect(read('public/sitemap.xml')).toContain(`<loc>https://riftviewer.com/guides/${g.slug}/</loc>`);
     expect(read('index.html')).toContain('href="guides/"');
+  });
+});
+
+describe.each(GUIDES)('jugadas animadas de $short', g => {
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const cat = JSON.parse(readFileSync(resolve(process.cwd(), 'public/openrift-catalog.json'), 'utf8'));
+  const known = Object.values(cat.cards as Record<string, { name: string }>).map(c => norm(c.name));
+  // "Diana - Scorn of the Moon": en riftcodex las leyendas llevan el campeón delante
+  const exists = (n: string) => known.some(k => k === norm(n) || norm(n).endsWith(' ' + k));
+
+  it.each(g.plays.flatMap(p => (['en', 'es'] as const).map(l => [p.id, l, p.script[l]] as const)))('%s (%s): el guion se lee sin errores y sus cartas existen', async (_id, _l, script) => {
+    const { parse } = await import('../src/script/parser');
+    const { steps, errors } = parse(script);
+    expect(errors).toEqual([]);
+    expect(steps.length).toBeGreaterThan(10);
+    const cards = steps.filter(s => !['jugador', 'texto', 'fase', 'campo'].includes(s.cmd) && s.q).map(s => s.q!);
+    expect(cards.filter(n => !exists(n))).toEqual([]);
+  });
+  it('las dos versiones de cada jugada hacen lo mismo (solo cambian los textos)', async () => {
+    const { parse } = await import('../src/script/parser');
+    for (const p of g.plays) {
+      const shape = (s: string) => parse(s).steps.filter(x => !['texto', 'fase', 'jugador'].includes(x.cmd)).map(x => [x.cmd, x.q, x.pl, x.dest, x.num].join('|'));
+      expect(shape(p.script.es)).toEqual(shape(p.script.en));
+    }
+  });
+  it('cada jugada abre la app incrustada con su guion', () => {
+    const html = renderGuide(g, 'en', find);
+    const srcs = [...html.matchAll(/data-src="([^"]+)"/g)].map(m => m[1]);
+    expect(srcs).toHaveLength(g.plays.length);
+    srcs.forEach((src, i) => {
+      expect(src.startsWith('../../app/?embed=1#play=')).toBe(true);
+      const b = atob(src.split('#play=')[1].replace(/-/g, '+').replace(/_/g, '/'));
+      expect(new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0)))).toBe(g.plays[i].script.en);
+    });
+  });
+  it('la curva cuenta las 40 cartas del mazo principal', () => {
+    expect(curve(g, find).reduce((a, b) => a + b, 0)).toBe(40);
+  });
+});
+
+describe('anclas', () => {
+  it('las dos versiones no repiten ids en la página', () => {
+    const g = GUIDES[0];
+    const tpl = readFileSync(resolve(process.cwd(), `guides/${g.slug}/index.html`), 'utf8');
+    const html = buildGuidePage(tpl, g);
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+    expect(ids.length).toBe(new Set(ids).size);
+    for (const m of html.matchAll(/href="#([^"]+)"/g)) expect(ids).toContain(m[1]);
   });
 });

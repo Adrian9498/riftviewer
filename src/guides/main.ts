@@ -49,3 +49,15 @@ addEventListener('scroll', () => { if (pinned) hide(); }, { passive: true });
 // el anuncio va en la versión del idioma que se ve
 mountAd(document.querySelector<HTMLElement>(`.g-${LANG} .adbox`));
 startVisits();
+
+// jugadas animadas: la app incrustada se carga solo al pedirla (pesa, y así cada jugada empieza desde cero)
+document.addEventListener('click', e => {
+  const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.gwatch');
+  if (!b) return;
+  const f = document.createElement('iframe');
+  f.src = b.dataset.src || '';
+  f.title = b.textContent || 'Riftviewer';
+  f.allow = 'fullscreen';
+  f.setAttribute('allowfullscreen', '');
+  b.replaceWith(f);
+});

@@ -24,3 +24,10 @@ Una guía por leyenda en `riftviewer.com/guides/<leyenda>/`, más el índice en 
 4. Agregar `https://riftviewer.com/guides/<slug>/` a `public/sitemap.xml`.
 
 `tests/guides.test.ts` revisa que existan todas las cartas, que la lista de ejemplo tenga 40 + 12 runas + 3 campos, que el enlace al constructor abra esa lista y que la guía esté en el sitemap.
+
+## Jugadas animadas
+
+- Cada guía puede tener `plays`: guiones del visualizador (comandos en inglés, textos en cada idioma), por ejemplo `src/guides/data/diana-plays.ts`. La primera fase de cada guion solo acomoda la mesa.
+- En la guía sale un botón "Watch the play"; al pulsarlo se carga la app incrustada en `app/?embed=1#play=<guion en base64url>`.
+- El modo incrustado (`src/app/embed.js`, `embed-flag.js`) muestra solo el tablero y la barra de reproducción: sin pantalla de acceso de la beta, sin recorrido de bienvenida y sin guardar en recientes. Funciona sin cuenta.
+- Las pruebas revisan que cada guion se lea sin errores, que sus cartas existan y que la versión en inglés y en español hagan las mismas jugadas.

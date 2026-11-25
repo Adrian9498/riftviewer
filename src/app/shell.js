@@ -8,6 +8,7 @@ import { META_V, replayMeta } from '../replay/meta';
 import { REPLAY_FILE_PREFIX, REPLAY_FORMAT } from '../replay/decode';
 import { applyProject, loadProj, renderClips } from './clips';
 import { DEMO, DEMO_EN } from './demo';
+import { EMBED } from './embed-flag.js';
 import { fit } from './fit';
 import { renderNotes } from './notes';
 import { buildFrameList, loadReplay } from './replay';
@@ -73,6 +74,7 @@ export let dragN=0;
 
 // recientes (en IndexedDB): los últimos replays y guiones, para reabrirlos con un clic
 export async function saveRecent(item){
+  if(EMBED) return;   // modo incrustado (guías): no se guarda nada
   try{ item.ts=Date.now(); await IDB.set('recent:'+item.id,item);
     const old=(await IDB.entries()).filter(([k])=>k.startsWith('recent:')).sort((a,b)=>b[1].ts-a[1].ts).slice(8);
     for(const [k] of old) await IDB.del(k); }catch(e){}
@@ -193,7 +195,7 @@ export function tourStep(){
   const x=Math.max(12,Math.min(innerWidth-bw-12, r.left+r.width/2-bw/2));
   bub.style.left=x+'px'; bub.style.top=(below?r.bottom+16:Math.max(12,r.top-16-bub.offsetHeight))+'px';
 }
-export function maybeTour(){ let seen=false; try{ seen=!!localStorage.getItem('rb_tour'); }catch(e){} if(!seen) setTimeout(startTour,700); }
+export function maybeTour(){ if(EMBED) return; let seen=false; try{ seen=!!localStorage.getItem('rb_tour'); }catch(e){} if(!seen) setTimeout(startTour,700); }
 
 /* avisos flotantes */
 export function toast(t,c){ setStatus(t,c); const d=document.createElement('div'); d.className='toast '+(c||''); d.textContent=t; $('#toasts').appendChild(d); setTimeout(()=>d.classList.add('out'),3200); setTimeout(()=>d.remove(),3700); }
