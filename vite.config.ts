@@ -14,8 +14,24 @@ function adsTxt(): Plugin {
   };
 }
 
+/** Código de verificación de AdSense en la landing (lo que Google revisa para aprobar el sitio). */
+function adsVerify(): Plugin {
+  return {
+    name: 'ads-verify',
+    transformIndexHtml(html, ctx) {
+      const env = { ...loadEnv('production', process.cwd(), 'VITE_'), ...process.env };
+      const client = (env.VITE_ADSENSE_CLIENT || '').trim();
+      const landing = /[\\/]index\.html$/.test(ctx.filename) && !/[\\/](app|carpeta)[\\/]index\.html$/.test(ctx.filename);
+      if (!/^ca-pub-\d{10,20}$/.test(client) || !landing) return html;
+      return html.replace('</head>', `<meta name="google-adsense-account" content="${client}">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}" crossorigin="anonymous"></script>
+</head>`);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [adsTxt()],
+  plugins: [adsTxt(), adsVerify()],
   // rutas relativas: el build funciona en cualquier subcarpeta del hosting
   base: './',
   build: {
