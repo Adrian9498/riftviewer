@@ -93,6 +93,13 @@ export const EN: Record<string, string> = {
 
   /* ---------- guías ---------- */
   'Guías': "Guides",
+  'Aprende': "Learn",
+  'Vuélvete especialista en una leyenda': "Become a specialist in one legend",
+  'Guías de especialista': "Specialist guides",
+  'El core que comparten las buenas listas de torneo de cada leyenda, cómo se juega y qué meter del banquillo.': "The core that every legend's good tournament lists share, how to play it and what to bring in from the sideboard.",
+  'Core de torneos': "Tournament core",
+  'Plan de juego': "Game plan",
+  'Una leyenda nueva cada tanto': "A new legend every so often",
   'Listas de torneo:': "Tournament lists:",
   '· imágenes de cartas:': "· card images:",
 

@@ -28,8 +28,9 @@ beforeAll(async () => {
 describe('inicio', () => {
   it('muestra las secciones con todas las funciones', () => {
     const secs = [...document.querySelectorAll('#home .hsech span')].map(s => s.textContent);
-    expect(secs).toEqual(['Juega', 'Colecciona', 'Crea videos']);
-    for (const id of ['hDecks', 'hMesa', 'hColl', 'hTrade', 'hNew', 'replayIn', 'hDemo']) expect($('#' + id)).not.toBeNull();
+    expect(secs).toEqual(['Juega', 'Aprende', 'Colecciona', 'Crea videos']);
+    for (const id of ['hDecks', 'hMesa', 'hColl', 'hTrade', 'hNew', 'replayIn', 'hDemo', 'hGuides']) expect($('#' + id)).not.toBeNull();
+    expect($('#hGuides').getAttribute('href')).toBe('../guides/');
   });
 
   it('el resumen: seguir con el último mazo, récord de todos y cartas de la colección', () => {
