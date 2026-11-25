@@ -9,6 +9,7 @@ import { cloudEnabled } from '../cloud/client';
 import { currentUser, displayName, onUserChange, signOut } from '../cloud/auth';
 import { langSwitchHTML } from '../i18n/i18n';
 import { $, ic } from './base';
+import { EMBED } from './embed-flag.js';
 import { openAuth } from './account';
 import { esc } from './utils';
 
@@ -63,7 +64,7 @@ export function check() {
 }
 
 export function init() {
-  if (!cloudEnabled) return;
+  if (!cloudEnabled || EMBED) return;
   // antes de que la navegación limpie la dirección: ¿volvimos de Google/Discord sin invitación?
   deniedOAuth = deniedByBeta(location.href);
   // al abrir: lo último que se supo, para no parpadear; si no se sabe nada, se espera la respuesta

@@ -111,6 +111,9 @@ CONFIGURACIÓN (antes del primer "turno")
   leyenda j1 "Carta"         campeon j1 "Carta"
   campo A "Battlefield"      (A, B o C)
   mano j1 4                  (cartas boca abajo)
+  pon j1 "Carta" en A        (mesa inicial, sin animación;
+                              en base / A / descarte / mano,
+                              + oculta, + agotada)
   meta 8                     (puntos para ganar)
 
 JUGADAS
@@ -119,6 +122,8 @@ JUGADAS
   runas j1 3  /  +2  / -1
   juega j1 "Carta"           (hechizo → descarte)
   juega j1 "Carta" a base    juega j1 "Carta" a A
+  juega j1 "Carta"           (si está oculta en un campo, se revela)
+  juega j1 "Carta" desde descarte [recicla]
   mueve j1 "Carta" a B       mueve j1 "Carta" a base
   agota "Carta"              prepara "Carta"
   prepara j1 todo
@@ -141,6 +146,9 @@ SETUP (before the first "turn")
   legend p1 "Card"           champion p1 "Card"
   battlefield A "Battlefield" (A, B or C)
   hand p1 4                  (face-down cards)
+  put p1 "Card" at A         (starting board, no animation;
+                              at base / A / trash / hand,
+                              + hidden, + exhausted)
   goal 8                     (points to win)
 
 PLAYS
@@ -149,6 +157,8 @@ PLAYS
   runes p1 3  /  +2  / -1
   play p1 "Card"             (spell → trash)
   play p1 "Card" to base     play p1 "Card" to A
+  play p1 "Card"             (if hidden at a battlefield, reveals it)
+  play p1 "Card" from trash [recycle]
   move p1 "Card" to B        move p1 "Card" to base
   exhaust "Card"             ready "Card"
   ready p1 all
@@ -301,6 +311,12 @@ Keys: Space play/pause · ←/→ step · Home · H editor
       <div class="hgrid">
         <button class="htile t-deck" id="hDecks"><span class="hic"><svg class="i"><use href="#i-cards"/></svg></span><span class="htxt"><b>Mis mazos</b><small>Arma tu lista con las reglas al día y aprende de cada partida.</small><span class="htags"><i>Constructor</i><i>Mano de prueba</i><i>Probabilidades</i><i>Récord por rival</i><i>Reemplazos</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
         <button class="htile t-mesa" id="hMesa"><span class="hic"><svg class="i"><use href="#i-camera"/></svg></span><span class="htxt"><b>En la mesa</b><small>Tu compañero en partidas presenciales: escanea la carta del rival y léela en inglés.</small><span class="htags"><i>Escáner en cualquier idioma</i><i>Moneda y d20</i><i>Reloj de ronda</i><i>Gané / Perdí</i></span></span><svg class="i"><use href="#i-arrow"/></svg></button>
+      </div>
+    </section>
+    <section class="hsec">
+      <h2 class="hsech"><span>Aprende</span><small>Vuélvete especialista en una leyenda</small></h2>
+      <div class="hgrid one">
+        <a class="htile t-guide" id="hGuides" href="../guides/"><span class="hic"><svg class="i"><use href="#i-book"/></svg></span><span class="htxt"><b>Guías de especialista</b><small>El core que comparten las buenas listas de torneo de cada leyenda, cómo se juega y qué meter del banquillo.</small><span class="htags"><i>Core de torneos</i><i>Plan de juego</i><i>Banquillo</i><i>Una leyenda nueva cada tanto</i></span></span><svg class="i"><use href="#i-arrow"/></svg></a>
       </div>
     </section>
     <section class="hsec">

@@ -40,6 +40,8 @@
 .htile.t-mesa{--c:#e6c67f}
 .htile.t-coll{--c:#4fd1c5}
 .htile.t-trade{--c:#6fb6ff}
+.htile.t-guide{--c:#f08a6c;text-decoration:none}
+.hgrid.one{grid-template-columns:1fr}
 
 @media (max-width:760px){
   .hgrid{grid-template-columns:1fr;gap:10px}

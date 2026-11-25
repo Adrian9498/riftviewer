@@ -14,6 +14,8 @@ export const adsEnabled = (client = CLIENT, slot = SLOT) => /^ca-pub-\d{10,20}$/
 let loading = false;
 function loadScript(client: string) {
   if (loading || typeof document === 'undefined') return;
+  // la landing ya lo trae en el HTML (verificación de AdSense)
+  if (document.querySelector('script[src*="pagead2.googlesyndication.com"]')) { loading = true; return; }
   loading = true;
   const s = document.createElement('script');
   s.async = true;

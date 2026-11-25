@@ -58,3 +58,23 @@ describe('utilidades', () => {
     expect(isSetup({ cmd: 'juega' })).toBe(false);
   });
 });
+
+describe('mesa inicial y jugadas especiales', () => {
+  it('"put" / "pon" acomoda la mesa: lugar, oculta y agotada', () => {
+    const { steps, errors } = parse('put p1 "Tideturner" at A hidden\npon j2 "Gust" en descarte\nput p1 "Fizz" at hand exhausted');
+    expect(errors).toEqual([]);
+    expect(steps.map(s => [s.cmd, s.pl, s.q, s.dest])).toEqual([['pon', 1, 'Tideturner', 'A'], ['pon', 2, 'Gust', 'descarte'], ['pon', 1, 'Fizz', 'mano']]);
+    expect(steps[0].words).toContain('oculta');
+    expect(steps[2].words).toContain('agotada');
+    expect(steps.every(isSetup)).toBe(true);
+  });
+  it('"put" sin lugar válido es un error', () => {
+    expect(parse('put p1 "Gust"').errors).toHaveLength(1);
+    expect(parse('put p1 "Gust" at deck').errors).toHaveLength(1);
+  });
+  it('"play … from trash recycle" se lee en inglés', () => {
+    const s = parse('play p1 "Star-Crossed" from trash recycle').steps[0];
+    expect(s.cmd).toBe('juega');
+    expect(s.words).toEqual(['p1', 'desde', 'descarte', 'recicla']);
+  });
+});
