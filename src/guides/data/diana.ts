@@ -137,13 +137,13 @@ export const DIANA: Guide = {
         h: 'Turn by turn',
         draft: true,
         p: [
-          'The curve is low: most of the deck costs 1 to 3 energy, so the question each turn is not what to play but how much to keep open. Your legend only adds energy during showdowns, so energy you leave open on your turn still turns into a reaction when the opponent attacks.',
+          'The curve is low: most of the deck costs 1 to 3 energy, so the question each turn is not what to play but how much to keep open. Your legend only adds energy during showdowns, so energy you leave open on your turn still turns into a reaction when the opponent attacks. Each turn you channel 2 runes (3 on your first turn if you go second), and units enter play exhausted, so a unit moves the turn after you play it.',
         ],
         list: [
-          '<b>First turn (2 energy).</b> A 2-cost unit: [[Ravenbloom Student]], [[Traveling Merchant]], or hide [[Tideturner]] at a battlefield you hold. With no unit, keep [[Gust]] or [[Stupefy]] up.',
-          '<b>3–4 energy.</b> A second unit plus one reaction open. [[Diana, Lunari]] costs 3: put her where the showdowns will happen, because her draw only triggers at her battlefield. [[Vex, Apathetic]] (4) is best on the battlefield the opponent needs most.',
-          '<b>5–6 energy.</b> [[Hwei, Brooding Painter]] comes down, and from then on every move you make is a card. Keep [[Ride the Wind]] or [[Tideturner]] to move him again in combat.',
-          '<b>The deciding turn.</b> Hold [[Moonfall]] and [[Star-Crossed]] until one showdown decides a battlefield or the game. Spend everything there, counting your legend’s extra energy.',
+          '<b>Turn 1 (2 runes, 3 if you go second).</b> A 2-cost unit: [[Ravenbloom Student]] or [[Traveling Merchant]]. It moves to a battlefield next turn. With no unit, keep [[Gust]] or [[Stupefy]] up for their turn.',
+          '<b>Turn 2 (4 runes).</b> Move your first unit out and add a second one, or [[Diana, Lunari]] (3) with a reaction open. Put Lunari where the showdowns will happen, because her draw only triggers at her battlefield. Once you hold a battlefield, hide [[Tideturner]] there: from your next turn it can come out as a reaction.',
+          '<b>Turn 3 (6 runes).</b> [[Hwei, Brooding Painter]] (5) with 1 open, or [[Vex, Apathetic]] (4) heading for the battlefield the opponent needs, with a reaction open. From here every move Hwei makes is a card.',
+          '<b>Turn 4 and later (8+ runes).</b> A threat plus a full set of reactions. Hold [[Moonfall]] and [[Star-Crossed]] for the showdown that decides a battlefield or the game and spend everything there, counting your legend’s extra energy. Power costs are paid by recycling runes, so two power spells in one turn leave you with fewer runes next turn.',
         ],
       },
       {
@@ -181,7 +181,9 @@ export const DIANA: Guide = {
           '[[Star-Crossed]] always returns one of yours. Pick a unit you want to replay ([[Fizz, Trickster]], [[Tideturner]]) or one that is about to die.',
           '[[Abandoned Hall]] works for both players: the opponent’s spells pump their units there too.',
           '[[Vex, Apathetic]] only stuns new units while she is at a battlefield, not at your base.',
-          'To confirm: that your legend’s showdown energy can pay the 1 for [[Diana, Lunari]]’s trigger, and that revealing a hidden [[Tideturner]] counts as playing it, so its swap happens.',
+          'Your legend’s showdown energy can pay the 1 for [[Diana, Lunari]]: her trigger resolves once the showdown has begun.',
+          'Hiding [[Tideturner]] is not playing it; revealing it is, so its swap triggers. It can come out as a reaction from the turn after you hide it, and it must come out at the battlefield where it is hidden.',
+          'In a fight, the opponent decides how to split its damage, as long as each unit gets lethal damage before it moves on to the next.',
         ],
       },
       {
@@ -230,13 +232,13 @@ export const DIANA: Guide = {
         h: 'Turno por turno',
         draft: true,
         p: [
-          'La curva es baja: casi todo el mazo cuesta de 1 a 3 de energía, así que la pregunta de cada turno no es qué jugar sino cuánto dejar libre. Tu leyenda solo da energía durante los showdowns, así que la energía que dejas libre en tu turno se vuelve una reacción cuando el rival ataca.',
+          'La curva es baja: casi todo el mazo cuesta de 1 a 3 de energía, así que la pregunta de cada turno no es qué jugar sino cuánto dejar libre. Tu leyenda solo da energía durante los showdowns, así que la energía que dejas libre en tu turno se vuelve una reacción cuando el rival ataca. Cada turno canalizas 2 runas (3 en tu primer turno si vas segundo), y las unidades entran agotadas, así que una unidad se mueve el turno después de jugarla.',
         ],
         list: [
-          '<b>Primer turno (2 de energía).</b> Una unidad de 2: [[Ravenbloom Student]], [[Traveling Merchant]], o esconde [[Tideturner]] en un campo que controles. Sin unidad, guarda [[Gust]] o [[Stupefy]].',
-          '<b>3–4 de energía.</b> Una segunda unidad y una reacción libre. [[Diana, Lunari]] cuesta 3: ponla donde van a pasar los showdowns, porque su robo solo se activa en su campo. [[Vex, Apathetic]] (4) rinde más en el campo que el rival más necesita.',
-          '<b>5–6 de energía.</b> Baja [[Hwei, Brooding Painter]], y desde ahí cada movimiento tuyo es una carta. Guarda [[Ride the Wind]] o [[Tideturner]] para volver a moverlo en combate.',
-          '<b>El turno que decide.</b> Guarda [[Moonfall]] y [[Star-Crossed]] hasta que un showdown decida un campo o la partida. Gasta todo ahí, contando la energía extra de tu leyenda.',
+          '<b>Turno 1 (2 runas, 3 si vas segundo).</b> Una unidad de 2: [[Ravenbloom Student]] o [[Traveling Merchant]]. Se mueve a un campo el siguiente turno. Sin unidad, guarda [[Gust]] o [[Stupefy]] para su turno.',
+          '<b>Turno 2 (4 runas).</b> Mueve tu primera unidad y agrega otra, o [[Diana, Lunari]] (3) con una reacción libre. Pon a Lunari donde van a pasar los showdowns, porque su robo solo se activa en su campo. En cuanto controles un campo, esconde [[Tideturner]] ahí: desde tu siguiente turno puede salir como reacción.',
+          '<b>Turno 3 (6 runas).</b> [[Hwei, Brooding Painter]] (5) con 1 libre, o [[Vex, Apathetic]] (4) rumbo al campo que el rival necesita, con una reacción libre. Desde aquí cada movimiento de Hwei es una carta.',
+          '<b>Turno 4 en adelante (8+ runas).</b> Una amenaza y todas tus reacciones listas. Guarda [[Moonfall]] y [[Star-Crossed]] para el showdown que decide un campo o la partida y gasta todo ahí, contando la energía extra de tu leyenda. El poder se paga reciclando runas, así que dos hechizos con poder en un turno te dejan con menos runas el siguiente.',
         ],
       },
       {
@@ -274,7 +276,9 @@ export const DIANA: Guide = {
           '[[Star-Crossed]] siempre regresa una tuya. Elige una que quieras volver a jugar ([[Fizz, Trickster]], [[Tideturner]]) o una que está por morir.',
           '[[Abandoned Hall]] funciona para los dos jugadores: los hechizos del rival también le dan poder a sus unidades ahí.',
           '[[Vex, Apathetic]] solo aturde unidades nuevas mientras está en un campo, no en tu base.',
-          'Por confirmar: que la energía de showdown de tu leyenda pueda pagar el 1 del efecto de [[Diana, Lunari]], y que revelar un [[Tideturner]] escondido cuente como jugarlo, para que haga su cambio.',
+          'La energía de showdown de tu leyenda puede pagar el 1 de [[Diana, Lunari]]: su efecto se resuelve cuando el showdown ya empezó.',
+          'Esconder [[Tideturner]] no es jugarlo; revelarlo sí, así que hace su cambio. Puede salir como reacción desde el turno después de esconderlo, y sale en el campo donde está escondido.',
+          'En una pelea, el rival decide cómo reparte su daño, siempre que cada unidad reciba daño letal antes de pasar a la siguiente.',
         ],
       },
       {
