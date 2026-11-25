@@ -12,6 +12,7 @@ export const DIANA: Guide = {
   champion: 'Diana, Lunari',
   short: 'Diana',
   domains: ['Mind', 'Chaos'],
+  published: '2026-11-24',
   updated: '2026-11-24',
   since: '2026-09-18',
   sinceWhy: {
@@ -22,6 +23,14 @@ export const DIANA: Guide = {
   title: {
     en: 'Diana, Scorn of the Moon deck guide',
     es: 'Guía de Diana, Scorn of the Moon',
+  },
+  seoTitle: {
+    en: 'Diana Deck Guide: Core, Mulligan & Sideboard | Riftbound',
+    es: 'Guía de Diana: mazo, core, mulligan y banquillo | Riftbound',
+  },
+  keywords: {
+    en: ['Riftbound', 'Diana deck', 'Diana Scorn of the Moon', 'Riftbound Diana deck list', 'Riftbound tier list', 'Radiance', 'Mind Chaos', 'mulligan', 'sideboard'],
+    es: ['Riftbound', 'mazo de Diana', 'Diana Scorn of the Moon', 'lista de Diana Riftbound', 'Radiance', 'Mente Caos', 'mulligan', 'banquillo'],
   },
   description: {
     en: 'Become a Diana specialist: the core cards from 20 post-ban tournament lists, how the deck wins showdowns, battlefields, mulligan and sideboard.',

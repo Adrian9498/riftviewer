@@ -159,20 +159,16 @@ export function renderGuide(g: Guide, lang: Lang, find: CardFinder, appBase = '.
   toc.splice(1, 0, `<a href="#${aid('lists', lang)}">${esc(u.core)}</a>`);
   return `<article class="guide" lang="${lang}">
   <header class="ghead">
-    <div class="gart">${legend ? `<img src="${esc(legend.img)}" alt="${esc(legend.name)}" width="200" height="279">` : ''}${champ ? `<img src="${esc(champ.img)}" alt="${esc(champ.name)}" width="200" height="279">` : ''}</div>
+    <div class="gart">${legend ? `<img src="${esc(legend.img)}" alt="${esc(legend.name)}, Riftbound legend" width="200" height="279" fetchpriority="high">` : ''}${champ ? `<img src="${esc(champ.img)}" alt="${esc(champ.name)}" width="200" height="279">` : ''}</div>
     <div>
       <p class="gkicker"><a href="../">${esc(u.back)}</a> · ${esc(g.domains.join(' / '))}</p>
       <h1>${esc(g.title[lang])}</h1>
       <p class="glead">${esc(g.intro[lang])}</p>
-      <p class="gmuted">${esc(u.since(g.studied.total, fmtDate(g.since, lang), g.sinceWhy[lang]))} ${esc(u.updated)}: ${esc(fmtDate(g.updated, lang))}.</p>
+      <p class="gmuted">${esc(u.since(g.studied.total, fmtDate(g.since, lang), g.sinceWhy[lang]))} ${esc(u.updated)}: <time datetime="${g.updated}">${esc(fmtDate(g.updated, lang))}</time>.</p>
     </div>
   </header>
   <nav class="gtoc" aria-label="${esc(u.toc)}">${toc.join('')}</nav>
   ${body}
-    <h2>${esc(u.core)}</h2><p class="gmuted">${esc(u.coreSub)}</p>${grid(g.core, n, lang, find)}
-    <h3>${esc(u.flex)}</h3><p class="gmuted">${esc(u.flexSub)}</p>${grid(g.flex, n, lang, find)}
-    <h3>${esc(u.bfs)}</h3>${grid(g.battlefields, n, lang, find)}
-    <h3>${esc(u.runes)}</h3><p>${esc(g.runes[lang])}</p>
   <div class="adbox" hidden></div>
   <section class="gsec gsources" id="${aid('sources', lang)}">
     <h2>${esc(u.sources)}</h2><p class="gmuted">${esc(u.sourcesSub(g.studied.mainMeta, n))}</p>

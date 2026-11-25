@@ -46,6 +46,12 @@ export interface Guide {
   /** cuántas listas se estudiaron, y de cuáles salen las tablas */
   studied: { total: number; main: number; mainMeta: string };
   title: L10n;
+  /** título para buscadores (<title>): corto, con "Riftbound" y lo que la gente busca */
+  seoTitle: L10n;
+  /** palabras clave para los datos estructurados */
+  keywords: Record<Lang, string[]>;
+  /** cuándo salió la guía */
+  published: string;
   description: L10n;
   intro: L10n;
   core: GuideCard[];

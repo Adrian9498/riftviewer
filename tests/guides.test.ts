@@ -47,25 +47,55 @@ describe.each(GUIDES)('guía de $short', g => {
   it('las dos versiones tienen las mismas secciones', () => {
     expect(g.sections.en.map(s => s.id)).toEqual(g.sections.es.map(s => s.id));
   });
-  it('la página trae el título, la descripción y las dos versiones', () => {
-    const tpl = readFileSync(resolve(process.cwd(), `guides/${g.slug}/index.html`), 'utf8');
-    const html = buildGuidePage(tpl, pageGuide(`/x/guides/${g.slug}/index.html`)!);
-    expect(html).toContain(`<title>${g.title.en} · Riftviewer</title>`);
-    expect(html).toContain(`<link rel="canonical" href="https://riftviewer.com/guides/${g.slug}/">`);
-    expect(html).toContain('<div class="g-en"><article class="guide" lang="en">');
-    expect(html).toContain('<div class="g-es"><article class="guide" lang="es">');
+  it.each(['en', 'es'] as const)('la página en %s tiene su dirección, su idioma y sus etiquetas para buscadores', lang => {
+    const file = `${lang === 'es' ? 'es/' : ''}guides/${g.slug}/index.html`;
+    const tpl = readFileSync(resolve(process.cwd(), file), 'utf8');
+    const p = pageGuide('/x/' + file)!;
+    expect(p).toEqual({ guide: g, lang });
+    const html = buildGuidePage(tpl, p);
+    const url = `https://riftviewer.com${lang === 'es' ? '/es' : ''}/guides/${g.slug}/`;
+    expect(html).toContain(`<html lang="${lang}">`);
+    expect(html).toContain(`<title>${g.seoTitle[lang].replace(/&/g, "&amp;")}</title>`);
+    expect(g.seoTitle[lang].length).toBeLessThanOrEqual(65);
+    expect(g.description[lang].length).toBeLessThanOrEqual(170);
+    expect(html).toContain(`<link rel="canonical" href="${url}">`);
+    expect(html).toContain(`<link rel="alternate" hreflang="en" href="https://riftviewer.com/guides/${g.slug}/">`);
+    expect(html).toContain(`<link rel="alternate" hreflang="es" href="https://riftviewer.com/es/guides/${g.slug}/">`);
+    expect(html).toContain('hreflang="x-default"');
+    // solo un idioma por página, y un solo h1
+    expect(html).toContain(`<article class="guide" lang="${lang}">`);
+    expect(html).not.toContain(`<article class="guide" lang="${lang === 'en' ? 'es' : 'en'}">`);
+    expect(html.match(/<h1>/g)).toHaveLength(1);
+    // las tablas del core salen una sola vez
+    expect(html.split('id="' + (lang === 'es' ? 'es-' : '') + 'lists"')).toHaveLength(2);
+    expect(html).toContain('og:image" content="https://openrift.app/');
+    expect(html).toContain('<script type="module" src="/src/guides/main.ts"></script>');
     expect(html).not.toContain('<!--guide-');
-    JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1]);
+    const types = ld['@graph'].map((x: { '@type': string }) => x['@type']);
+    expect(types).toEqual(['Article', 'BreadcrumbList', 'Organization']);
+    expect(ld['@graph'][0]).toMatchObject({ inLanguage: lang, url, dateModified: g.updated, datePublished: g.published });
+  });
+  it('las rutas relativas llegan a la raíz del sitio desde cada idioma', () => {
+    const tpl = readFileSync(resolve(process.cwd(), `guides/${g.slug}/index.html`), 'utf8');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'en' })).toContain('href="../../app/"');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain('href="../../../app/"');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain('data-src="../../../app/?embed=1#play=');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'en' })).toContain(`href="../../es/guides/${g.slug}/"`);
+    expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain(`href="../../../guides/${g.slug}/"`);
   });
 });
 
 describe('índice de guías', () => {
   it('enlaza las guías publicadas y muestra las demás leyendas como próximamente', () => {
     const tpl = readFileSync(resolve(process.cwd(), 'guides/index.html'), 'utf8');
-    const html = buildGuidePage(tpl, pageGuide('/x/guides/index.html')!);
-    for (const g of GUIDES) expect(html).toContain(`href="${g.slug}/"`);
-    expect(html).toContain('Coming soon');
-    expect(html).toContain('Próximamente');
+    const en = buildGuidePage(tpl, pageGuide('/x/guides/index.html')!);
+    const es = buildGuidePage(readFileSync(resolve(process.cwd(), 'es/guides/index.html'), 'utf8'), pageGuide('/x/es/guides/index.html')!);
+    for (const g of GUIDES) { expect(en).toContain(`href="${g.slug}/"`); expect(es).toContain(`href="${g.slug}/"`); }
+    expect(en).toContain('Coming soon');
+    expect(es).toContain('Próximamente');
+    expect(es).toContain('<link rel="canonical" href="https://riftviewer.com/es/guides/">');
+    expect(JSON.parse(en.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1])['@graph'][0]['@type']).toBe('CollectionPage');
   });
   it('las páginas que no son de guías se dejan en paz', () => {
     expect(pageGuide('/x/app/index.html')).toBeUndefined();
@@ -76,8 +106,12 @@ describe('índice de guías', () => {
 describe('guías en el sitio', () => {
   const read = (f: string) => readFileSync(resolve(process.cwd(), f), 'utf8');
   it('cada guía está en el sitemap y la landing enlaza al índice', () => {
-    expect(read('public/sitemap.xml')).toContain('<loc>https://riftviewer.com/guides/</loc>');
-    for (const g of GUIDES) expect(read('public/sitemap.xml')).toContain(`<loc>https://riftviewer.com/guides/${g.slug}/</loc>`);
+    const map = read('public/sitemap.xml');
+    for (const p of ['', ...GUIDES.map(g => g.slug + '/')]) {
+      expect(map).toContain(`<loc>https://riftviewer.com/guides/${p}</loc>`);
+      expect(map).toContain(`<loc>https://riftviewer.com/es/guides/${p}</loc>`);
+      expect(map).toContain(`hreflang="es" href="https://riftviewer.com/es/guides/${p}"`);
+    }
     expect(read('index.html')).toContain('href="guides/"');
   });
 });
@@ -120,10 +154,10 @@ describe.each(GUIDES)('jugadas animadas de $short', g => {
 });
 
 describe('anclas', () => {
-  it('las dos versiones no repiten ids en la página', () => {
+  it.each(['en', 'es'] as const)('la página en %s no repite ids y sus enlaces internos existen', lang => {
     const g = GUIDES[0];
     const tpl = readFileSync(resolve(process.cwd(), `guides/${g.slug}/index.html`), 'utf8');
-    const html = buildGuidePage(tpl, g);
+    const html = buildGuidePage(tpl, { guide: g, lang });
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     expect(ids.length).toBe(new Set(ids).size);
     for (const m of html.matchAll(/href="#([^"]+)"/g)) expect(ids).toContain(m[1]);

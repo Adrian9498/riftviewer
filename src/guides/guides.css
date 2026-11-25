@@ -121,3 +121,13 @@ main{max-width:1080px;margin:0 auto;padding:0 16px 40px}
 .gpi::after{content:"";position:absolute;left:23px;top:18px;border-left:18px solid #1a1205;border-top:11px solid transparent;border-bottom:11px solid transparent}
 .gwatch:hover .gpi{transform:scale(1.06)}
 .gwatch:focus-visible{outline:2px solid var(--acc2);outline-offset:-4px}
+
+/* idioma como enlaces (cada idioma tiene su dirección) */
+.langsw a{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 9px;border-radius:999px;color:#aeb8cc;font:700 12px/1 Inter,system-ui,sans-serif;letter-spacing:.5px;text-decoration:none}
+.langsw a:hover{color:#fff}
+.langsw a.on{background:#c8aa6e;color:#0b1220}
+.langsw a:focus-visible{outline:2px solid #e6c67f;outline-offset:1px}
+/* migas de pan */
+.gcrumbs{max-width:1080px;margin:0 auto;padding:0 16px;color:#8d97ab;font-size:13px}
+.gcrumbs a{color:#aeb8cc;text-decoration:none}
+.gcrumbs a:hover{color:#fff;text-decoration:underline}

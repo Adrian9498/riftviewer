@@ -5,7 +5,7 @@ Una guía por leyenda en `riftviewer.com/guides/<leyenda>/`, más el índice en 
 ## Cómo se arma
 
 - Los datos de cada guía viven en `src/guides/data/<leyenda>.ts` (tipos en `src/guides/types.ts`): tablas de core, flex, banquillo y campos, una lista de ejemplo, el texto en inglés y en español, y las listas usadas como fuente.
-- Al compilar, el plugin `guide-pages` de `vite.config.ts` cambia `<!--guide-head-->` y `<!--guide-body-->` de `guides/…/index.html` por el HTML ya escrito (`src/guides/page.ts` y `render.ts`). La página sale en inglés y en español; el script del `<head>` muestra la versión en español si `rb_lang` es `es`.
+- Al compilar, el plugin `guide-pages` de `vite.config.ts` cambia la plantilla `<!--guide-page-->` de cada página por el documento completo (`src/guides/page.ts` y `render.ts`). Cada idioma tiene su dirección: `/guides/<slug>/` en inglés y `/es/guides/<slug>/` en español, enlazadas con hreflang, con su propio título para buscadores (`seoTitle`), Open Graph con la carta de la leyenda y datos estructurados (Article, BreadcrumbList). Quien eligió español y entra a la inglesa va a la suya.
 - En el texto, `[[Nombre de carta]]` se vuelve un nombre con vista previa de la carta. Los nombres y códigos salen de `public/openrift-catalog.json`.
 - Una sección con `draft: true` muestra la marca "Pending specialist review" hasta que alguien que juega la leyenda la revise.
 
@@ -20,7 +20,7 @@ Una guía por leyenda en `riftviewer.com/guides/<leyenda>/`, más el índice en 
 
 1. `src/guides/data/<slug>.ts` con su `Guide`.
 2. Agregarla a `GUIDES` en `src/guides/index.ts`.
-3. Copiar `guides/diana/index.html` a `guides/<slug>/index.html` (es igual para todas).
+3. Copiar `guides/diana/index.html` a `guides/<slug>/index.html` y a `es/guides/<slug>/index.html` (son iguales para todas), y agregar las dos direcciones a `public/sitemap.xml` con sus `xhtml:link` (las pruebas lo revisan).
 4. Agregar `https://riftviewer.com/guides/<slug>/` a `public/sitemap.xml`.
 
 `tests/guides.test.ts` revisa que existan todas las cartas, que la lista de ejemplo tenga 40 + 12 runas + 3 campos, que el enlace al constructor abra esa lista y que la guía esté en el sitemap.

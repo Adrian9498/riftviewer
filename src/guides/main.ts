@@ -1,19 +1,16 @@
 // Páginas de guías (riftviewer.com/guides/…): ya vienen escritas desde la compilación en inglés y español.
-// Aquí solo: idioma, vista previa de cartas al pasar o tocar su nombre, anuncio y visitas.
+// Cada idioma tiene su dirección (/guides/… y /es/guides/…), así que la página ya viene en su idioma.
+// Aquí solo: recordar el idioma al cambiarlo, vista previa de cartas al pasar o tocar su nombre, anuncio y visitas.
 import './guides.css';
 import '../i18n/i18n.css';
 import { mountAd } from '../ads/ads';
-import { startDomTranslation } from '../i18n/dom';
-import { LANG, wireLangSwitch } from '../i18n/i18n';
 import { startVisits } from '../stats/visits';
 
-startDomTranslation();
-wireLangSwitch();
-document.querySelectorAll<HTMLElement>('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
-if (LANG === 'es') {
-  const t = document.querySelector<HTMLMetaElement>('meta[name="guide-es-title"]')?.content;
-  if (t) document.title = t;
-}
+// el selector de idioma son enlaces a la otra versión: solo se guarda la elección
+document.addEventListener('click', e => {
+  const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-lang]');
+  if (a) try { localStorage.setItem('rb_lang', a.dataset.lang!); } catch { /* sin almacenamiento */ }
+});
 
 // vista previa de una carta: sigue al ratón; en pantallas táctiles se abre al tocar y se cierra al tocar fuera
 const zoom = document.getElementById('gzoom') as HTMLElement;
@@ -46,8 +43,8 @@ document.addEventListener('focusin', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
 addEventListener('scroll', () => { if (pinned) hide(); }, { passive: true });
 
-// el anuncio va en la versión del idioma que se ve
-mountAd(document.querySelector<HTMLElement>(`.g-${LANG} .adbox`));
+// el anuncio
+mountAd(document.querySelector<HTMLElement>('.adbox'));
 startVisits();
 
 // jugadas animadas: la app incrustada se carga solo al pedirla (pesa, y así cada jugada empieza desde cero)

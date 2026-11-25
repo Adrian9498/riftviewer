@@ -39,8 +39,8 @@ function guidePages(): Plugin {
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
-        const g = pageGuide(ctx.filename);
-        return g === undefined ? html : buildGuidePage(html, g, __dirname);
+        const p = pageGuide(ctx.filename);
+        return p === undefined ? html : buildGuidePage(html, p, __dirname);
       },
     },
   };
@@ -60,6 +60,9 @@ export default defineConfig({
         inicio: resolve(__dirname, 'index.html'), app: resolve(__dirname, 'app/index.html'), carpeta: resolve(__dirname, 'carpeta/index.html'),
         guias: resolve(__dirname, 'guides/index.html'),
         ...Object.fromEntries(GUIDES.map(g => ['guia-' + g.slug, resolve(__dirname, `guides/${g.slug}/index.html`)])),
+        // la versión en español, en su propia dirección
+        'guias-es': resolve(__dirname, 'es/guides/index.html'),
+        ...Object.fromEntries(GUIDES.map(g => ['guia-es-' + g.slug, resolve(__dirname, `es/guides/${g.slug}/index.html`)])),
       },
     },
   },
