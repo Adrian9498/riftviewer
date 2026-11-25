@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- idioma: la guía viene escrita en los dos idiomas; en español se muestra la versión en español -->
+<script>try{if(localStorage.getItem('rb_lang')==='es'){document.documentElement.classList.add('es');document.documentElement.lang='es'}else{document.documentElement.classList.add('i18n-wait');setTimeout(function(){document.documentElement.classList.remove('i18n-wait')},1500)}}catch(e){}</script>
+<style>.i18n-wait body{visibility:hidden}.g-es{display:none}html.es .g-es{display:block}html.es .g-en{display:none}</style>
+<!--guide-head-->
+<meta name="theme-color" content="#070b14">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="gtop">
+  <a class="gbrand" href="../"><span class="gmark"></span>Riftviewer</a>
+  <a class="gnav" href="./">Guías</a>
+  <span class="langsw" translate="no" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en">EN</button><button type="button" data-lang="es">ES</button></span>
+  <a class="gcta" href="../app/">Abrir la app</a>
+</header>
+<main id="gmain" translate="no">
+<!--guide-body-->
+</main>
+<div id="gzoom" class="gzoom" hidden aria-hidden="true"><img alt=""></div>
+<footer class="gfoot">Listas de torneo: <a href="https://riftdecks.com" target="_blank" rel="noopener">RiftDecks</a> · imágenes de cartas: <a href="https://openrift.app" target="_blank" rel="noopener">OpenRift</a>. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games. <a href="../privacidad.html">Privacidad</a></footer>
+<script type="module" src="/src/guides/main.ts"></script>
+</body>
+</html>

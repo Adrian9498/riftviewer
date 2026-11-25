@@ -91,6 +91,11 @@ export const EN: Record<string, string> = {
   'Colección': "Collection",
   'Inicio': "Home",
 
+  /* ---------- guías ---------- */
+  'Guías': "Guides",
+  'Listas de torneo:': "Tournament lists:",
+  '· imágenes de cartas:': "· card images:",
+
   /* ---------- landing ---------- */
   'Riftviewer · Replays, mazos y colección de Riftbound': "Riftviewer · Riftbound replays, decks and collection",
   'Riftviewer, inicio': "Riftviewer, home",
