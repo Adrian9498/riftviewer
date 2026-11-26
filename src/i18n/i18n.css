@@ -3,8 +3,8 @@
 .langsw{display:inline-flex;flex:none;padding:2px;border-radius:var(--r-xs);border:1px solid #c8aa6e55;background:#0b1322cc;gap:2px}
 .langsw button{min-width:34px;height:26px;padding:0 9px;border:0;border-radius:2px;background:transparent;color:var(--soft);font:700 12px/1 var(--font-body);letter-spacing:.5px;cursor:pointer}
 .langsw button:hover{color:#fff}
-.langsw button.on{background:#c8aa6e;color:var(--ink)}
-.langsw button:focus-visible{outline:2px solid #e6c67f;outline-offset:1px}
+.langsw button.on{background:var(--acc);color:var(--ink)}
+.langsw button:focus-visible{outline:2px solid var(--acc2);outline-offset:1px}
 
 /* en el menú de secciones de la app */
 .navlang{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px 6px;color:#aeb8cc;font-size:13px}

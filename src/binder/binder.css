@@ -3,7 +3,7 @@
 /* colores, dorados y tipografía: tokens.css */
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
-body{background:radial-gradient(ellipse at 50% -10%,#1b2a44 0%,#060b14 55%) fixed,var(--bg);color:var(--text);font:15px/1.5 var(--font-body)}
+body{background:radial-gradient(ellipse at 50% -10%,#1b2a44 0%,var(--bg) 55%) fixed,var(--bg);color:var(--text);font:15px/1.5 var(--font-body)}
 button{font:inherit;color:inherit}
 a{color:var(--acc2)}
 html{scrollbar-color:#c8aa6e55 transparent;scrollbar-width:thin}
@@ -47,7 +47,7 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 40px}
 
 /* la carpeta: dos hojas en PC, una en el teléfono */
 .bvbook{display:grid;grid-template-columns:1fr 18px 1fr;padding:18px;border-radius:22px;
-  background:linear-gradient(90deg,#141c2b,#1a2436 48%,#0e1522 50%,#1a2436 52%,#141c2b);border:1px solid #2a3b5a;box-shadow:0 30px 70px #000b,inset 0 0 0 6px #0b111c;perspective:1600px}
+  background:linear-gradient(90deg,#141c2b,#1a2436 48%,#0e1522 50%,#1a2436 52%,#141c2b);border:1px solid var(--line2);box-shadow:0 30px 70px #000b,inset 0 0 0 6px #0b111c;perspective:1600px}
 .bvbook.single{grid-template-columns:1fr}
 .bvspine{background:repeating-linear-gradient(180deg,#0b111c 0 18px,#3a4660 18px 24px);border-radius:4px;margin:30px 0;opacity:.7}
 .bvpage{position:relative;padding:12px 12px 26px;border-radius:var(--r-md);background:linear-gradient(180deg,#0d1524,#0a111e)}

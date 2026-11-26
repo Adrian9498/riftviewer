@@ -1,13 +1,13 @@
 /* ===================== Mi colección ===================== */
 #collb{position:fixed;inset:0;z-index:790;display:flex;flex-direction:column;color:var(--text);background:
-  radial-gradient(ellipse 70% 40% at 50% 0%,#16233b 0%,transparent 70%),#060b14}
+  radial-gradient(ellipse 70% 40% at 50% 0%,#16233b 0%,transparent 70%),var(--bg)}
 #collb[hidden]{display:none}
 .cotot{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .cowork{flex:1;min-height:0;display:grid;grid-template-columns:290px minmax(0,1fr)}
 .hdeck.hcoll{margin-top:10px;background:linear-gradient(90deg,#10202ae6,#0f1b30e6);border-color:#0ac8b955}
-.hdeck.hcoll:hover{border-color:#7fe3d8}
-.hdeck.hcoll .hic{background:#0ac8b91f;border-color:#0ac8b955;color:#7fe3d8}
-.hdeck.hcoll>.i{color:#7fe3d8}
+.hdeck.hcoll:hover{border-color:var(--teal2)}
+.hdeck.hcoll .hic{background:#0ac8b91f;border-color:#0ac8b955;color:var(--teal2)}
+.hdeck.hcoll>.i{color:var(--teal2)}
 
 /* sets con su progreso */
 .cosets{overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:6px}
@@ -19,7 +19,7 @@
 .cosn b{font-weight:700;font-size:14px}
 .cosn small{color:var(--muted);font-size:11px;letter-spacing:1px}
 .cobar{height:6px;border-radius:var(--r-xs);background:#ffffff12;overflow:hidden}
-.cobar i{display:block;height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,#8a6a2e,#e6c67f);transition:width .4s}
+.cobar i{display:block;height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,#8a6a2e,var(--acc2));transition:width .4s}
 .cosp{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .cosp b{color:var(--acc2)}
 
@@ -33,7 +33,7 @@
 .codone{color:var(--ok);font-weight:700}
 .coring{--p:0;display:flex;flex-direction:column;align-items:center;gap:4px}
 .coring span{width:84px;height:84px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(closest-side,#0b1322 78%,transparent 80% 100%),conic-gradient(#c8aa6e calc(var(--p)*1%),#ffffff14 0)}
+  background:radial-gradient(closest-side,var(--panel) 78%,transparent 80% 100%),conic-gradient(var(--acc) calc(var(--p)*1%),#ffffff14 0)}
 .coring b{font-family:var(--font-display);font-size:19px;color:var(--ivory)}
 .coring small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .coring em{font-style:normal;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -49,7 +49,7 @@
 .conum{position:absolute;left:6px;top:6px;padding:2px 7px;border-radius:var(--r-sm);background:#000b;color:#fff;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .conum small{opacity:.6;font-weight:400}
 .cofoil{position:absolute;right:-6px;top:26px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;
-  background:linear-gradient(135deg,#ff9bd5,#9bd1ff,#c9ff9b);color:#1d1406;font-size:12px;box-shadow:0 2px 6px #000a}
+  background:linear-gradient(135deg,#ff9bd5,#9bd1ff,#c9ff9b);color:var(--ink);font-size:12px;box-shadow:0 2px 6px #000a}
 
 /* detalle de una carta */
 .codet{display:grid;grid-template-columns:minmax(0,240px) 1fr;gap:18px;align-items:start}
@@ -81,15 +81,15 @@
 /* el número va abajo a la izquierda, en el borde negro de la carta */
 .csstrip{position:absolute;left:0;bottom:-1%;width:34%;height:8%;border:2px dashed #c8aa6ecc;border-radius:var(--r-sm);background:#c8aa6e14}
 .csstrip::after{content:'Número aquí';position:absolute;left:8px;top:-24px;font-size:12px;font-weight:700;color:#e9d29a;text-shadow:0 1px 3px #000;white-space:nowrap}
-.csline{position:absolute;left:1%;width:32%;height:2px;bottom:4%;background:linear-gradient(90deg,transparent,#0ac8b9,transparent);animation:csscan 1.2s ease-in-out infinite alternate;opacity:.8}
+.csline{position:absolute;left:1%;width:32%;height:2px;bottom:4%;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:csscan 1.2s ease-in-out infinite alternate;opacity:.8}
 @keyframes csscan{from{transform:translateY(0)}to{transform:translateY(-28px)}}
-.csguide.hit i{border-color:#0ac8b9;animation:cshit .5s}
+.csguide.hit i{border-color:var(--teal);animation:cshit .5s}
 @keyframes cshit{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 .cstop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) 12px 12px;background:linear-gradient(#000c,transparent)}
 .cstop .btn.ico{width:42px;height:42px;background:#0b1322cc;border-color:#ffffff33}
-.cstop .btn.ico.on{background:#c8aa6e;color:#1d1406}
+.cstop .btn.ico.on{background:var(--acc);color:var(--ink)}
 .csmsg{flex:1;text-align:center;font-size:14px;font-weight:600;text-shadow:0 1px 4px #000}
-.csmsg.ok{color:#7fe3d8}
+.csmsg.ok{color:var(--teal2)}
 .csmsg.err{color:#ffb4b4}
 .csbottom{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(760px,100%);max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:10px;
   padding:12px 14px max(14px,env(safe-area-inset-bottom));background:#08101ef2;border:1px solid var(--line2);border-bottom:0;border-radius:var(--r-md) 18px 0 0;box-shadow:0 -10px 40px #000c}
@@ -100,7 +100,7 @@
 .csi{display:flex;flex-direction:column;gap:5px;min-width:0}
 .csi>b{font-family:var(--font-display);font-size:17px;color:var(--ivory)}
 .csi>small{color:var(--muted)}
-.cshave{font-size:13px;color:#7fe3d8}
+.cshave{font-size:13px;color:var(--teal2)}
 .csbtns{display:flex;flex-wrap:wrap;gap:6px}
 .csbtns .btn{padding:10px 16px;font-size:15px;font-weight:700}
 .csalts{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:12px}
@@ -193,9 +193,9 @@
   background:radial-gradient(400px 120px at 0% 0%,#e6c67f1f,transparent 70%),linear-gradient(90deg,#141f36,#0d1729);border:1px solid #c8aa6e55}
 .cosum[hidden]{display:none}
 .cosum.click{cursor:pointer}
-.cosum.click:hover{border-color:#e6c67f}
+.cosum.click:hover{border-color:var(--acc2)}
 .cosv{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.cosv small{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#c8aa6e}
+.cosv small{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--acc)}
 .cosv b{font-family:var(--font-display);font-size:28px;line-height:1.1;color:#fff4cf;font-variant-numeric:tabular-nums}
 .cosv span{font-size:12.5px;color:var(--muted)}
 .cosum .btn{flex:none}
@@ -209,11 +209,11 @@
 /* pila de cartas agregadas (agregar al instante) */
 .csstack{position:absolute;z-index:3;width:64px;height:90px;padding:0;border:0;background:none;cursor:pointer}
 .csstack[hidden]{display:none}
-.csstack img{position:absolute;left:0;bottom:0;width:64px;border-radius:var(--r-sm);box-shadow:0 6px 18px #000c;border:1.5px solid #c8aa6e;
+.csstack img{position:absolute;left:0;bottom:0;width:64px;border-radius:var(--r-sm);box-shadow:0 6px 18px #000c;border:1.5px solid var(--acc);
   transform:translate(calc(var(--i) * -7px),calc(var(--i) * -5px)) rotate(calc(var(--i) * -6deg));transition:transform .2s}
 .csstack b{position:absolute;right:-8px;top:-10px;min-width:26px;height:26px;padding:0 7px;border-radius:999px;display:grid;place-items:center;
-  background:var(--ui-goldgrad);color:#1d1406;font-size:13px;font-weight:800;box-shadow:0 3px 10px #000c}
-.csstack.on img:last-of-type{border-color:#fff4cf;box-shadow:0 0 0 2px #e6c67f,0 6px 18px #000c}
+  background:var(--ui-goldgrad);color:var(--ink);font-size:13px;font-weight:800;box-shadow:0 3px 10px #000c}
+.csstack.on img:last-of-type{border-color:#fff4cf;box-shadow:0 0 0 2px var(--acc2),0 6px 18px #000c}
 .csfly{position:fixed;z-index:4;border-radius:var(--r-sm);box-shadow:0 14px 40px #000d;pointer-events:none;transform-origin:center}
 
 /* teléfono: el panel de abajo compacto para que la cámara se vea */
@@ -228,7 +228,7 @@
 
 /* Carpeta pública: la ventana para publicar (src/app/binderpub.js) */
 .mbody>.bphint,.mbody>.bplbl,.mbody>.bpmode,.mbody>.bplink,.mbody>.bpmsg,.mbody>.bpacts{grid-column:1/-1}
-.bphint{margin:0;color:#b9c3d6;font-size:13.5px;line-height:1.5}
+.bphint{margin:0;color:var(--soft);font-size:13.5px;line-height:1.5}
 .bplbl{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
 .bplbl input,.bplink input{padding:10px 12px;font-size:15px;width:100%;box-sizing:border-box}
 .bpmode{display:grid;grid-template-columns:1fr 1fr;gap:8px}
