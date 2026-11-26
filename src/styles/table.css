@@ -65,13 +65,13 @@
 .msh{margin:24px 0 10px;font-family:var(--font-display);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
 .msres{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .msres .btn{justify-content:center;padding:15px;font-size:17px;font-weight:700;border-radius:12px}
-.msres .msw{border-color:#4caf7a88;color:#9be3b8;background:#4caf7a1a}
+.msres .msw{border-color:#4caf7a88;color:#7fe3d8;background:#4caf7a1a}
 .msres .msw:hover{background:#4caf7a33}
 .msres .msl{border-color:#e0605e88;color:#f2a5a3;background:#e0605e1a}
 .msres .msl:hover{background:#e0605e33}
 .mslast{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
 .mslast>span{flex:1}
-.mslast.w>.i{color:#9be3b8}
+.mslast.w>.i{color:#7fe3d8}
 .mslast.l>.i{color:#f2a5a3}
 
 /* herramientas */
@@ -109,8 +109,8 @@
 .msd20 .l{fill:none;stroke:#c8aa6e88;stroke-width:1.5}
 .msd20 b{position:relative;top:2px;font-family:var(--font-display);font-weight:900;font-size:16px;line-height:1;color:var(--ivory,#f0e6d2);font-variant-numeric:tabular-nums}
 .msd20.rolling b{color:var(--muted)}
-.msd20.crit .o,.msd20.crit .t{stroke:#9be3b8;fill:#183a2c}
-.msd20.crit b{color:#9be3b8}
+.msd20.crit .o,.msd20.crit .t{stroke:#7fe3d8;fill:#183a2c}
+.msd20.crit b{color:#7fe3d8}
 .msd20.fail .o,.msd20.fail .t{stroke:#f2a5a3;fill:#3a1c22}
 .msd20.fail b{color:#f2a5a3}
 @media (prefers-reduced-motion:reduce){ .msroll.done b{animation:none} .msroll:not(.done) b{opacity:1} }
@@ -128,7 +128,7 @@
 
 /* barra de estado: la leyenda rival y el reloj, visibles en todas las pestañas */
 .mschips{display:flex;gap:6px;flex:none}
-.mschip{display:inline-flex;align-items:center;gap:6px;max-width:150px;padding:4px 10px 4px 4px;border:1px solid var(--line2);border-radius:999px;background:var(--panel2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
+.mschip{display:inline-flex;align-items:center;gap:6px;max-width:150px;padding:4px 10px 4px 4px;border:1px solid var(--line2);border-radius:var(--r-xs);background:var(--panel2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer}
 .mschip img{width:26px;height:26px;border-radius:50%;object-fit:cover;object-position:50% 22%}
 .mschip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mschip.clock{padding:4px 10px;font-variant-numeric:tabular-nums;font-family:var(--font-display)}

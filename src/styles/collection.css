@@ -4,22 +4,22 @@
 #collb[hidden]{display:none}
 .cotot{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
 .cowork{flex:1;min-height:0;display:grid;grid-template-columns:290px minmax(0,1fr)}
-.hdeck.hcoll{margin-top:10px;background:linear-gradient(90deg,#10202ae6,#0f1b30e6);border-color:#4fd1c555}
+.hdeck.hcoll{margin-top:10px;background:linear-gradient(90deg,#10202ae6,#0f1b30e6);border-color:#0ac8b955}
 .hdeck.hcoll:hover{border-color:#7fe3d8}
-.hdeck.hcoll .hic{background:#4fd1c51f;border-color:#4fd1c555;color:#9be9e0}
-.hdeck.hcoll>.i{color:#9be9e0}
+.hdeck.hcoll .hic{background:#0ac8b91f;border-color:#0ac8b955;color:#7fe3d8}
+.hdeck.hcoll>.i{color:#7fe3d8}
 
 /* sets con su progreso */
 .cosets{overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:6px}
-.cosets h4{margin:8px 4px 2px;font-family:var(--font-display);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+.cosets h4{margin:8px 4px 2px;font-family:var(--font-display);font-size:13px;letter-spacing:2.5px;text-transform:uppercase;color:var(--acc)}
 .coset{display:grid;gap:6px;padding:10px 12px;text-align:left;cursor:pointer;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:12px;transition:border-color .15s,background .15s}
 .coset:hover{border-color:var(--line2)}
 .coset.on{border-color:var(--acc);background:#c8aa6e14}
 .cosn{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .cosn b{font-weight:700;font-size:14px}
 .cosn small{color:var(--muted);font-size:11px;letter-spacing:1px}
-.cobar{height:6px;border-radius:99px;background:#ffffff12;overflow:hidden}
-.cobar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4fd1c5,#c8aa6e);transition:width .4s}
+.cobar{height:6px;border-radius:var(--r-xs);background:#ffffff12;overflow:hidden}
+.cobar i{display:block;height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,#8a6a2e,#e6c67f);transition:width .4s}
 .cosp{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .cosp b{color:var(--acc2)}
 
@@ -81,15 +81,15 @@
 /* el número va abajo a la izquierda, en el borde negro de la carta */
 .csstrip{position:absolute;left:0;bottom:-1%;width:34%;height:8%;border:2px dashed #c8aa6ecc;border-radius:8px;background:#c8aa6e14}
 .csstrip::after{content:'Número aquí';position:absolute;left:8px;top:-24px;font-size:12px;font-weight:700;color:#e9d29a;text-shadow:0 1px 3px #000;white-space:nowrap}
-.csline{position:absolute;left:1%;width:32%;height:2px;bottom:4%;background:linear-gradient(90deg,transparent,#4fd1c5,transparent);animation:csscan 1.2s ease-in-out infinite alternate;opacity:.8}
+.csline{position:absolute;left:1%;width:32%;height:2px;bottom:4%;background:linear-gradient(90deg,transparent,#0ac8b9,transparent);animation:csscan 1.2s ease-in-out infinite alternate;opacity:.8}
 @keyframes csscan{from{transform:translateY(0)}to{transform:translateY(-28px)}}
-.csguide.hit i{border-color:#4fd1c5;animation:cshit .5s}
+.csguide.hit i{border-color:#0ac8b9;animation:cshit .5s}
 @keyframes cshit{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 .cstop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(12px,env(safe-area-inset-top)) 12px 12px;background:linear-gradient(#000c,transparent)}
 .cstop .btn.ico{width:42px;height:42px;background:#0b1322cc;border-color:#ffffff33}
 .cstop .btn.ico.on{background:#c8aa6e;color:#1d1406}
 .csmsg{flex:1;text-align:center;font-size:14px;font-weight:600;text-shadow:0 1px 4px #000}
-.csmsg.ok{color:#9be9e0}
+.csmsg.ok{color:#7fe3d8}
 .csmsg.err{color:#ffb4b4}
 .csbottom{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(760px,100%);max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:10px;
   padding:12px 14px max(14px,env(safe-area-inset-bottom));background:#08101ef2;border:1px solid var(--line2);border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px #000c}
@@ -100,7 +100,7 @@
 .csi{display:flex;flex-direction:column;gap:5px;min-width:0}
 .csi>b{font-family:var(--font-display);font-size:17px;color:var(--ivory)}
 .csi>small{color:var(--muted)}
-.cshave{font-size:13px;color:#9be9e0}
+.cshave{font-size:13px;color:#7fe3d8}
 .csbtns{display:flex;flex-wrap:wrap;gap:6px}
 .csbtns .btn{padding:10px 16px;font-size:15px;font-weight:700}
 .csalts{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:12px}
@@ -228,7 +228,7 @@
 
 /* Carpeta pública: la ventana para publicar (src/app/binderpub.js) */
 .mbody>.bphint,.mbody>.bplbl,.mbody>.bpmode,.mbody>.bplink,.mbody>.bpmsg,.mbody>.bpacts{grid-column:1/-1}
-.bphint{margin:0;color:#aab5cc;font-size:13.5px;line-height:1.5}
+.bphint{margin:0;color:#b9c3d6;font-size:13.5px;line-height:1.5}
 .bplbl{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
 .bplbl input,.bplink input{padding:10px 12px;font-size:15px;width:100%;box-sizing:border-box}
 .bpmode{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -238,7 +238,7 @@
 .bpmode span{display:flex;flex-direction:column;gap:2px}
 .bpmode b{font-size:14px}
 .bpmode small{color:var(--muted);font-size:12px}
-.bplink{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid #45d48355;border-radius:12px;background:#45d48310}
+.bplink{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid #0ac8b955;border-radius:12px;background:#0ac8b910}
 .bplink>span{display:flex;align-items:center;gap:6px;color:var(--ok);font-size:13px;font-weight:600}
 .bplink .i{width:16px;height:16px}
 .bpmsg{margin:0;color:var(--acc2);font-size:13.5px}

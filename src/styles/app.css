@@ -1,6 +1,6 @@
 :root{
-  --bg:#0b0f17; --panel:#121826; --panel2:#1a2233; --line:#2a3550; --text:#e6ebf5; --muted:#8b97b0;
-  --p1:#3fa9ff; --p2:#ff5a6e; --gold:#f2c14e; --ok:#45d483; --err:#ff6b6b;
+  /* colores base en tokens.css; aquí solo los de cada jugador en la mesa y el de “listo” */
+  --p1:#3fa9ff; --p2:#ff5a6e; --ok:var(--teal);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px}
@@ -32,18 +32,18 @@ body.rec #topbar{display:none}
 .hcards{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media (max-width:760px){.hcards{grid-template-columns:1fr}}
 .hcard{background:#121826e6;border:2px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s, transform .2s}
-.hcard:hover{border-color:#3fa9ff88}
-.hcard .hic{font-size:34px;width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#3fa9ff22;color:var(--p1)}
+.hcard:hover{border-color:#c8aa6e88}
+.hcard .hic{font-size:34px;width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#c8aa6e22;color:var(--p1)}
 .hcard.scr .hic{background:#f2c14e22;color:var(--gold)}
 .hcard h2{font-family:var(--font-display);font-weight:500;font-size:26px;margin:0}
 .hcard p{color:#b8c3da;margin:0;line-height:1.5;flex:1}
 .hcard .btn{padding:9px 16px;font-size:14px}
 .hcard .acts{display:flex;gap:8px;flex-wrap:wrap}
-.drop-hint{border:2px dashed #3fa9ff55;border-radius:12px;padding:14px;text-align:center;color:var(--muted);font-size:13px}
+.drop-hint{border:2px dashed #c8aa6e55;border-radius:12px;padding:14px;text-align:center;color:var(--muted);font-size:13px}
 .hrecent{margin-top:30px}
 .hrecent h3{font-family:var(--font-display);font-weight:500;font-size:18px;color:var(--muted);letter-spacing:1px;margin:0 0 10px}
 .rec-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:#121826b3;border:1px solid var(--line);margin-bottom:8px;cursor:pointer}
-.rec-item:hover{border-color:#3fa9ff88}
+.rec-item:hover{border-color:#c8aa6e88}
 .rec-item .ri{font-size:20px;width:30px;text-align:center}
 .rec-item .rt{flex:1;min-width:0}
 .rec-item .rt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -60,7 +60,7 @@ body.rec #topbar{display:none}
 .toast.out{opacity:0;transform:translateY(8px)}
 .presets{display:grid;grid-template-columns:1fr;gap:6px}
 .preset{display:flex;gap:12px;align-items:center;text-align:left;background:var(--panel2);border:2px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer}
-.preset:hover:not(:disabled){border-color:#3fa9ff88}
+.preset:hover:not(:disabled){border-color:#c8aa6e88}
 .preset.on{border-color:var(--p1);background:#1b2a44}
 .preset:disabled{opacity:.45;cursor:not-allowed}
 .preset .pi{font-size:20px;width:30px;text-align:center}
@@ -70,7 +70,7 @@ body.rec #topbar{display:none}
 /* panel plegable, ayuda y recorrido */
 body.nopanel #editor{display:none}
 /* sin panel, la barra superior se esconde arriba (asoma una franja) para que el tablero use todo el alto */
-body.nopanel #topbar{position:fixed;left:0;right:0;top:0;z-index:600;transform:translateY(calc(-100% + 7px));transition:transform .25s;box-shadow:0 6px 24px #000c;border-bottom:2px solid #3fa9ff66}
+body.nopanel #topbar{position:fixed;left:0;right:0;top:0;z-index:600;transform:translateY(calc(-100% + 7px));transition:transform .25s;box-shadow:0 6px 24px #000c;border-bottom:2px solid #c8aa6e66}
 body.nopanel #topbar:hover, body.nopanel #topbar:focus-within{transform:none}
 body.nopanel #ctrl{opacity:.35} body.nopanel #ctrl:hover{opacity:1}
 #bPanel.on{background:#24304a}
@@ -82,9 +82,9 @@ kbd{display:inline-block;min-width:26px;text-align:center;background:#0d121d;bor
 #tour .tbub{position:fixed;width:340px;max-width:calc(100vw - 24px);background:var(--panel);border:1px solid var(--gold);border-radius:14px;padding:16px 18px;box-shadow:0 12px 40px #000c;transition:top .3s,left .3s}
 #tour .tstep{color:var(--gold);font-size:11px;letter-spacing:1px}
 #tour h3{font-family:var(--font-display);font-weight:500;margin:4px 0 6px;font-size:20px}
-#tour p{margin:0;color:#cfd8ea;line-height:1.5;font-size:13.5px}
+#tour p{margin:0;color:#b9c3d6;line-height:1.5;font-size:13.5px}
 #tour .tacts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-.cmdpre{white-space:pre-wrap;font-family:var(--font-mono);font-size:12.5px;line-height:1.5;color:#cfd8ea;margin:0}
+.cmdpre{white-space:pre-wrap;font-family:var(--font-mono);font-size:12.5px;line-height:1.5;color:#b9c3d6;margin:0}
 body.rec #toasts{display:none}
 #dropov div{border:3px dashed var(--p1);border-radius:24px;padding:60px 80px;font-family:var(--font-display);font-size:30px;color:#fff;background:#0b0f17cc}
 
@@ -213,7 +213,7 @@ body.rec #editor{display:none}
 #spot img{width:100%;border-radius:12px;box-shadow:0 10px 40px #000}
 .h #spot img{width:250px}
 #spot .who{font-family:var(--font-display);font-size:20px;letter-spacing:1px}
-#spot .txt{font-size:14px;color:#cfd8ea;text-align:center;line-height:1.4;max-height:120px;overflow:hidden}
+#spot .txt{font-size:14px;color:#b9c3d6;text-align:center;line-height:1.4;max-height:120px;overflow:hidden}
 #banner{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) scaleY(0);background:linear-gradient(90deg,transparent,#000d 20%,#000d 80%,transparent);text-align:center;padding:24px;font-family:var(--font-display);font-size:64px;letter-spacing:3px;z-index:60;transition:transform .3s;pointer-events:none}
 #banner.show{transform:translateY(-50%) scaleY(1)}
 #banner small{display:block;font-size:22px;letter-spacing:2px;color:var(--muted)}
@@ -304,7 +304,7 @@ body.replay #P1, body.replay #P2, body.replay #fields{display:none}
 #stage.v[data-lay=lanes] #spot{top:300px;width:600px;margin-left:-300px}
 #stage.v[data-lay=lanes] #spot img{width:420px}
 #stage[data-lay=lanes] #log{display:none}
-#stage[data-lay=lanes] #turninfo{left:24px;right:auto;top:20px;bottom:auto;transform:none;color:#cfd8ea;font-size:20px}
+#stage[data-lay=lanes] #turninfo{left:24px;right:auto;top:20px;bottom:auto;transform:none;color:#b9c3d6;font-size:20px}
 #stage.v[data-lay=lanes] #turninfo{top:auto;bottom:250px}
 #stage[data-lay=lanes] #caption{bottom:200px}
 #stage.v[data-lay=lanes] #caption{bottom:270px}
@@ -421,7 +421,7 @@ body.picking #stage .card:hover .face{box-shadow:0 0 0 4px #7fd3ff}
 .chartbox .dots{opacity:0;transition:opacity .6s 1.8s}
 .chartbox.draw .dots{opacity:1}
 #quiz h3{font-size:110px;color:#fff;text-shadow:0 0 40px var(--gold)}
-#quiz .q{font-size:34px;max-width:70%;text-align:center;margin:0 0 30px;color:#cfd8ea}
+#quiz .q{font-size:34px;max-width:70%;text-align:center;margin:0 0 30px;color:#b9c3d6}
 #quiz .count{font-family:var(--font-display);font-size:160px;color:var(--gold);line-height:1}
 #sumov{justify-content:flex-start;padding:50px 60px;overflow:hidden}
 .v #sumov{padding:60px 40px}
@@ -440,7 +440,7 @@ body.picking #stage .card:hover .face{box-shadow:0 0 0 4px #7fd3ff}
 .sp .rowst div{background:#ffffff0d;border-radius:8px;padding:6px 10px;text-align:center}
 .sp .rowst b{display:block;font-family:var(--font-display);font-size:28px}
 .sp .rowst span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.sp .fav{display:flex;gap:8px;align-items:center;font-size:14px;color:#cfd8ea}
+.sp .fav{display:flex;gap:8px;align-items:center;font-size:14px;color:#b9c3d6}
 .sp .fav img{width:44px;border-radius:4px}
 .sum-chart{margin-top:24px}
 .decks{display:flex;gap:20px;width:100%;justify-content:center}
@@ -469,7 +469,7 @@ body.picking #stage .card:hover .face{box-shadow:0 0 0 4px #7fd3ff}
 #hoverprev img{width:100%;border-radius:10px;display:block}
 #hoverprev .noimg{height:200px;border:1px dashed #ffffff33;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted)}
 #hoverprev .hn{font-family:var(--font-display);font-size:18px;margin:8px 2px 2px}
-#hoverprev .ht{font-size:12.5px;line-height:1.45;color:#cfd8ea;margin:0 2px;white-space:pre-line}
+#hoverprev .ht{font-size:12.5px;line-height:1.45;color:#b9c3d6;margin:0 2px;white-space:pre-line}
 #hoverprev .hk{font-size:10.5px;color:var(--muted);margin:6px 2px 0}
 body.rec #hoverprev, body.recording #hoverprev{display:none!important}
 #modal,#startrec{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:1000}
@@ -528,7 +528,7 @@ a.btn{text-decoration:none;display:inline-block}
 /* ---------- Datos automáticos del replay ---------- */
 .card .mt{position:absolute;left:4px;bottom:4px;z-index:3;background:#0a0f1ae6;border:1px solid #ffffff40;color:#fff;font-family:var(--font-display);font-size:calc(var(--cw) * .15);line-height:1;padding:2px 5px;border-radius:6px}
 .card .kw{position:absolute;left:50%;top:4px;transform:translateX(-50%);z-index:3;max-width:94%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#3a2a6ee6;color:#e6dcff;font-size:calc(var(--cw) * .085);font-weight:600;padding:1px 5px;border-radius:5px}
-.card.hid::after{content:"OCULTA";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:#000c;color:#cfd8ea;font-size:calc(var(--cw) * .1);font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:5px}
+.card.hid::after{content:"OCULTA";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:#000c;color:#b9c3d6;font-size:calc(var(--cw) * .1);font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:5px}
 .card[data-xp]::before{content:"XP " attr(data-xp);position:absolute;right:-6px;top:-8px;z-index:4;background:#1f6fb5;color:#fff;font-family:var(--font-display);font-size:calc(var(--cw) * .14);padding:1px 7px;border-radius:9px;border:2px solid #fff}
 .rfield .grp{position:relative}
 .rfield .grp[data-sum]::before{content:"⚔ " attr(data-sum);position:absolute;right:6px;top:4px;z-index:4;background:var(--pc);color:#06101c;font-family:var(--font-display);font-size:15px;padding:1px 8px;border-radius:8px;box-shadow:0 2px 8px #0008}
