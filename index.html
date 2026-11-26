@@ -10,7 +10,7 @@
 <meta name="description" content="Turn your Riftbound games into videos for YouTube and Shorts, build rules-legal decks and track your collection with a card scanner and daily prices.">
 <link rel="canonical" href="https://riftviewer.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#060b14">
 <!-- vista previa al compartir (Facebook, WhatsApp, Discord, X…) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Riftviewer">
@@ -40,7 +40,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Source+Sans+3:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/src/landing/landing.css">
 </head>
 <body>
@@ -88,11 +88,12 @@
     <div class="hart" aria-hidden="true">
       <div class="rune"></div>
       <div class="fan">
-        <div class="lcard c1" style="--d:#e5484d"><b>5</b><i></i><em>Furia</em></div>
-        <div class="lcard c2" style="--d:#3fa9ff"><b>2</b><i></i><em>Mente</em></div>
-        <div class="lcard c3" style="--d:#9b6bff"><b>3</b><i></i><em>Caos</em></div>
-        <div class="lcard c4" style="--d:#3fb27f"><b>4</b><i></i><em>Calma</em></div>
-        <div class="lcard c5" style="--d:#f2c14e"><b>6</b><i></i><em>Orden</em></div>
+        <div class="lcard c1" style="--d:var(--d-fury)"><b>5</b><i></i><em>Furia</em></div>
+        <div class="lcard c2" style="--d:var(--d-mind)"><b>2</b><i></i><em>Mente</em></div>
+        <div class="lcard c3" style="--d:var(--d-chaos)"><b>3</b><i></i><em>Caos</em></div>
+        <div class="lcard c4" style="--d:var(--d-body)"><b>4</b><i></i><em>Cuerpo</em></div>
+        <div class="lcard c5" style="--d:var(--d-calm)"><b>3</b><i></i><em>Calma</em></div>
+        <div class="lcard c6" style="--d:var(--d-order)"><b>6</b><i></i><em>Orden</em></div>
       </div>
       <div class="floaty f1"><svg class="i"><use href="#l-video"/></svg> Exportando video · 72%</div>
       <div class="floaty f2"><svg class="i"><use href="#l-scan"/></svg> +1 carta escaneada</div>
@@ -107,12 +108,12 @@
       <p>Desde la partida hasta el video, del sobre a tu colección.</p>
     </div>
     <div class="fgrid">
-      <article class="fcard reveal" style="--a:#3fa9ff"><span class="fic"><svg class="i"><use href="#l-replay"/></svg></span><h3>Replays animados</h3><p>Abre el replay del simulador y mira la partida en una mesa animada: jugadas, combates, flechas de objetivo y marcador.</p></article>
-      <article class="fcard reveal" style="--a:#f2c14e"><span class="fic"><svg class="i"><use href="#l-video"/></svg></span><h3>Video listo para publicar</h3><p>Exporta para YouTube, Shorts o clips, con tu logo, tu marca y los momentos que marcaste.</p></article>
-      <article class="fcard reveal" style="--a:#e5484d"><span class="fic"><svg class="i"><use href="#l-pen"/></svg></span><h3>Partidas en físico</h3><p>¿Jugaste en mesa? Escribe la partida jugada a jugada y Riftviewer la anima sola.</p></article>
-      <article class="fcard reveal" style="--a:#9b6bff"><span class="fic"><svg class="i"><use href="#l-cards"/></svg></span><h3>Constructor de mazos</h3><p>Busca cartas, valida leyenda, campeón, runas y campos, revisa la curva y prueba manos iniciales.</p></article>
-      <article class="fcard reveal" style="--a:#3fb27f"><span class="fic"><svg class="i"><use href="#l-scan"/></svg></span><h3>Escáner de cartas</h3><p>Apunta la cámara y suma tus cartas a la colección: reconoce versiones alternas, sobrenumeradas y firmadas.</p></article>
-      <article class="fcard reveal" style="--a:#f08c3a"><span class="fic"><svg class="i"><use href="#l-chart"/></svg></span><h3>Precios e historial</h3><p>Cuánto vale tu colección día a día, cuánto cuesta un mazo y qué te falta, listo para comprar.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-replay"/></svg></span><h3>Replays animados</h3><p>Abre el replay del simulador y mira la partida en una mesa animada: jugadas, combates, flechas de objetivo y marcador.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-video"/></svg></span><h3>Video listo para publicar</h3><p>Exporta para YouTube, Shorts o clips, con tu logo, tu marca y los momentos que marcaste.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-pen"/></svg></span><h3>Partidas en físico</h3><p>¿Jugaste en mesa? Escribe la partida jugada a jugada y Riftviewer la anima sola.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-cards"/></svg></span><h3>Constructor de mazos</h3><p>Busca cartas, valida leyenda, campeón, runas y campos, revisa la curva y prueba manos iniciales.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-scan"/></svg></span><h3>Escáner de cartas</h3><p>Apunta la cámara y suma tus cartas a la colección: reconoce versiones alternas, sobrenumeradas y firmadas.</p></article>
+      <article class="fcard reveal"><span class="fic"><svg class="i"><use href="#l-chart"/></svg></span><h3>Precios e historial</h3><p>Cuánto vale tu colección día a día, cuánto cuesta un mazo y qué te falta, listo para comprar.</p></article>
     </div>
   </section>
 
@@ -159,7 +160,7 @@
         <ul class="ticks"><li>Lee el número y compara el arte de la carta</li><li>Precios de mercado actualizados cada día</li><li>Lista de faltantes lista para comprar</li></ul>
       </div>
       <div class="mock coll" aria-hidden="true">
-        <div class="phone"><div class="scan"><span class="cn tl"></span><span class="cn tr"></span><span class="cn bl"></span><span class="cn br"></span><div class="lcard mini" style="--d:#3fa9ff"><b>2</b><i></i><em>Mente</em></div><span class="strip"></span></div><div class="toast"><svg class="i"><use href="#l-check"/></svg> +1 · RAD-175</div></div>
+        <div class="phone"><div class="scan"><span class="cn tl"></span><span class="cn tr"></span><span class="cn bl"></span><span class="cn br"></span><div class="lcard mini" style="--d:var(--d-mind)"><b>2</b><i></i><em>Mente</em></div><span class="strip"></span></div><div class="toast"><svg class="i"><use href="#l-check"/></svg> +1 · RAD-175</div></div>
         <div class="chart">
           <div class="ctop"><b>$1,284</b><span>▲ 6.2%</span></div>
           <svg viewBox="0 0 220 80"><defs><linearGradient id="cg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e6c67f" stop-opacity=".35"/><stop offset="1" stop-color="#e6c67f" stop-opacity="0"/></linearGradient></defs><path d="M0 62 L30 58 L60 60 L90 46 L120 50 L150 34 L180 30 L220 14 L220 80 L0 80Z" fill="url(#cg)"/><path d="M0 62 L30 58 L60 60 L90 46 L120 50 L150 34 L180 30 L220 14" class="cline"/></svg>

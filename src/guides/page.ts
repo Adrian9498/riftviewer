@@ -134,7 +134,7 @@ ${headTags(p, find)}
 <link rel="preconnect" href="https://openrift.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Source+Sans+3:ital,wght@0,400..800;1,400..600&display=swap" rel="stylesheet">
 </head>
 <body>
 <header class="gtop">

@@ -9,7 +9,7 @@
 /* ============================== FANTASÍA ============================== */
 #stage[data-skin=fan]{
   --gold:#e6c67f; --g1:#c8aa6e; --g2:#785a28; --ivory:#f0e6d2; --teal:#0ac8b9;
-  --line:#785a28; --muted:#a09b8c; --fd:'Cinzel',Georgia,serif;
+  --line:#785a28; --muted:#a09b8c; --fd:var(--font-display);
   --pf:linear-gradient(180deg,#0f1c33f2,#050c18f7);
   --goldgrad:linear-gradient(135deg,#fff1c2 0%,#c8aa6e 30%,#8a6a2e 55%,#e6c67f 80%,#fff1c2 100%);
   background:
@@ -117,7 +117,7 @@
 
 /* ============================== TORNEO ============================== */
 #stage[data-skin=pro]{
-  --gold:#ffc83d; --line:#2b313b; --muted:#8a93a3; --fd:'Barlow Condensed','Oswald',sans-serif;
+  --gold:#ffc83d; --line:#2b313b; --muted:#8a93a3; --fd:'Barlow Condensed',sans-serif;
   --pp:#14181e;
   background:
     linear-gradient(#ffffff06 1px,transparent 1px) 0 0/48px 48px,

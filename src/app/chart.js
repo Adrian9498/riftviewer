@@ -38,7 +38,7 @@ export function chartSVG(w,h){
     dots+=`<rect x="-8" y="-8" width="16" height="16" fill="#0b0f17" stroke="${p.col}" stroke-width="3" transform="translate(${X(c.t)},${Y(s.sc[c.pid]||0)}) rotate(45)"/>`; });
   const legend=app.R.players.map((p,k)=>`<g transform="translate(${pad.l+k*230},14)"><rect width="20" height="20" rx="5" fill="${p.col}"/><text x="30" y="17" fill="#e6ebf5" font-size="20">${esc(p.name)}</text></g>`).join('')
     +`<g transform="translate(${w-pad.r-170},14)"><rect x="4" y="4" width="13" height="13" transform="rotate(45 10 10)" fill="none" stroke="#e6ebf5" stroke-width="2.5"/><text x="30" y="17" fill="#8b97b0" font-size="17">conquista</text></g>`;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Inter,sans-serif">${g}${legend}${lines}<g class="dots">${dots}</g></svg>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Source Sans 3,sans-serif">${g}${legend}${lines}<g class="dots">${dots}</g></svg>`;
 }
 export function drawChart(box,w,h){ box.innerHTML=chartSVG(w,h); box.classList.remove('draw'); void box.offsetWidth; requestAnimationFrame(()=>box.classList.add('draw')); }
 export async function showChart(secs){

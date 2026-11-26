@@ -1,0 +1,45 @@
+/* =====================================================================
+   Tokens de diseño de Riftviewer: una sola fuente de verdad para la
+   landing, la app, las guías y la carpeta pública. Estética Hextech:
+   azul profundo, dorado, marfil y turquesa.
+   Cada hoja puede crear alias propios, pero no redefinir estos valores.
+   ===================================================================== */
+:root{
+  /* tipografía: Marcellus SC para títulos (un solo peso) y Source Sans 3 para texto */
+  --font-display:'Marcellus SC',Georgia,serif;
+  --font-body:'Source Sans 3',system-ui,sans-serif;
+  --font-mono:ui-monospace,Consolas,monospace;
+
+  /* fondos y superficies */
+  --bg:#060b14; --panel:#0b1322; --panel2:#111b2e; --panel3:#172540;
+  --line:#1d2a42; --line2:#2a3b5a;
+
+  /* texto */
+  --text:#e9edf5; --ivory:#f0e6d2; --soft:#b9c3d6; --muted:#8d99b3; --ink:#1d1406;
+
+  /* dorado y Hextech */
+  --acc:#c8aa6e; --acc2:#e6c67f; --accdk:#785a28; --gold:#e6c67f;
+  --teal:#0ac8b9; --teal2:#7fe3d8;
+  --err:#e5484d; --err2:#f2a5a3;
+  --gold-fill:linear-gradient(180deg,#f3dc9c 0%,#c8aa6e 52%,#8a6a2e 100%);
+  --gold-metal:linear-gradient(135deg,#fff1c2 0%,#c8aa6e 30%,#8a6a2e 55%,#e6c67f 80%,#fff1c2 100%);
+
+  /* dominios de Riftbound: solo para cartas, runas, curvas y filtros */
+  --d-fury:#e5484d; --d-calm:#3fb27f; --d-mind:#3fa9ff; --d-body:#f08c3a; --d-chaos:#9b6bff; --d-order:#f2c14e;
+
+  /* esquinas: chips, controles y paneles */
+  --r-xs:4px; --r-sm:8px; --r-md:14px;
+  /* esquinas cortadas de los botones (sm 6 px, md 10 px); *-in es el relleno 1 px adentro, para dibujar el filo */
+  --cut-sm:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px);
+  --cut-sm-in:polygon(5.5px 0,calc(100% - 5.5px) 0,100% 5.5px,100% calc(100% - 5.5px),calc(100% - 5.5px) 100%,5.5px 100%,0 calc(100% - 5.5px),0 5.5px);
+  --cut-md:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  --cut-md-in:polygon(9.5px 0,calc(100% - 9.5px) 0,100% 9.5px,100% calc(100% - 9.5px),calc(100% - 9.5px) 100%,9.5px 100%,0 calc(100% - 9.5px),0 9.5px);
+
+  color-scheme:dark;
+}
+/* Marcellus SC trae un solo peso: sin negritas falsas del navegador.
+   Source Sans 3 se ve más chica que Inter con el mismo tamaño; se ajusta su altura para no mover el diseño. */
+html{font-synthesis:style}
+/* !important porque cualquier regla con el atajo `font:` lo reiniciaría; en Marcellus (x .525) casi no cambia nada */
+*,*::before,*::after{font-size-adjust:.52 !important}
+

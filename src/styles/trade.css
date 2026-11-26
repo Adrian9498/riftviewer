@@ -16,8 +16,8 @@
 .trn{font-size:13px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .trc small{color:var(--muted);font-size:12px}
 .trtag{align-self:flex-start;padding:1px 7px;border-radius:7px;background:#c8aa6e22;color:var(--acc2);font-style:normal;font-size:11px;font-weight:600}
-.trh{display:flex;align-items:baseline;gap:8px;margin:22px 0 10px;font-family:Cinzel,serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
-.trh small{font-family:Inter,sans-serif;letter-spacing:0;text-transform:none;color:var(--muted);font-size:12.5px}
+.trh{display:flex;align-items:baseline;gap:8px;margin:22px 0 10px;font-family:var(--font-display);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+.trh small{font-family:var(--font-body);letter-spacing:0;text-transform:none;color:var(--muted);font-size:12.5px}
 .trchips{display:flex;flex-wrap:wrap;gap:6px}
 .trman{margin:4px 0 14px}
 .trman input{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--text);font-size:15px}
@@ -34,11 +34,11 @@
 .trpeerb>.i:first-child{width:22px;height:22px;color:var(--acc)}
 .trback{margin-bottom:8px}
 .trback .i{transform:rotate(90deg)}
-.trpeerh{margin:4px 0 14px;font-family:Cinzel,serif;font-size:22px;color:var(--ivory,#f0e6d2)}
+.trpeerh{margin:4px 0 14px;font-family:var(--font-display);font-size:22px;color:var(--ivory,#f0e6d2)}
 .trbal{display:flex;align-items:center;justify-content:center;gap:18px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:6px}
 .trbal>span:not(.trbalx){display:flex;flex-direction:column;align-items:center;min-width:110px}
 .trbal small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px}
-.trbal b{font-family:Cinzel,serif;font-size:24px;color:var(--acc2)}
+.trbal b{font-family:var(--font-display);font-size:24px;color:var(--acc2)}
 .trbalx .i{width:22px;height:22px;color:var(--acc)}
 .trsec{margin-top:4px}
 .trall{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:0 14px}

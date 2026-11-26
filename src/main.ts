@@ -1,5 +1,6 @@
 // Punto de entrada. Los módulos de src/app solo declaran; aquí se inicializan
 // en orden (eventos, preferencias guardadas, carga de cartas…).
+import './styles/tokens.css';
 import './styles/app.css';
 import './styles/ui.css';
 import './styles/skins.css';

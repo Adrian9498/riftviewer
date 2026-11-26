@@ -11,7 +11,7 @@
 
 /* sets con su progreso */
 .cosets{overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:6px}
-.cosets h4{margin:8px 4px 2px;font-family:Cinzel,serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
+.cosets h4{margin:8px 4px 2px;font-family:var(--font-display);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc)}
 .coset{display:grid;gap:6px;padding:10px 12px;text-align:left;cursor:pointer;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:12px;transition:border-color .15s,background .15s}
 .coset:hover{border-color:var(--line2)}
 .coset.on{border-color:var(--acc);background:#c8aa6e14}
@@ -28,13 +28,13 @@
 .cohead{display:flex;align-items:center;gap:22px;padding:16px 18px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#0d1729,#0a1221)}
 .cohead:empty{display:none}
 .cohinfo{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-.cohinfo h2{margin:0;font-family:Cinzel,serif;font-size:24px;color:var(--ivory)}
+.cohinfo h2{margin:0;font-family:var(--font-display);font-size:24px;color:var(--ivory)}
 .cohinfo small{color:var(--muted)}
 .codone{color:var(--ok);font-weight:700}
 .coring{--p:0;display:flex;flex-direction:column;align-items:center;gap:4px}
 .coring span{width:84px;height:84px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(closest-side,#0b1322 78%,transparent 80% 100%),conic-gradient(#c8aa6e calc(var(--p)*1%),#ffffff14 0)}
-.coring b{font-family:Cinzel,serif;font-size:19px;color:var(--ivory)}
+.coring b{font-family:var(--font-display);font-size:19px;color:var(--ivory)}
 .coring small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .coring em{font-style:normal;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 #coQ{flex:1;min-width:180px;padding:8px 12px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--text)}
@@ -55,7 +55,7 @@
 .codet{display:grid;grid-template-columns:minmax(0,240px) 1fr;gap:18px;align-items:start}
 .codet>img{width:100%;border-radius:12px;box-shadow:0 10px 30px #000b}
 .codeti{display:flex;flex-direction:column;gap:8px;min-width:0}
-.codeti>b{font-family:Cinzel,serif;font-size:19px;color:var(--ivory)}
+.codeti>b{font-family:var(--font-display);font-size:19px;color:var(--ivory)}
 .codeti>small{color:var(--muted)}
 .cofins{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .cofin{display:grid;grid-template-columns:1fr 34px 40px 34px;align-items:center;gap:6px;padding:6px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
@@ -98,7 +98,7 @@
 .csc{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start;animation:fadein .25s}
 .csc>img{width:100%;border-radius:8px;box-shadow:0 6px 18px #000b}
 .csi{display:flex;flex-direction:column;gap:5px;min-width:0}
-.csi>b{font-family:Cinzel,serif;font-size:17px;color:var(--ivory)}
+.csi>b{font-family:var(--font-display);font-size:17px;color:var(--ivory)}
 .csi>small{color:var(--muted)}
 .cshave{font-size:13px;color:#9be9e0}
 .csbtns{display:flex;flex-wrap:wrap;gap:6px}
@@ -159,7 +159,7 @@
 .cohseg{align-self:flex-start}
 .cohc{color:var(--muted);font-size:13px}
 .cohtop{display:flex;align-items:baseline;gap:10px}
-.cohtop b{font-family:Cinzel,serif;font-size:20px;color:var(--ivory);font-variant-numeric:tabular-nums}
+.cohtop b{font-family:var(--font-display);font-size:20px;color:var(--ivory);font-variant-numeric:tabular-nums}
 .cohtop span{font-size:12.5px;color:var(--muted)}
 .cohtop span.up{color:var(--ok)}
 .cohtop span.down{color:var(--err)}
@@ -196,7 +196,7 @@
 .cosum.click:hover{border-color:#e6c67f}
 .cosv{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .cosv small{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:#c8aa6e}
-.cosv b{font-family:Cinzel,serif;font-size:28px;line-height:1.1;color:#fff4cf;font-variant-numeric:tabular-nums}
+.cosv b{font-family:var(--font-display);font-size:28px;line-height:1.1;color:#fff4cf;font-variant-numeric:tabular-nums}
 .cosv span{font-size:12.5px;color:var(--muted)}
 .cosum .btn{flex:none}
 .cosum .btn svg{width:16px;height:16px}
