@@ -9,12 +9,20 @@ import { app } from './state';
 /* ================= Datos de cartas ================= */
 export let CARDS = [];
 
-/** ¿Ya terminó (bien o mal) la carga de riftcodex? Hasta entonces OpenRift no arma el catálogo solo. */
+/** ¿Ya terminó (bien o mal) la carga de riftcodex? Hasta entonces el catálogo es provisional, solo de OpenRift. */
 let API_DONE=false;
-/** GET con límite de tiempo: si riftcodex se queda colgado no deja la app sin cartas. */
-function getJSON(url,ms=15000){
+/** GET con límite de tiempo y un reintento: si riftcodex se queda colgado no deja la app sin cartas. */
+function getJSON(url,ms=30000,tries=2){
   const ac=new AbortController(), t=setTimeout(()=>ac.abort(),ms);
-  return fetch(url,{signal:ac.signal}).then(r=>{ if(r.ok===false) throw new Error('HTTP '+r.status); return r.json(); }).finally(()=>clearTimeout(t));
+  return fetch(url,{signal:ac.signal}).then(r=>{ if(r.ok===false) throw new Error('HTTP '+r.status); return r.json(); }).finally(()=>clearTimeout(t))
+    .catch(e=>{ if(tries>1) return getJSON(url,ms,tries-1); throw e; });
+}
+/** las páginas de riftcodex de a pocas: todas juntas lo vuelven lento (unos 6 s por página en nov 2026) y caen por tiempo */
+async function getPages(urls,at=4){
+  const out=new Array(urls.length); let next=0;
+  const worker=async()=>{ while(next<urls.length){ const i=next++; out[i]=await getJSON(urls[i]); } };
+  await Promise.all(Array.from({length:Math.min(at,urls.length)},worker));
+  return out;
 }
 export async function loadCards(){
   // la copia guardada se usa de inmediato aunque sea vieja; si ya pasaron 3 días se actualiza por detrás
@@ -23,7 +31,7 @@ export async function loadCards(){
   try{
     const first = await getJSON(`${API}/cards?size=100&page=1`);
     let items = first.items;
-    const rest = await Promise.all(Array.from({length:first.pages-1},(_,i)=>getJSON(`${API}/cards?size=100&page=${i+2}`)));
+    const rest = await getPages(Array.from({length:first.pages-1},(_,i)=>`${API}/cards?size=100&page=${i+2}`));
     rest.forEach(p=>items=items.concat(p.items));
     CARDS = items.map(x=>({
       name:x.name, n:norm(x.name), type:x.classification.type, sup:x.classification.supertype,
@@ -43,7 +51,7 @@ export async function loadCards(){
     CARDS=[]; ready();
   }
 }
-export function ready(){ mergeOpenRift(); const rc=CARDS.filter(c=>c.src!=='openrift').length; setStatus((rc?`${rc} cartas de riftcodex · `:`riftcodex no responde · `)+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
+export function ready(){ mergeOpenRift(); const rc=CARDS.filter(c=>c.src!=='openrift').length; cache.clear(); setStatus((rc?`${rc} cartas de riftcodex · `:`riftcodex no responde · `)+(OR.byCode.size?`${OR.byCode.size} de OpenRift como respaldo`:'sin OpenRift (ejecuta npm run catalogo)'), 'ok'); BYCODE=null; CATALOG=null; document.dispatchEvent(new Event('rb:cards')); if(app.R){ app.R.layoutKey=''; rJump(app.R.i); } else run(); }
 export let BYCODE=null;
 export function cardByCode(code,name,imageUrl){
   if(!code && (imageUrl || isToken(name))) return withCustom(tokenCard(name,imageUrl), imgKey(code,name), name);
@@ -153,6 +161,13 @@ export function findCardRaw(name){
 
 export function init() {
   fetch(pub('openrift-catalog.json')).then(r=>r.ok?r.json():null).then(cat=>{
-    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null; if(API_DONE) ready(); else document.dispatchEvent(new Event('rb:cards'));
+    if(!cat) return; OR_CAT=cat; OR=buildOpenRiftIndex(cat,norm); cache.clear(); BYCODE=null;
+    if(API_DONE) ready();
+    else {
+      // mientras riftcodex sigue cargando, OpenRift ya arma el catálogo: los mazos tienen leyenda y cartas desde el principio
+      // (cuando llega riftcodex, ready() rehace CARDS con sus datos y OpenRift vuelve a ser solo el respaldo)
+      mergeOpenRift(); CATALOG=null;
+      document.dispatchEvent(new Event('rb:cards'));
+    }
   }).catch(()=>{});
 }
