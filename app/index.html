@@ -459,8 +459,8 @@ Keys: Space play/pause · ←/→ step · Home · H editor
 </div>
 <!-- intercambios: lo que me sobra, lo que busco y el cruce con la lista de otro (src/app/trade.js) -->
 <div id="trade" hidden>
-  <header class="mstop">
-    <button class="btn ico" id="trClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+  <header class="appbar mstop">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <div class="mstitle"><b>Intercambios</b><small>Lo que te sobra y lo que buscas</small></div>
     <button class="btn primary" id="trShareBtn"><svg class="i"><use href="#i-export"/></svg> <span>Compartir mi lista</span></button>
   </header>
@@ -474,8 +474,8 @@ Keys: Space play/pause · ←/→ step · Home · H editor
 </div>
 <!-- en la mesa: leer en inglés la carta del rival (src/app/table.js) -->
 <div id="mesa" hidden>
-  <header class="mstop">
-    <button class="btn ico" id="msClose" title="Cerrar" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+  <header class="appbar mstop">
+    <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <div class="mstitle"><b>En la mesa</b><small id="msDeck"></small></div>
     <div class="mschips" id="msChips"></div>
     <button class="btn mini msreset" id="msReset" title="Empezar de cero: mazo, leyenda rival, cartas, reloj, moneda y dado"><svg class="i"><use href="#i-replay"/></svg><span>Reiniciar</span></button>

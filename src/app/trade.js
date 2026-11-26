@@ -174,7 +174,6 @@ function setName() { const v = $('#trName')?.value.trim().slice(0, 40) ?? S.name
 
 export function init() {
   $('#coTrade').onclick = () => openTrade('have');
-  $('#trClose').onclick = closeTrade;
   $('#trShareBtn').onclick = openShare;
   const root = $('#trade');
   root.addEventListener('click', e => {

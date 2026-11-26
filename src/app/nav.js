@@ -1,25 +1,32 @@
-// Navegación entre las secciones: Inicio, Partida, Mazos y Colección.
-// - Pestañas visibles en la barra de cada sección (Inicio, Partida, Mazos, Colección), la actual en dorado.
+// Navegación entre las secciones: Inicio, Partida, Mazos, Colección, En la mesa e Intercambios.
+// - Pestañas visibles en la barra de cada sección, la actual en dorado.
 // - Un menú desplegable ("◆ Riftviewer ▾") con lo demás: cuenta, guías e idioma (y las secciones, en el teléfono).
-// - Cada sección tiene su dirección (#/inicio, #/partida, #/mazos, #/coleccion): funcionan "atrás", recargar y los enlaces.
+// - Cada sección tiene su dirección (#/inicio, #/partida, #/mazos, #/coleccion, #/mesa, #/intercambios): funcionan "atrás", recargar y los enlaces.
 //   La dirección se mantiene al día sola, también cuando se cambia de sección por otros botones (tarjetas del inicio, recientes…).
 import { $, ic } from './base';
 import { LANG, langSwitchHTML } from '../i18n/i18n';
 import { hideCollection, showCollection } from './collection';
 import { hideDecks, showDecks } from './decks';
 import { DOC, hideHome, showHome } from './shell';
+import { closeTable, openTable } from './table';
+import { closeTrade, openTrade } from './trade';
 import { esc } from './utils';
 
-export const ROUTES = ['inicio', 'partida', 'mazos', 'coleccion'];
+// "En la mesa" e "Intercambios" se abren encima de la sección de abajo; como secciones se comportan igual que las demás
+export const ROUTES = ['inicio', 'partida', 'mazos', 'coleccion', 'mesa', 'intercambios'];
 const ITEMS = [
   { r: 'inicio', icon: 'home', label: 'Inicio', sub: () => 'Todo Riftviewer: mazos, mesa, colección y videos' },
   { r: 'partida', icon: 'replay', label: 'Partida', sub: () => DOC.kind ? `${DOC.kind === 'replay' ? 'Replay' : 'Guion'} · ${DOC.name}` : 'Abre un replay o un guion primero' },
   { r: 'mazos', icon: 'cards', label: 'Mazos', sub: () => 'Construye, revisa y comparte tus mazos' },
   { r: 'coleccion', icon: 'binder', label: 'Colección', sub: () => 'Tus cartas, el escáner y su valor' },
+  { r: 'mesa', icon: 'camera', label: 'En la mesa', sub: () => 'Lee en inglés las cartas del rival en una partida en persona' },
+  { r: 'intercambios', icon: 'flip', label: 'Intercambios', sub: () => 'Lo que te sobra y lo que buscas' },
 ];
 
 /** La sección que se ve ahora. */
 export function current() {
+  if (!$('#mesa').hidden) return 'mesa';
+  if (!$('#trade').hidden) return 'intercambios';
   if ($('#home').classList.contains('show')) return 'inicio';
   if (!$('#collb').hidden) return 'coleccion';
   if (!$('#deckb').hidden) return 'mazos';
@@ -32,6 +39,12 @@ export function go(route) {
   if (route === 'partida' && !DOC.kind) route = 'inicio';
   closeMenu();
   if (route === current() && route !== 'inicio') return;
+  // las dos que van encima se cierran al ir a otra (la mesa suelta el escáner y deja apagar la pantalla)
+  if (route !== 'mesa' && !$('#mesa').hidden) closeTable();
+  if (route !== 'intercambios' && !$('#trade').hidden) closeTrade();
+  if (route === 'mesa') { openTable(); return; }
+  if (route === 'intercambios') { openTrade('have'); return; }
+  if (route === current() && route !== 'inicio') return;   // cerrar la de encima ya dejó a la vista la sección pedida
   if (route === 'inicio') { hideDecks(); hideCollection(); showHome(); }
   else if (route === 'partida') { hideDecks(); hideCollection(); hideHome(); }
   else if (route === 'mazos') { hideCollection(); showDecks(); }
@@ -130,6 +143,8 @@ export function init() {
   obs.observe($('#home'), { attributes: true, attributeFilter: ['class'] });
   obs.observe($('#deckb'), { attributes: true, attributeFilter: ['hidden'] });
   obs.observe($('#collb'), { attributes: true, attributeFilter: ['hidden'] });
+  obs.observe($('#mesa'), { attributes: true, attributeFilter: ['hidden'] });
+  obs.observe($('#trade'), { attributes: true, attributeFilter: ['hidden'] });
   addEventListener('popstate', onHistory);
 
   // al cargar: abrir la sección de la dirección (#/mazos, #/coleccion…)

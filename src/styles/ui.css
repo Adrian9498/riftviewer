@@ -50,7 +50,7 @@ input[type=range]{accent-color:var(--acc)}
 .navtab:disabled{opacity:.4;cursor:default}
 .navtab:focus-visible{outline:2px solid var(--acc);outline-offset:-4px}
 .appbar:has(.navtabs) .navsec{display:none}
-@media (max-width:1100px){ .navtab span{display:none} .navtab{padding:0 11px} }
+@media (max-width:1320px){ .navtab span{display:none} .navtab{padding:0 11px} }
 @media (max-width:760px){ .navtabs{display:none} }
 #topbar .logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:2px;background:var(--ui-goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0 4px}
 .lmark{width:22px;height:22px;flex:none;background:var(--ui-goldgrad);-webkit-mask:url(../assets/fx/magic-03.png) center/contain no-repeat;mask:url(../assets/fx/magic-03.png) center/contain no-repeat}

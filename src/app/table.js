@@ -339,7 +339,6 @@ function render() {
 
 export function init() {
   $('#hMesa').onclick = () => openTable();
-  $('#msClose').onclick = closeTable;
   $('#msScan').onclick = () => scan();
   $('#mesa').addEventListener('click', e => {
     if (!M) return;

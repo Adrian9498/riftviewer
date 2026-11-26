@@ -33,7 +33,7 @@ describe('navegación', () => {
   it('el menú lista las secciones, marca la actual y desactiva Partida si no hay una abierta', () => {
     ($('#collb [data-nav]') as HTMLButtonElement).click();
     expect($('#navmenu').hidden).toBe(false);
-    expect([...document.querySelectorAll('#navmenu [data-go]')].map(b => (b as HTMLElement).dataset.go)).toEqual(['inicio', 'partida', 'mazos', 'coleccion']);
+    expect([...document.querySelectorAll('#navmenu [data-go]')].map(b => (b as HTMLElement).dataset.go)).toEqual(['inicio', 'partida', 'mazos', 'coleccion', 'mesa', 'intercambios']);
     expect($('#navmenu .navit.on')!.dataset.go).toBe('coleccion');
     expect(($('#navmenu [data-go="partida"]') as HTMLButtonElement).disabled).toBe(true);
     // Esc lo cierra
@@ -72,6 +72,26 @@ describe('navegación', () => {
     await tick();
     expect($('#home').classList.contains('show')).toBe(true);
     expect(location.hash).toBe('#/inicio');
+    expect(errors).toEqual([]);
+  });
+
+  it('las pestañas de la barra llevan a Intercambios y a En la mesa, y las cierran al ir a otra sección', async () => {
+    expect(document.querySelectorAll('.appbar .navtabs').length).toBeGreaterThanOrEqual(5);
+    ($('#deckb .navtab[data-tab="intercambios"]') as HTMLButtonElement).click();
+    await tick();
+    expect($('#trade').hidden).toBe(false);
+    expect(location.hash).toBe('#/intercambios');
+    expect($('#trade .navtab.on')!.dataset.tab).toBe('intercambios');
+    ($('#trade .navtab[data-tab="mesa"]') as HTMLButtonElement).click();
+    await tick();
+    expect($('#trade').hidden).toBe(true);
+    expect($('#mesa').hidden).toBe(false);
+    expect(location.hash).toBe('#/mesa');
+    ($('#mesa .navtab[data-tab="mazos"]') as HTMLButtonElement).click();
+    await tick();
+    expect($('#mesa').hidden).toBe(true);
+    expect($('#deckb').hidden).toBe(false);
+    expect(location.hash).toBe('#/mazos');
     expect(errors).toEqual([]);
   });
 });
