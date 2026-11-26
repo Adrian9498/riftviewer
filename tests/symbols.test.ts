@@ -25,4 +25,12 @@ describe('símbolos del texto de cartas', () => {
     expect(cardTextHTML(null, 'A < B :rb_exhaust:\nC')).toBe('A &lt; B <span class="sym sm-exhaust" title="Agotar"><svg><use href="#s-exhaust"/></svg></span><br>C');
     expect(cardTextHTML(null, 'Pay :rb_raro_x:')).toBe('Pay raro x');
   });
+
+  it('las entidades que ya trae riftcodex no se escapan dos veces (Undying Legion)', () => {
+    const rich = cardTextHTML('<p>[Legion][&gt;] You may play me from your trash.</p>');
+    expect(rich).toBe('<p>[Legion][&gt;] You may play me from your trash.</p>');
+    expect(cardTextHTML(null, '[Legion][&gt;] Tom &amp; Jerry &#39;x&#39;')).toBe('[Legion][&gt;] Tom &amp; Jerry \'x\'');
+    // una etiqueta escrita con entidades sigue siendo texto, nunca HTML
+    expect(cardTextHTML('<p>&lt;img src=x onerror=alert(1)&gt;</p>')).toBe('<p>&lt;img src=x onerror=alert(1)&gt;</p>');
+  });
 });

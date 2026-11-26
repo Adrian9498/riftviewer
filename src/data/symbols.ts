@@ -4,6 +4,14 @@
 // pasar etiquetas de formato sin atributos y los códigos se cambian por iconos del set de index.html.
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+/** riftcodex ya manda algunas entidades ("[Legion][&gt;]"): se pasan a su carácter para que esc() no las escape dos veces. */
+const NAMED: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const unent = (s: string) => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+  if (e[0] === '#') { const n = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : +e.slice(1); return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m; }
+  return NAMED[e.toLowerCase()] ?? m;
+});
+/** texto de la carta a HTML seguro: primero sin entidades, después escapado una sola vez */
+const safe = (s: string) => esc(unent(s));
 
 export const DOMAINS: Record<string, string> = { fury: 'Furia', calm: 'Calma', mind: 'Mente', body: 'Cuerpo', chaos: 'Caos', order: 'Orden', rainbow: 'Cualquier dominio' };
 
@@ -31,9 +39,9 @@ export function cardTextHTML(rich?: string | null, plain?: string | null): strin
     const out = rich.split(/(<\/?[a-zA-Z]+\s*\/?>)/).map(part => {
       const t = /^<(\/?)([a-zA-Z]+)\s*\/?>$/.exec(part);
       if (t && ALLOWED.has(t[2].toLowerCase())) return `<${t[1]}${t[2].toLowerCase()}>`;
-      return symbols(esc(part));
+      return symbols(safe(part));
     });
     return out.join('');
   }
-  return symbols(esc(plain || '')).replace(/\n/g, '<br>');
+  return symbols(safe(plain || '')).replace(/\n/g, '<br>');
 }
