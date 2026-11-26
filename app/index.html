@@ -73,7 +73,7 @@
   <symbol id="s-rune" viewBox="0 0 24 24"><path d="M12 2.5l8 4.6v9.8l-8 4.6-8-4.6V7.1z"/><path d="M12 12v9.5M4 7.1l8 4.9 8-4.9" stroke-width="1.3"/></symbol>
 </defs></svg>
 <div id="app">
-  <header id="topbar">
+  <header id="topbar" class="appbar">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <button class="btn ico" id="bPanel" title="Mostrar u ocultar el panel lateral (P)"><svg class="i"><use href="#i-panel"/></svg></button>
     <div id="docname"></div>
@@ -352,7 +352,7 @@ Keys: Space play/pause · ←/→ step · Home · H editor
 <!-- Constructor de mazos -->
 <div id="deckb" hidden data-view="lib">
   <!-- Mis mazos: la galería -->
-  <header class="dbtop" data-v="lib">
+  <header class="appbar dbtop" data-v="lib">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <span class="navsec">Mis mazos</span>
     <span class="dbflex"></span>
@@ -373,7 +373,7 @@ Keys: Space play/pause · ←/→ step · Home · H editor
     </section>
   </div>
   <!-- Un mazo: toda su información -->
-  <header class="dbtop" data-v="detail">
+  <header class="appbar dbtop" data-v="detail">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <button class="btn" id="ddBack"><svg class="i flipx"><use href="#i-chevron"/></svg> <span>Mis mazos</span></button>
     <span class="dbflex"></span>
@@ -387,7 +387,7 @@ Keys: Space play/pause · ←/→ step · Home · H editor
   </header>
   <div class="ddwork" id="ddBody" data-v="detail"></div>
   <!-- Constructor -->
-  <header class="dbtop" data-v="edit">
+  <header class="appbar dbtop" data-v="edit">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <button class="btn" id="dbBack" title="Terminar de editar y ver el mazo"><svg class="i"><use href="#i-check"/></svg> <span>Listo</span></button>
     <input type="text" id="dbName" placeholder="Nombre del mazo" maxlength="60">
@@ -427,7 +427,7 @@ Keys: Space play/pause · ←/→ step · Home · H editor
 </div>
 <!-- Colección -->
 <div id="collb" hidden>
-  <header class="dbtop">
+  <header class="appbar dbtop">
     <button class="navbtn" data-nav aria-haspopup="menu" aria-expanded="false" title="Ir a otra sección"><span class="lmark"></span><span class="navname">Riftviewer</span><svg class="i navchev"><use href="#i-chevron"/></svg></button>
     <span class="navsec">Colección</span>
     <span class="dbflex"></span>

@@ -16,9 +16,11 @@ h1,h2,h3{font-family:var(--font-display);line-height:1.12;margin:0}
 .lnav.solid{background:#060b14d9;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--line);padding-top:10px;padding-bottom:10px}
 .lbrand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:2px}
 .lbrand span:last-child{background:var(--gold-metal);-webkit-background-clip:text;background-clip:text;color:transparent}
-.llinks{display:flex;gap:26px;margin-left:auto}
+.llinks{display:flex;align-items:center;gap:18px;margin-left:auto}
 .llinks a{text-decoration:none;color:var(--soft);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;transition:color .2s}
 .llinks a:hover{color:var(--acc2)}
+/* rombito dorado entre enlaces */
+.llinks a+a::before{content:"";display:inline-block;width:4px;height:4px;margin:0 18px 0 0;vertical-align:middle;transform:translateY(-2px) rotate(45deg);background:var(--accdk)}
 
 /* ---------- botones ---------- */
 /* esquinas cortadas al estilo Hextech; el secundario dibuja su filo dorado con ::before */

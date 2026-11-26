@@ -1,5 +1,6 @@
 // Navegación entre las secciones: Inicio, Partida, Mazos y Colección.
-// - Un menú desplegable ("◆ Riftviewer ▾") en la barra de cada sección.
+// - Pestañas visibles en la barra de cada sección (Inicio, Partida, Mazos, Colección), la actual en dorado.
+// - Un menú desplegable ("◆ Riftviewer ▾") con lo demás: cuenta, guías e idioma (y las secciones, en el teléfono).
 // - Cada sección tiene su dirección (#/inicio, #/partida, #/mazos, #/coleccion): funcionan "atrás", recargar y los enlaces.
 //   La dirección se mantiene al día sola, también cuando se cambia de sección por otros botones (tarjetas del inicio, recientes…).
 import { $, ic } from './base';
@@ -55,6 +56,20 @@ function onHistory() {
   if (now !== r) history.replaceState(null, '', location.pathname + location.search + '#/' + now);
 }
 
+/* ---------- pestañas ---------- */
+function tabsHTML() {
+  const cur = current();
+  return ITEMS.map(it => {
+    const off = it.r === 'partida' && !DOC.kind, on = it.r === cur;
+    return `<button type="button" class="navtab${on ? " on" : ""}" data-tab="${it.r}" title="${esc(it.sub())}" aria-label="${it.label}"${off ? " disabled" : ""}${on ? ' aria-current="page"' : ""}>${ic(it.icon)}<span>${it.label}</span></button>`;
+  }).join("");
+}
+/** Pone las pestañas al día en todas las barras (la sección actual y si hay partida abierta). */
+export function renderTabs() {
+  const html = tabsHTML();
+  document.querySelectorAll(".navtabs").forEach(n => { n.innerHTML = html; });
+}
+
 /* ---------- menú ---------- */
 let opener = null;
 function menuHTML() {
@@ -87,7 +102,12 @@ export function init() {
   const m = document.createElement('div');
   m.id = 'navmenu'; m.className = 'navmenu'; m.setAttribute('role', 'menu'); m.hidden = true;
   document.body.appendChild(m);
+  // una fila de pestañas junto al botón de cada barra
+  document.querySelectorAll('.appbar [data-nav]').forEach(b => b.insertAdjacentHTML('afterend', '<nav class="navtabs" aria-label="Secciones"></nav>'));
+  renderTabs();
   document.addEventListener('click', e => {
+    const t = e.target.closest('[data-tab]');
+    if (t) { if (!t.disabled) go(t.dataset.tab); return; }
     const b = e.target.closest('[data-nav]');
     if (b) { openMenu(b); return; }
     if (!m.hidden && !e.target.closest('#navmenu')) closeMenu();
@@ -106,7 +126,7 @@ export function init() {
   addEventListener('resize', closeMenu);
 
   // la dirección sigue a la sección, la cambie quien la cambie
-  const obs = new MutationObserver(() => syncHash());
+  const obs = new MutationObserver(() => { syncHash(); renderTabs(); });
   obs.observe($('#home'), { attributes: true, attributeFilter: ['class'] });
   obs.observe($('#deckb'), { attributes: true, attributeFilter: ['hidden'] });
   obs.observe($('#collb'), { attributes: true, attributeFilter: ['hidden'] });
