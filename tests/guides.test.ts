@@ -78,8 +78,8 @@ describe.each(GUIDES)('guía de $short', g => {
   });
   it('las rutas relativas llegan a la raíz del sitio desde cada idioma', () => {
     const tpl = readFileSync(resolve(process.cwd(), `guides/${g.slug}/index.html`), 'utf8');
-    expect(buildGuidePage(tpl, { guide: g, lang: 'en' })).toContain('href="../../app/"');
-    expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain('href="../../../app/"');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'en' })).toContain('href="../../app/#/inicio"');
+    expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain('href="../../../app/#/inicio"');
     expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain('data-src="../../../app/?embed=1#play=');
     expect(buildGuidePage(tpl, { guide: g, lang: 'en' })).toContain(`href="../../es/guides/${g.slug}/"`);
     expect(buildGuidePage(tpl, { guide: g, lang: 'es' })).toContain(`href="../../../guides/${g.slug}/"`);

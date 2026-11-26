@@ -41,8 +41,8 @@ export function pageGuide(file: string): GuidePage | undefined {
 }
 
 const CHROME = {
-  en: { guides: 'Guides', app: 'Open the app', home: 'Home', lists: 'Tournament lists:', imgs: '· card images:', tm: '. Riftbound is a trademark of Riot Games; Riftviewer is not affiliated with Riot Games.', privacy: 'Privacy', locale: 'en_US' },
-  es: { guides: 'Guías', app: 'Abrir la app', home: 'Inicio', lists: 'Listas de torneo:', imgs: '· imágenes de cartas:', tm: '. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.', privacy: 'Privacidad', locale: 'es_MX' },
+  en: { guides: 'Guides', app: 'Open the app', home: 'Home', tabs: [['inicio', 'Home'], ['mazos', 'Decks'], ['coleccion', 'Collection'], ['mesa', 'At the table'], ['intercambios', 'Trades']], sections: 'Sections', lists: 'Tournament lists:', imgs: '· card images:', tm: '. Riftbound is a trademark of Riot Games; Riftviewer is not affiliated with Riot Games.', privacy: 'Privacy', locale: 'en_US' },
+  es: { guides: 'Guías', app: 'Abrir la app', home: 'Inicio', tabs: [['inicio', 'Inicio'], ['mazos', 'Mazos'], ['coleccion', 'Colección'], ['mesa', 'En la mesa'], ['intercambios', 'Intercambios']], sections: 'Secciones', lists: 'Listas de torneo:', imgs: '· imágenes de cartas:', tm: '. Riftbound es una marca de Riot Games; Riftviewer no está afiliado a Riot Games.', privacy: 'Privacidad', locale: 'es_MX' },
 };
 
 const INDEX = {
@@ -127,7 +127,7 @@ export function buildGuidePage(html: string, p: GuidePage, root?: string): strin
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>${langScript}</script>
 ${headTags(p, find)}
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#060b14">
 <link rel="icon" type="image/png" sizes="32x32" href="${up}favicon-32.png">
 <link rel="apple-touch-icon" href="${up}apple-touch-icon.png">
 <link rel="manifest" href="${up}manifest.webmanifest">
@@ -139,9 +139,8 @@ ${headTags(p, find)}
 <body>
 <header class="gtop">
   <a class="gbrand" href="${up}"><span class="gmark"></span>Riftviewer</a>
-  <a class="gnav" href="${toIndex}">${c.guides}</a>
+  <nav class="gtabs" aria-label="${c.sections}">${c.tabs.map(([r, label]) => `<a href="${up}app/#/${r}">${label}</a>`).join('')}<a href="${toIndex}" class="on" aria-current="page">${c.guides}</a></nav>
   <span class="langsw" translate="no" role="group" aria-label="Language / Idioma">${sw('en')}${sw('es')}</span>
-  <a class="gcta" href="${up}app/">${c.app}</a>
 </header>
 <nav class="gcrumbs" aria-label="Breadcrumb"><a href="${up}">${c.home}</a> › ${g ? `<a href="${toIndex}">${c.guides}</a> › <span aria-current="page">${esc(g.short)}</span>` : `<span aria-current="page">${c.guides}</span>`}</nav>
 <main id="gmain">

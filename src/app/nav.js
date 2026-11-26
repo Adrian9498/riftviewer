@@ -70,12 +70,15 @@ function onHistory() {
 }
 
 /* ---------- pestañas ---------- */
+const guidesHref = () => (LANG === 'es' ? '../es/guides/' : '../guides/');
 function tabsHTML() {
   const cur = current();
   return ITEMS.map(it => {
     const off = it.r === 'partida' && !DOC.kind, on = it.r === cur;
     return `<button type="button" class="navtab${on ? " on" : ""}" data-tab="${it.r}" title="${esc(it.sub())}" aria-label="${it.label}"${off ? " disabled" : ""}${on ? ' aria-current="page"' : ""}>${ic(it.icon)}<span>${it.label}</span></button>`;
-  }).join("");
+  }).join("")
+    // Guías es otra página (pública): un enlace, no una sección de la app
+    + `<a class="navtab" href="${guidesHref()}" title="Vuélvete especialista en una leyenda" aria-label="Guías">${ic('book')}<span>Guías</span></a>`;
 }
 /** Pone las pestañas al día en todas las barras (la sección actual y si hay partida abierta). */
 export function renderTabs() {
@@ -93,7 +96,7 @@ function menuHTML() {
       ${ic(it.icon)}<span><b>${it.label}</b><small>${esc(it.sub())}</small></span>${on ? ic('check') : ''}</button>`;
   }).join('')
     + (acct && !acct.hidden ? `<div class="navsep"></div><button role="menuitem" class="navit" data-acct>${ic('user')}<span><b>${esc(acct.textContent.trim() || 'Tu cuenta')}</b><small>Cuenta y sincronización</small></span></button>` : '')
-    + `<div class="navsep"></div><a role="menuitem" class="navit" href="../guides/">${ic('book')}<span><b>Guías</b><small>Vuélvete especialista en una leyenda</small></span></a>`
+    + `<div class="navsep"></div><a role="menuitem" class="navit" href="${guidesHref()}">${ic('book')}<span><b>Guías</b><small>Vuélvete especialista en una leyenda</small></span></a>`
     + `<div class="navsep"></div><div class="navlang"><span>${LANG === 'en' ? 'Language' : 'Idioma'}</span>${langSwitchHTML()}</div>`;
 }
 export function openMenu(btn) {

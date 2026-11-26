@@ -9,18 +9,18 @@ a{color:var(--acc2)}
 img{max-width:100%;height:auto}
 html{scrollbar-color:#c8aa6e55 transparent;scrollbar-width:thin;scroll-behavior:smooth}
 
-.gtop{display:flex;align-items:center;gap:14px;max-width:1080px;margin:0 auto;padding:14px 16px}
+.gtop{display:flex;align-items:center;gap:14px;max-width:1080px;margin:0 auto 6px;padding:14px 16px;border-bottom:1px solid var(--line)}
 .gbrand{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;letter-spacing:2px;text-decoration:none;background:var(--gold-metal);-webkit-background-clip:text;background-clip:text;color:transparent}
 .gmark{width:22px;height:22px;background:var(--gold-metal);-webkit-mask:url(../assets/fx/magic-03.png) center/contain no-repeat;mask:url(../assets/fx/magic-03.png) center/contain no-repeat}
-.gnav{color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
-.gnav:hover{color:var(--ivory)}
-.gtop .langsw{margin-left:auto}
-.gcta{position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;min-height:40px;box-sizing:border-box;padding:0 16px;border:0;border-radius:0;background:#c8aa6e99;color:var(--ivory);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap;clip-path:var(--cut-sm);transition:background .15s}
-.gcta::before{content:"";position:absolute;inset:1px;z-index:-1;background:#15202f;clip-path:var(--cut-sm-in);transition:background .15s}
-.gcta:hover{background:var(--acc2)}
-.gcta:hover::before{background:#1d2a3c}
-.gcta:focus-visible{outline:2px solid var(--ivory);outline-offset:-5px}
-@media (max-width:560px){ .gcta{display:none} }
+/* las mismas secciones que la barra de la app (enlaces a /app/#/…); Guías es la actual */
+.gtabs{display:flex;align-self:stretch;align-items:stretch;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;margin:-14px 0}
+.gtabs::-webkit-scrollbar{display:none}
+.gtabs a{display:inline-flex;align-items:center;padding:0 12px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap;box-shadow:inset 0 -2px 0 transparent;transition:color .15s,box-shadow .15s}
+.gtabs a:hover{color:var(--text)}
+.gtabs a.on{color:var(--acc2);box-shadow:inset 0 -2px 0 var(--acc)}
+.gtabs a:focus-visible{outline:2px solid var(--acc);outline-offset:-4px}
+.gtop .langsw{flex:none}
+@media (max-width:560px){ .gtop{flex-wrap:wrap} .gtabs{order:3;flex-basis:100%;margin:0 -16px -14px;padding:0 4px;border-top:1px solid var(--line)} .gtabs a{min-height:44px} .gtop .langsw{margin-left:auto} }
 
 main{max-width:1080px;margin:0 auto;padding:0 16px 40px}
 .guide h1,.guide h2,.guide h3{font-family:var(--font-display);letter-spacing:1px;line-height:1.2}
